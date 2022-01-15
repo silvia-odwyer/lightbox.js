@@ -51,10 +51,7 @@ export const Image = ({children, ...props}) => {
             </motion.div>
           )}
 
-            <motion.div
-              key="imgMotionElem"
-
-            >
+            <motion.div key="imgMotionElem">
  
                 <motion.img
                   {...props}
