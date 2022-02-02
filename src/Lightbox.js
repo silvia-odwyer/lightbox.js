@@ -23,14 +23,9 @@ const variants = {
 };
 
 export const Lightbox = (props) => {
-  const [indexNum, setIndexNum] = useState(false);
   const [slideIndex, setSlideIndex] = useState(1);
   const [currentCaption, setCurrentCaption] = useState(false);
   const [showModal, setShowModal] = useState(true);
-
-  const onSlideshowClose = () => {
-    setIndexNum(false);
-  }
 
   const openModal = (num) => {
     // document.getElementById("modal").style.display = "block";
@@ -63,7 +58,6 @@ export const Lightbox = (props) => {
     else if (num < 1) {
         setSlideIndex(props.images.length);
     }
-    // console.log("slide index is ", slideIndex)
   }
 
     const [backgroundColor, setBackgroundColor] = React.useState(props.backgroundColor ? props.backgroundColor : themes["day"]);
@@ -81,7 +75,7 @@ export const Lightbox = (props) => {
       }, [state]);
 
     return (
-        <div>
+      <AnimatePresence initial={false}>
             <div className="flex">
                 {props.images.map((img, index) => (
                   <div style={{margin: "0.2em", cursor: "pointer"}}>
@@ -90,15 +84,23 @@ export const Lightbox = (props) => {
                 ))}
             </div>
 
-            { showModal ? <div id="modal" className="modal h-screen w-screen">  
+            { showModal !== false && (  <motion.div id="modal" className="modal h-screen w-screen" 
+                              initial={{ opacity: 0 }}
+                              exit={{ opacity: 0, } }
+                              animate={{ opacity: 1,  }}
+                              transition={{
+                                type: "spring", 
+                                duration: 0.45 ,
+                              }}
+                              key="imgOverlay">  
                 <span className="closeIcon" onClick={() => {closeModal(1) }}>&times;</span>
                 <div className="modalContent" style={{margin: 0, padding: 0}}>
                     
                     {props.images.map((img, index) => (
                       <section
                       className={"flex justify-center items-center imageSlide fader mx-auto " + (slideIndex === index + 1 ? 'show' : 'hidden')}>
-                        <div className="number_text">{index + 1} / {props.images.length}</div>
-                        <img style={{maxWidth: "70vw", maxHeight: "60vh"}} className="mx-auto " src={img.src} alt={img.caption}  />
+                        {/* <div className="number_text">{index + 1} / {props.images.length}</div> */}
+                        <img style={{maxWidth: "85vw", maxHeight: "70vh"}} className="mx-auto " src={img.src} alt={img.caption}  />
                       </section>
                     ))}
 
@@ -117,9 +119,9 @@ export const Lightbox = (props) => {
                     </div>
 
             </div>
-          </div>  : null }
+          </motion.div>  ) }
 
-        </div>
+        </AnimatePresence>
 
   );
 
