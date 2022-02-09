@@ -10,6 +10,12 @@ The following features are provided:
 - Five pre-built lightbox designs with variations in UI and theme
 - Theming and customization options
 - Entry/exit animations
+- No external CSS required
+
+## Features to be added
+- Keyboard shortcuts
+- Zooming functionality (with mobile-support also)
+- Loading indicators
 
 [![NPM](https://img.shields.io/npm/v/lightbox.js.svg)](https://www.npmjs.com/package/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
