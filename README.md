@@ -9,11 +9,11 @@ The following features are provided:
 - Fully responsive for desktop and mobile devices
 - Five pre-built lightbox designs with variations in UI and theme
 - Theming and customization options
+- Keyboard shortcuts
 - Entry/exit animations
 - No external CSS required
 
 ## Features to be added
-- Keyboard shortcuts
 - Zooming functionality (with mobile-support also)
 - Loading indicators
 
@@ -33,6 +33,12 @@ class Example extends Component {
   }
 }
 ```
+
+## Keyboard Shortcuts
+The lightbox can also be controlled using the keyboard by pressing the following keys:
+- **Left Key**: Moves to previous image
+- **Right key**: Moves to next image
+- **`Esc`**: Closes the lightbox
 
 ## License
 
