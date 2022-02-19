@@ -9,6 +9,7 @@ The following features are provided:
 - Fully responsive for desktop and mobile devices
 - Five pre-built lightbox designs with variations in UI and theme
 - Theming and customization options
+- Slideshow functionality
 - Keyboard shortcuts
 - Entry/exit animations
 - No external CSS required
@@ -34,11 +35,18 @@ class Example extends Component {
 }
 ```
 
-## Keyboard Shortcuts
+## Features
+### Keyboard Shortcuts
 The lightbox can also be controlled using the keyboard by pressing the following keys:
 - **Left Key**: Moves to previous image
 - **Right key**: Moves to next image
 - **`Esc`**: Closes the lightbox
+
+### Slideshow 
+The lightbox component also contains a slideshow feature, which cycles through the images in an automated manner. 
+If you'd like to switch this on, simply click the Play button and the slideshow feature will be enabled.
+
+To pause or stop the slideshow, click the Pause button in the upper-right corner.
 
 ## License
 
