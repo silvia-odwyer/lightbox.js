@@ -31,8 +31,9 @@ const opacityDuration = 0.2;
 export const SlideshowAnim = (props) => {
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0]);
   const [showModal, setShowModal] = useState(true);
-  const imageIndex = wrapNums(0, props.images.length, imgSlideIndex);
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
+  const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
+  const imageIndex = wrapNums(0, images.length, imgSlideIndex);
 
   const keyPressHandler = (event) => {
     let key = event.key;
@@ -101,7 +102,11 @@ export const SlideshowAnim = (props) => {
 
   return (
       <AnimatePresence initial={false}>
-        <ImageGalleryGrid images={props.images} onChange={(imageIndex)=> openModal(imageIndex)}/>
+        {/* <ImageGalleryGrid images={props.images} onChange={(imageIndex)=> openModal(imageIndex)}/> */}
+
+          {props.children.map((elem, index) => (
+            <img {...elem.props} onClick={() => openModal(index) }  />
+          ))}
 
           { showModal !== false && (
             <motion.div 
@@ -117,11 +122,12 @@ export const SlideshowAnim = (props) => {
             >
             <div className="lightboxContainer">
 
-                <section className="iconsHeader">
-                  <div className="closeIcon" onClick={() => {closeModal(1) }}>&times;</div>
+                <section className="iconsHeader flex items-centre justify-centre cursor-pointer text-3xl">
                   <div className="slideshowBtn" onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}>
                     {isSlideshowPlaying ? "⏸" : "▶"}
                   </div>
+                  <div className="closeIconBtn text-5xl" onClick={() => {closeModal(1) }}>&times;</div>
+
                 </section>
                 
                 <div className="next1" onClick={() => updateCurrentSlide(1)}>
@@ -136,7 +142,7 @@ export const SlideshowAnim = (props) => {
                     <motion.img
                     className="slideshowAnimImg"
                     key={imgSlideIndex}
-                    src={props.images[imageIndex].src}
+                    src={images[imageIndex].src}
                     custom={direction}
                     variants={variants}
                     initial="enterImg"

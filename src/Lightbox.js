@@ -52,12 +52,12 @@ export const Lightbox = (props) => {
 
   const showSlides = (num) => {
 
-    // if (num > props.images.length) {
-    //   setSlideIndex(1);
-    // }
-    // else if (num < 1) {
-    //     setSlideIndex(props.images.length);
-    // }
+    if (num > images.length) {
+      setSlideIndex(1);
+    }
+    else if (num < 1) {
+      setSlideIndex(images.length);
+    }
   }
 
     const [backgroundColor, setBackgroundColor] = React.useState(props.backgroundColor ? props.backgroundColor : themes["day"]);
@@ -80,7 +80,9 @@ export const Lightbox = (props) => {
                     <img src={img.src} onClick={() => {openModal(index + 1) }} className="hoverShadow"/>
                   </div>
                 ))} */}
-                {props.children}
+            {props.children.map((elem, index) => (
+              <img {...elem.props} onClick={() => openModal(index) }  />
+            ))}
 
             { showModal !== false && (  <motion.div id="modal" className="modal h-screen w-screen" 
                               initial={{ opacity: 0 }}
