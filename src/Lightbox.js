@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion';
 
@@ -52,37 +52,35 @@ export const Lightbox = (props) => {
 
   const showSlides = (num) => {
 
-    if (num > props.images.length) {
-      setSlideIndex(1);
-    }
-    else if (num < 1) {
-        setSlideIndex(props.images.length);
-    }
+    // if (num > props.images.length) {
+    //   setSlideIndex(1);
+    // }
+    // else if (num < 1) {
+    //     setSlideIndex(props.images.length);
+    // }
   }
 
     const [backgroundColor, setBackgroundColor] = React.useState(props.backgroundColor ? props.backgroundColor : themes["day"]);
     const [state, setState] = React.useState();
+    const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
     
-    React.useEffect(() => {
+    useEffect(() => {
         if (props.theme) {
           if (themes[props.theme]) {
             setBackgroundColor(themes[props.theme]);
           }
         }
         // showSlides(slideIndex)
-        console.log("Show Modal ", showModal);
-
       }, [state]);
 
     return (
       <AnimatePresence initial={false}>
-            <div className="flex">
-                {props.images.map((img, index) => (
+                {/* {images.map((img, index) => (
                   <div style={{margin: "0.2em", cursor: "pointer"}}>
                     <img src={img.src} onClick={() => {openModal(index + 1) }} className="hoverShadow"/>
                   </div>
-                ))}
-            </div>
+                ))} */}
+                {props.children}
 
             { showModal !== false && (  <motion.div id="modal" className="modal h-screen w-screen" 
                               initial={{ opacity: 0 }}
@@ -96,10 +94,9 @@ export const Lightbox = (props) => {
                 <span className="closeIcon" onClick={() => {closeModal(1) }}>&times;</span>
                 <div className="modalContent" style={{margin: 0, padding: 0}}>
                     
-                    {props.images.map((img, index) => (
+                    {images.map((img, index) => (
                       <section
                       className={"flex justify-center items-center imageSlide fader mx-auto " + (slideIndex === index + 1 ? 'show' : 'hidden')}>
-                        {/* <div className="number_text">{index + 1} / {props.images.length}</div> */}
                         <img style={{maxWidth: "85vw", maxHeight: "70vh"}} className="mx-auto " src={img.src} alt={img.caption}  />
                       </section>
                     ))}
@@ -109,13 +106,13 @@ export const Lightbox = (props) => {
                     <a className="nextIcon" onClick={() => {updateSlideIndex(1) }}>&#10095;</a>
 
                     <div className="caption" >
-                        <p>{props.images[slideIndex - 1].caption}</p>
+                        <p>{images[slideIndex - 1].caption}</p> 
                     </div>
 
                     <div className="thumbnails flex justify-centre align-centre gap-4 w-3/5 mx-auto" style={{height: "5vh"}}>
-                      {props.images.map((img, index) => (
+                       {images.map((img, index) => (
                           <img className={"thumbnail " + (slideIndex === index + 1 ? 'active' : '')} style={{height: "8vh", width: "8vw"}} src={img.src} onClick={() => {currentSlide(index + 1) }} alt={img.caption}/>        
-                      ))}
+                      ))} 
                     </div>
 
             </div>
