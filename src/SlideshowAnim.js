@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ImageGalleryGrid } from "./ImageGalleryGrid";
 import {swipePower} from "./mobile-support";
 import {useInterval, wrapNums} from "./utility";
+import { MapInteractionCSS } from 'react-map-interaction';
 
 const variants = {
   enterImg: (direction) => {
@@ -17,6 +17,12 @@ const variants = {
     x: 0,
     opacity: 1
   },
+  zoom: {
+    zIndex: 1,
+    x: -500,
+    opacity: 1,
+    scale: 2,
+  },
   exitImg: (direction) => {
     return {
       zIndex: 0,
@@ -25,8 +31,14 @@ const variants = {
     };
   }
 };
+
 const swipeConfidenceThreshold = 10000;
 const opacityDuration = 0.2;
+const dragAnim = { type: "spring", stiffness: 300, damping: 30 };
+const animTransitionDefault =   {
+  x: {dragAnim},
+  opacity: { duration: opacityDuration }
+}
 
 export const SlideshowAnim = (props) => {
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0]);
@@ -34,6 +46,8 @@ export const SlideshowAnim = (props) => {
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
+  const [isZoomed, setIsZoomed] = useState(false);
+
 
   const keyPressHandler = (event) => {
     let key = event.key;
@@ -52,10 +66,12 @@ export const SlideshowAnim = (props) => {
   };
 
   const updateCurrentSlide = (newDirection) => {
+    setIsZoomed(false);
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
   };
 
   const closeModal = (num) => {
+    setIsZoomed(false)
     setShowModal(false)
   }
 
@@ -71,6 +87,26 @@ export const SlideshowAnim = (props) => {
 
   const stopSlideshow = () => {
     setIsSlideshowPlaying(false);
+  }
+
+  const zoomIn = () => {
+    setIsZoomed(true);
+  }
+
+  const zoomOut = () => {
+    setIsZoomed(false);
+  }
+
+  const handleImgClick = (e) => {
+    if (isZoomed) {
+      zoomOut()
+    }
+    else {
+      console.log("event ", e);
+      console.log("event y ", e.clientY);
+      zoomIn();
+    }
+
   }
 
   const checkAndUpdateSlide = (offset, velocity) => {
@@ -102,10 +138,8 @@ export const SlideshowAnim = (props) => {
 
   return (
       <AnimatePresence initial={false}>
-        {/* <ImageGalleryGrid images={props.images} onChange={(imageIndex)=> openModal(imageIndex)}/> */}
-
           {props.children.map((elem, index) => (
-            <img {...elem.props} onClick={() => openModal(index) }  />
+            <img {...elem.props} onClick={() => openModal(index) } key={index} />
           ))}
 
           { showModal !== false && (
@@ -122,7 +156,9 @@ export const SlideshowAnim = (props) => {
             >
             <div className="lightboxContainer">
 
-                <section className="iconsHeader flex items-centre justify-centre cursor-pointer text-3xl">
+                <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer text-3xl">
+                  <div onClick={() => zoomIn()}>+</div>
+                  <div onClick={() => zoomOut()}>-</div>
                   <div className="slideshowBtn" onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}>
                     {isSlideshowPlaying ? "⏸" : "▶"}
                   </div>
@@ -136,33 +172,35 @@ export const SlideshowAnim = (props) => {
                 <div className="prev1" onClick={() => updateCurrentSlide(-1)}>
                     &#10094;
                 </div>
-
-                <AnimatePresence initial={false} custom={direction}>
-
+                <MapInteractionCSS maxScale={2} minScale={1} disablePan={true}>
+                  <AnimatePresence initial={false} custom={direction}>
                     <motion.img
-                    className="slideshowAnimImg"
-                    key={imgSlideIndex}
-                    src={images[imageIndex].src}
-                    custom={direction}
-                    variants={variants}
-                    initial="enterImg"
-                    animate="centerImg"
-                    exit="exitImg"
-                    transition={{
-                        x: { type: "spring", stiffness: 300, damping: 30 },
-                        opacity: { duration: opacityDuration }
-                    }}
-                    drag="x"
-                    dragElastic={1}
-                    dragConstraints={{ left: 0, right: 0 }}
-                    onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
+                      className={"slideshowAnimImg"}
+                      key={imgSlideIndex}
+                      src={images[imageIndex].src}
+                      id="img"
+                      custom={direction}
+                      variants={variants}
+                      initial="enterImg"
+                      animate={"centerImg"}
+                      exit="exitImg"
+                      transition={ {
+                          x: {type: "spring", stiffness: 300, damping: 30 },
+                          opacity: { duration: opacityDuration }
+                      }}
+                      drag="x"
+                      dragElastic={1}
+                      dragConstraints={{ left: 0, right: 0 }}
+                      onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
                     />
-                </AnimatePresence>
+
+                  </AnimatePresence>
+                </MapInteractionCSS>
 
 
-    </div>
-    </motion.div>
-          )}
+            </div>
+      </motion.div>
+    )}
     </AnimatePresence>
   );
 };
