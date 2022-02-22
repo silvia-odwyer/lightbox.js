@@ -17,6 +17,8 @@ The following features are provided:
 
 ## Features to be added
 - Loading indicators
+- New presets
+- Thumbnails
 
 [![NPM](https://img.shields.io/npm/v/lightbox.js.svg)](https://www.npmjs.com/package/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -35,7 +37,26 @@ class Example extends Component {
 }
 ```
 
+## Types of Lightboxes Available
+Several types of lightboxes have been provided, which have varying features to cater to your project's requirements.
+For instance, a gallery lightbox is provided, which allows users to cycle through images included in the gallery. 
+
+However another lightbox is provided for displaying a single image only.
+
+For further themes and presets, be sure to take a look at the list of available presets below, which incorporate lightboxes 
+of different styles.
+
+
 ## Features
+### Multiple Presets 
+
+Several presets are provided, which offer varying themes and customization options. These include:
+
+- **Slideshow w/ thumbnails**:  A lightbox which displays images along with thumbnails underneath, so that users can navigate to other imagery in the slideshow.
+- **Full-screen lightbox**: A lightbox which displays images at full-screen width and height.
+- **Video lightbox**: Videos can also be displayed.
+- **Sidebar**: A lightbox with a sidebar, where ads or other content can be displayed.
+
 ### Keyboard Shortcuts
 The lightbox can also be controlled using the keyboard by pressing the following keys:
 - **Left Key**: Navigate to previous image
