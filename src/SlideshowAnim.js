@@ -172,10 +172,10 @@ export const SlideshowAnim = (props) => {
                 <div className="prev1" onClick={() => updateCurrentSlide(-1)}>
                     &#10094;
                 </div>
-                <MapInteractionCSS maxScale={2} minScale={1} disablePan={true}>
+                <MapInteractionCSS maxScale={2.6} minScale={1} disablePan={true}>
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.img
-                      className={"slideshowAnimImg"}
+                      className={"slideshowAnimImg mx-auto"}
                       key={imgSlideIndex}
                       src={images[imageIndex].src}
                       id="img"

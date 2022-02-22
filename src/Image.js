@@ -38,7 +38,6 @@ export const Image = ({children, ...props}) => {
               }}
               className = {`flex h-screen`}
               onClick={() => setIsOverlayDisplayed(false)}
-
             >
               <motion.img
                 {...props}

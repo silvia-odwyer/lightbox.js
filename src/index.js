@@ -8,6 +8,7 @@ import {ImageGridSlideshowNoAnim} from "./ImageGridSlideshowNoAnim";
 import Carousel from "./Carousel"
 import {CarouselItem} from "./Carousel";
 import {Lightbox} from "./Lightbox";
+import {Lightbox2} from "./Lightbox2";
 import {Image} from "./Image";
 import {LightboxZoomAnim} from "./LightboxZoomAnim";
 import {SlideshowAnim} from "./SlideshowAnim";
@@ -16,4 +17,4 @@ export const ExampleComponent = ({ text }) => {
   return <div className="text-4xl italic text-purple-200">Example Component: {text}</div>
 }
 
-export { VideoLightbox, Image, ImageGridGallery, SlideshowAnim, ImageGridSlideshow, ImageGridSlideshowNoAnim, Carousel, CarouselItem , Lightbox, LightboxZoomAnim}
+export { VideoLightbox, Image, Lightbox2, ImageGridGallery, SlideshowAnim, ImageGridSlideshow, ImageGridSlideshowNoAnim, Carousel, CarouselItem , Lightbox, LightboxZoomAnim}

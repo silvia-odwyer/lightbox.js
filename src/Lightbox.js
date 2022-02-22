@@ -29,7 +29,7 @@ export const Lightbox = (props) => {
 
   const openModal = (num) => {
     // document.getElementById("modal").style.display = "block";
-    currentSlide(num);
+    currentSlide(num + 1);
     setShowModal(true)
   }
 
@@ -75,11 +75,7 @@ export const Lightbox = (props) => {
 
     return (
       <AnimatePresence initial={false}>
-                {/* {images.map((img, index) => (
-                  <div style={{margin: "0.2em", cursor: "pointer"}}>
-                    <img src={img.src} onClick={() => {openModal(index + 1) }} className="hoverShadow"/>
-                  </div>
-                ))} */}
+
             {props.children.map((elem, index) => (
               <img {...elem.props} onClick={() => openModal(index) }  />
             ))}
