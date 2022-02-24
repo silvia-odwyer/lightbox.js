@@ -102,7 +102,6 @@ export const SlideshowAnim = (props) => {
       zoomOut()
     }
     else {
-      console.log("event ", e);
       console.log("event y ", e.clientY);
       zoomIn();
     }
@@ -138,13 +137,15 @@ export const SlideshowAnim = (props) => {
 
   return (
       <AnimatePresence initial={false}>
+          {/* Gallery images */}
           {props.children.map((elem, index) => (
-            <img {...elem.props} onClick={() => openModal(index) } key={index} />
+            <img {...elem.props} class={...elem.props + " cursor-pointer"} onClick={() => openModal(index) } key={index} />
           ))}
 
           { showModal !== false && (
             <motion.div 
-            className="slideshowAnimContainer"                               
+            className="slideshowAnimContainer"    
+            key="slideshowAnimContainer"                           
             initial={{ opacity: 0 }}
             exit={{ opacity: 0, } }
             animate={{ opacity: 1,  }}
@@ -152,7 +153,6 @@ export const SlideshowAnim = (props) => {
                 type: "spring", 
                 duration: 0.45 ,
             }}
-            key="slideshowAnimContainer"
             >
             <div className="lightboxContainer">
 
@@ -172,31 +172,32 @@ export const SlideshowAnim = (props) => {
                 <div className="prev1" onClick={() => updateCurrentSlide(-1)}>
                     &#10094;
                 </div>
-                <MapInteractionCSS maxScale={2.6} minScale={1} disablePan={true}>
-                  <AnimatePresence initial={false} custom={direction}>
-                    <motion.img
-                      className={"slideshowAnimImg mx-auto"}
-                      key={imgSlideIndex}
-                      src={images[imageIndex].src}
-                      id="img"
-                      custom={direction}
-                      variants={variants}
-                      initial="enterImg"
-                      animate={"centerImg"}
-                      exit="exitImg"
-                      transition={ {
-                          x: {type: "spring", stiffness: 300, damping: 30 },
-                          opacity: { duration: opacityDuration }
-                      }}
-                      drag="x"
-                      dragElastic={1}
-                      dragConstraints={{ left: 0, right: 0 }}
-                      onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
-                    />
+                <AnimatePresence initial={false} custom={direction}>
 
-                  </AnimatePresence>
-                </MapInteractionCSS>
+                <motion.div className="slideshowInnerContainer"
+                custom={direction}
+                variants={variants}
+                initial="enterImg"
+                key={imgSlideIndex}
+                animate={"centerImg"}
+                exit="exitImg"
+                transition={ {
+                    x: {type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: opacityDuration }
+                }}
+                drag="x"
+                dragElastic={1}
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
+                  <MapInteractionCSS maxScale={2.6} minScale={1} disablePan={true}>
+                      <img
+                        className={""}
+                        src={images[imageIndex].src}
+                        id="img" />
 
+                  </MapInteractionCSS>
+                </motion.div>
+                </AnimatePresence>
 
             </div>
       </motion.div>
