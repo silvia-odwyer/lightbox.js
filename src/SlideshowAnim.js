@@ -17,12 +17,6 @@ const variants = {
     x: 0,
     opacity: 1
   },
-  zoom: {
-    zIndex: 1,
-    x: -500,
-    opacity: 1,
-    scale: 2,
-  },
   exitImg: (direction) => {
     return {
       zIndex: 0,
@@ -32,13 +26,18 @@ const variants = {
   }
 };
 
+const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
+
 const swipeConfidenceThreshold = 10000;
 const opacityDuration = 0.2;
-const dragAnim = { type: "spring", stiffness: 300, damping: 30 };
+const mobileWidth = 768;
 const animTransitionDefault =   {
-  x: {dragAnim},
+  x: { type: "spring", stiffness: 300, damping: 30 },
   opacity: { duration: opacityDuration }
-}
+};
+const slideshowAnimTransition =   {
+  opacity: { duration: opacityDuration }
+};
 
 export const SlideshowAnim = (props) => {
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0]);
@@ -47,7 +46,10 @@ export const SlideshowAnim = (props) => {
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
   const [isZoomed, setIsZoomed] = useState(false);
-
+  const [animTransition, setAnimTransition] = useState(animTransitionDefault);
+  const [panImage, setPanImage] = useState(true);
+  const [width, setWidth] = useState(window.innerWidth);
+  const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
 
   const keyPressHandler = (event) => {
     let key = event.key;
@@ -65,7 +67,16 @@ export const SlideshowAnim = (props) => {
     }
   };
 
+
+  function handleWindowResize() {
+      setWidth(window.innerWidth);
+  }
+
+  const isMobile = width <= mobileWidth;
+
   const updateCurrentSlide = (newDirection) => {
+    setPanImage(true);
+    setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }})
     setIsZoomed(false);
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
   };
@@ -81,11 +92,13 @@ export const SlideshowAnim = (props) => {
   }
 
   const playSlideshow = () => {
+    setAnimTransition(slideshowAnimTransition)
     updateCurrentSlide(1);
     setIsSlideshowPlaying(true);
   }
 
   const stopSlideshow = () => {
+    setAnimTransition(animTransitionDefault);
     setIsSlideshowPlaying(false);
   }
 
@@ -111,10 +124,29 @@ export const SlideshowAnim = (props) => {
   const checkAndUpdateSlide = (offset, velocity) => {
     const swipe = swipePower(offset.x, velocity.x);
 
-    if (swipe < -swipeConfidenceThreshold) {
-      updateCurrentSlide(1);
-    } else if (swipe > swipeConfidenceThreshold) {
-      updateCurrentSlide(-1);
+    if (swipe < -swipeConfidenceThreshold || swipe > swipeConfidenceThreshold) {
+      setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }});
+      setPanImage(true);
+      if (swipe < -swipeConfidenceThreshold) {
+        updateCurrentSlide(1);
+      } else if (swipe > swipeConfidenceThreshold) {
+        updateCurrentSlide(-1);
+      }
+
+    }
+
+  }
+
+  const mapInteractionChange = (value) => {
+    setPanImage(false); 
+    console.log("map interaction val", panImage); 
+    setMapInteractionValue(value)
+    console.log("scale val", value.scale); 
+
+    if (value.scale == defaultMapInteractionValue.scale) {
+      setPanImage(true);
+      setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }});
+
     }
   }
   
@@ -129,8 +161,11 @@ export const SlideshowAnim = (props) => {
   // Keyboard event listeners
   useEffect(() => {
     document.addEventListener('keydown', keyPressHandler);
+    window.addEventListener('resize', handleWindowResize);
 
     return () => {
+      window.removeEventListener('resize', handleWindowResize);
+
       document.removeEventListener('keydown', keyPressHandler);
     };
   }, [keyPressHandler]);
@@ -139,12 +174,13 @@ export const SlideshowAnim = (props) => {
       <AnimatePresence initial={false}>
           {/* Gallery images */}
           {props.children.map((elem, index) => (
-            <img {...elem.props} class={...elem.props + " cursor-pointer"} onClick={() => openModal(index) } key={index} />
+            <img {...elem.props} class={elem.props.className + " cursor-pointer"} onClick={() => openModal(index) } key={index} />
           ))}
 
           { showModal !== false && (
             <motion.div 
             className="slideshowAnimContainer"    
+
             key="slideshowAnimContainer"                           
             initial={{ opacity: 0 }}
             exit={{ opacity: 0, } }
@@ -152,8 +188,7 @@ export const SlideshowAnim = (props) => {
             transition={{
                 type: "spring", 
                 duration: 0.45 ,
-            }}
-            >
+            }}>
             <div className="lightboxContainer">
 
                 <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer text-3xl">
@@ -172,31 +207,33 @@ export const SlideshowAnim = (props) => {
                 <div className="prev1" onClick={() => updateCurrentSlide(-1)}>
                     &#10094;
                 </div>
+
                 <AnimatePresence initial={false} custom={direction}>
 
-                <motion.div className="slideshowInnerContainer"
-                custom={direction}
-                variants={variants}
-                initial="enterImg"
-                key={imgSlideIndex}
-                animate={"centerImg"}
-                exit="exitImg"
-                transition={ {
-                    x: {type: "spring", stiffness: 300, damping: 30 },
-                    opacity: { duration: opacityDuration }
-                }}
-                drag="x"
-                dragElastic={1}
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
-                  <MapInteractionCSS maxScale={2.6} minScale={1} disablePan={true}>
-                      <img
-                        className={""}
-                        src={images[imageIndex].src}
-                        id="img" />
+                  <motion.div className="slideshowInnerContainer mx-auto text-center flex flex-col justify-center align-center"
 
-                  </MapInteractionCSS>
-                </motion.div>
+                  custom={direction}
+                  variants={variants}
+                  initial="enterImg"
+                  key={imgSlideIndex}
+                  animate={"centerImg"}
+                  exit="exitImg"
+                  transition={animTransition}
+                  drag="x"
+                  dragElastic={1}
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
+                    <MapInteractionCSS maxScale={2.6} minScale={1} disablePan={panImage} value={mapInteractionValue}
+                     onChange={(value) => {mapInteractionChange(value)}}>
+                        <img 
+                          className="object-contain"
+                          src={images[imageIndex].src}
+                          // onTouchStart={(e) => imageInteraction(e)}
+                          id="img" />
+
+                    </MapInteractionCSS>
+
+                  </motion.div>
                 </AnimatePresence>
 
             </div>
