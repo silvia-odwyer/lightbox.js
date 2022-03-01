@@ -30,6 +30,9 @@ const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
 
 const swipeConfidenceThreshold = 10000;
 const opacityDuration = 0.2;
+const maxScale = 2.6;
+const minScale = 1;
+const imgSwipeDirection = "x";
 const mobileWidth = 768;
 const animTransitionDefault =   {
   x: { type: "spring", stiffness: 300, damping: 30 },
@@ -50,6 +53,7 @@ export const SlideshowAnim = (props) => {
   const [panImage, setPanImage] = useState(true);
   const [width, setWidth] = useState(window.innerWidth);
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
+  const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
 
   const keyPressHandler = (event) => {
     let key = event.key;
@@ -103,11 +107,38 @@ export const SlideshowAnim = (props) => {
   }
 
   const zoomIn = () => {
-    setIsZoomed(true);
+
+    let scaleInc = 0.3;
+    let currentScale = mapInteractionValue.scale;
+    let newScale = currentScale + scaleInc;
+    
+    if (newScale <= maxScale) {
+      setMapInteractionValue({scale: newScale, translation: { x: 0, y: 0 }});
+      setAnimTransition(slideshowAnimTransition)
+      setPanImage(false);
+
+      updateImgSwipeMotion("false")
+      setIsZoomed(true);
+    }
+    else {
+      updateImgSwipeMotion(imgSwipeDirection)
+    }
+
   }
 
   const zoomOut = () => {
-    setIsZoomed(false);
+    let scaleDec = 0.3;
+    let currentScale = mapInteractionValue.scale;
+    let newScale = currentScale - scaleDec;
+    
+    if (newScale >= minScale) {
+      setMapInteractionValue({scale: newScale, translation: { x: 0, y: 0 }});
+      setIsZoomed(false);
+    }
+    else {
+      updateImgSwipeMotion(imgSwipeDirection)
+    }
+
   }
 
   const handleImgClick = (e) => {
@@ -139,15 +170,22 @@ export const SlideshowAnim = (props) => {
 
   const mapInteractionChange = (value) => {
     setPanImage(false); 
-    console.log("map interaction val", panImage); 
+    updateImgSwipeMotion("false")
     setMapInteractionValue(value)
-    console.log("scale val", value.scale); 
+    // console.log("scale val", value.scale); 
+    // console.log("direction", imgSwipeDirection); 
 
     if (value.scale == defaultMapInteractionValue.scale) {
       setPanImage(true);
       setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }});
 
+      updateImgSwipeMotion(imgSwipeDirection)
     }
+  }
+
+  const updateImgSwipeMotion = (swipeDirection) => {
+    console.log("set img swipe motion to ", swipeDirection)
+    setImgSwipeMotion(swipeDirection);
   }
   
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
@@ -219,11 +257,11 @@ export const SlideshowAnim = (props) => {
                   animate={"centerImg"}
                   exit="exitImg"
                   transition={animTransition}
-                  drag="x"
+                  drag={imgSwipeMotion}
                   dragElastic={1}
                   dragConstraints={{ left: 0, right: 0 }}
                   onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
-                    <MapInteractionCSS maxScale={2.6} minScale={1} disablePan={panImage} value={mapInteractionValue}
+                    <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
                      onChange={(value) => {mapInteractionChange(value)}}>
                         <img 
                           className="object-contain"
