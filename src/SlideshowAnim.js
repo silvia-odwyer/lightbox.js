@@ -27,6 +27,7 @@ const variants = {
 };
 
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
+const themes = {"day": "white", "night": "#151515", "lightbox": "rgba(0, 0, 0, 0.4)"}
 
 const swipeConfidenceThreshold = 10000;
 const opacityDuration = 0.2;
@@ -49,11 +50,14 @@ export const SlideshowAnim = (props) => {
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [animTransition, setAnimTransition] = useState(animTransitionDefault);
+  const [animTransition, setAnimTransition] = useState(slideshowAnimTransition);
   const [panImage, setPanImage] = useState(true);
   const [width, setWidth] = useState(window.innerWidth);
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
+
+  // Styling/theming
+  const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes["day"]);
 
   const keyPressHandler = (event) => {
     let key = event.key;
@@ -114,10 +118,8 @@ export const SlideshowAnim = (props) => {
     
     if (newScale <= maxScale) {
       setMapInteractionValue({scale: newScale, translation: { x: 0, y: 0 }});
-      setAnimTransition(slideshowAnimTransition)
       setPanImage(false);
-
-      updateImgSwipeMotion("false")
+      updateImgSwipeMotion(false)
       setIsZoomed(true);
     }
     else {
@@ -170,9 +172,9 @@ export const SlideshowAnim = (props) => {
 
   const mapInteractionChange = (value) => {
     setPanImage(false); 
-    updateImgSwipeMotion("false")
+    updateImgSwipeMotion(false)
     setMapInteractionValue(value)
-    // console.log("scale val", value.scale); 
+    console.log("scale val", value.translation); 
     // console.log("direction", imgSwipeDirection); 
 
     if (value.scale == defaultMapInteractionValue.scale) {
@@ -200,7 +202,11 @@ export const SlideshowAnim = (props) => {
   useEffect(() => {
     document.addEventListener('keydown', keyPressHandler);
     window.addEventListener('resize', handleWindowResize);
-
+    if (props.theme) {
+      if (themes[props.theme]) {
+        setBackgroundColor(themes[props.theme]);
+      }
+    }
     return () => {
       window.removeEventListener('resize', handleWindowResize);
 
@@ -218,7 +224,6 @@ export const SlideshowAnim = (props) => {
           { showModal !== false && (
             <motion.div 
             className="slideshowAnimContainer"    
-
             key="slideshowAnimContainer"                           
             initial={{ opacity: 0 }}
             exit={{ opacity: 0, } }
@@ -227,7 +232,10 @@ export const SlideshowAnim = (props) => {
                 type: "spring", 
                 duration: 0.45 ,
             }}>
-            <div className="lightboxContainer">
+            <div className="lightboxContainer"             
+              style={{
+                backgroundColor: backgroundColor}}
+            >
 
                 <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer text-3xl">
                   <div onClick={() => zoomIn()}>+</div>
@@ -266,7 +274,13 @@ export const SlideshowAnim = (props) => {
                         <img 
                           className="object-contain"
                           src={images[imageIndex].src}
-                          // onTouchStart={(e) => imageInteraction(e)}
+                          onClick={(e) => {
+                             if (!e.defaultPrevented) {
+                              //  zoomIn();
+                              console.log("x", e.clientX);
+                              console.log("y ", e.clientY)
+                              } 
+                           }}
                           id="img" />
 
                     </MapInteractionCSS>
