@@ -27,13 +27,15 @@ const variants = {
 };
 
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
-const themes = {"day": "white", "night": "#151515", "lightbox": "rgba(0, 0, 0, 0.4)"}
+const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "white"}, 
+                "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
 
 const swipeConfidenceThreshold = 10000;
 const opacityDuration = 0.2;
 const maxScale = 2.6;
 const minScale = 1;
 const imgSwipeDirection = "x";
+const defaultTheme = "night";
 const mobileWidth = 768;
 const animTransitionDefault =   {
   x: { type: "spring", stiffness: 300, damping: 30 },
@@ -57,7 +59,9 @@ export const SlideshowAnim = (props) => {
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
 
   // Styling/theming
-  const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes["day"]);
+  const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
+  const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
+  const isMobile = width <= mobileWidth;
 
   const keyPressHandler = (event) => {
     let key = event.key;
@@ -80,13 +84,14 @@ export const SlideshowAnim = (props) => {
       setWidth(window.innerWidth);
   }
 
-  const isMobile = width <= mobileWidth;
 
   const updateCurrentSlide = (newDirection) => {
     setPanImage(true);
     setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }})
     setIsZoomed(false);
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
+    initSmoothZoom();
+
   };
 
   const closeModal = (num) => {
@@ -125,7 +130,7 @@ export const SlideshowAnim = (props) => {
     else {
       updateImgSwipeMotion(imgSwipeDirection)
     }
-
+    console.log("map ", mapInteractionValue)
   }
 
   const zoomOut = () => {
@@ -138,7 +143,7 @@ export const SlideshowAnim = (props) => {
       setIsZoomed(false);
     }
     else {
-      updateImgSwipeMotion(imgSwipeDirection)
+      updateImgSwipeMotion(imgSwipeDirection);
     }
 
   }
@@ -165,29 +170,79 @@ export const SlideshowAnim = (props) => {
       } else if (swipe > swipeConfidenceThreshold) {
         updateCurrentSlide(-1);
       }
+    }
+  }
 
+  const reinitZoomSettings = (value) => {
+
+    // if user zoomed in
+    if (value.scale > mapInteractionValue.scale) {
+      setIsZoomed(true)  
+      initSmoothZoom();
+    }
+    // if user zoomed out
+    else if (value.scale < mapInteractionValue.scale) {
+      setIsZoomed(false);
+      initSmoothZoom();
     }
 
+    // user panned image, did not zoom
+    else {
+      removeSmoothZoom();
+    }
   }
 
   const mapInteractionChange = (value) => {
     setPanImage(false); 
-    updateImgSwipeMotion(false)
+    updateImgSwipeMotion(false);
+
+    reinitZoomSettings(value)
+
     setMapInteractionValue(value)
-    console.log("scale val", value.translation); 
-    // console.log("direction", imgSwipeDirection); 
 
     if (value.scale == defaultMapInteractionValue.scale) {
       setPanImage(true);
       setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }});
 
-      updateImgSwipeMotion(imgSwipeDirection)
+      updateImgSwipeMotion(imgSwipeDirection);
+      smoothZoomTimeout();
     }
+    
   }
 
   const updateImgSwipeMotion = (swipeDirection) => {
     console.log("set img swipe motion to ", swipeDirection)
     setImgSwipeMotion(swipeDirection);
+  }
+
+  const initStyling = () => {
+    if (props.theme) {
+      if (themes[props.theme]) {
+        setBackgroundColor(themes[props.theme].background);
+        setIconColor(themes[props.theme].iconColor)
+      }
+    }
+  }
+
+  const initSmoothZoom = () => {
+    let elem = document.getElementById("img");
+    let container = elem.parentElement;
+    container.style.transition = "transform 0.2s";
+
+  }
+
+  const removeSmoothZoom = () => {
+    let elem = document.getElementById("img");
+    let container = elem.parentElement;
+    container.style.transition = "";
+
+  }
+
+  const smoothZoomTimeout = () => {
+    setTimeout(() => {
+      initSmoothZoom();
+      console.log("initz")
+    }, 300)
   }
   
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
@@ -202,11 +257,8 @@ export const SlideshowAnim = (props) => {
   useEffect(() => {
     document.addEventListener('keydown', keyPressHandler);
     window.addEventListener('resize', handleWindowResize);
-    if (props.theme) {
-      if (themes[props.theme]) {
-        setBackgroundColor(themes[props.theme]);
-      }
-    }
+    initStyling();
+
     return () => {
       window.removeEventListener('resize', handleWindowResize);
 
@@ -234,10 +286,10 @@ export const SlideshowAnim = (props) => {
             }}>
             <div className="lightboxContainer"             
               style={{
-                backgroundColor: backgroundColor}}
-            >
+                backgroundColor: backgroundColor
+              }}>
 
-                <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer text-3xl">
+                <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer text-3xl" style={{color: iconColor}}>
                   <div onClick={() => zoomIn()}>+</div>
                   <div onClick={() => zoomOut()}>-</div>
                   <div className="slideshowBtn" onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}>
@@ -247,17 +299,16 @@ export const SlideshowAnim = (props) => {
 
                 </section>
                 
-                <div className="next1" onClick={() => updateCurrentSlide(1)}>
+                <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
                     &#10095;
                 </div>
-                <div className="prev1" onClick={() => updateCurrentSlide(-1)}>
+                <div className="prev1" style={{background: "white"}} onClick={() => updateCurrentSlide(-1)}>
                     &#10094;
                 </div>
 
                 <AnimatePresence initial={false} custom={direction}>
 
                   <motion.div className="slideshowInnerContainer mx-auto text-center flex flex-col justify-center align-center"
-
                   custom={direction}
                   variants={variants}
                   initial="enterImg"
@@ -270,13 +321,16 @@ export const SlideshowAnim = (props) => {
                   dragConstraints={{ left: 0, right: 0 }}
                   onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
                     <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
-                     onChange={(value) => {mapInteractionChange(value)}}>
+                     onChange={(value) => {mapInteractionChange(value)}} showControls={true}>
                         <img 
                           className="object-contain"
                           src={images[imageIndex].src}
+                          onLoad={() => smoothZoomTimeout()}
                           onClick={(e) => {
                              if (!e.defaultPrevented) {
+                               console.log("is zoomed ", isZoomed)
                               //  zoomIn();
+                              removeSmoothZoom();
                               console.log("x", e.clientX);
                               console.log("y ", e.clientY)
                               } 
