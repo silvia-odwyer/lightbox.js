@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {swipePower} from "./mobile-support";
 import {useInterval, wrapNums} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 
 const variants = {
   enterImg: (direction) => {
@@ -96,6 +98,12 @@ export const SlideshowAnim = (props) => {
   };
 
   const closeModal = (num) => {
+
+    // ensure slideshow is paused
+    if (isSlideshowPlaying) {
+      setIsSlideshowPlaying(false);
+    }
+
     setIsZoomed(false)
     setShowModal(false)
   }
@@ -117,10 +125,12 @@ export const SlideshowAnim = (props) => {
   }
 
   const zoomIn = () => {
+    changeCursor("all-scroll");
     setZoomImg(zoomImg + 1);
   }
 
   const zoomOut = () => {
+    changeCursor("zoom-out");
     setZoomImg(zoomImg - 1);
   }
 
@@ -136,6 +146,7 @@ export const SlideshowAnim = (props) => {
   }
 
   const checkAndUpdateSlide = (offset, velocity) => {
+
     const swipe = swipePower(offset.x, velocity.x);
 
     if (swipe < -swipeConfidenceThreshold || swipe > swipeConfidenceThreshold) {
@@ -146,6 +157,9 @@ export const SlideshowAnim = (props) => {
       } else if (swipe > swipeConfidenceThreshold) {
         updateCurrentSlide(-1);
       }
+    }
+    else {
+      removeSmoothZoom();
     }
   }
 
@@ -198,6 +212,12 @@ export const SlideshowAnim = (props) => {
         setIconColor(themes[props.theme].iconColor)
       }
     }
+  }
+
+  const changeCursor = (cursor_name) => {
+    let elem = document.getElementById("img");
+    let container = elem.parentElement.parentElement;
+    container.style.cursor = `${cursor_name}`;
   }
 
   const initSmoothZoom = () => {
@@ -263,14 +283,13 @@ export const SlideshowAnim = (props) => {
                 backgroundColor: backgroundColor
               }}>
 
-                <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer text-3xl" style={{color: iconColor}}>
-                  <div onClick={() => zoomIn()}>+</div>
-                  <div onClick={() => zoomOut()}>-</div>
-                  <div className="slideshowBtn" onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}>
-                    {isSlideshowPlaying ? "⏸" : "▶"}
-                  </div>
-                  <div className="closeIconBtn text-5xl" onClick={() => {closeModal(1) }}>&times;</div>
+                <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer" style={{color: iconColor}}>
+                  <FontAwesomeIcon icon="plus" onClick={() => {() => zoomIn()}}  />
+                  <FontAwesomeIcon icon="minus" onClick={() => {() => zoomOut()}}  />
 
+                  <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
+
+                  <FontAwesomeIcon icon="close" className="closeIconBtn" onClick={() => {closeModal(1) }}  />
                 </section>
                 
                 <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
@@ -301,14 +320,8 @@ export const SlideshowAnim = (props) => {
                           src={images[imageIndex].src}
                           onClick={(e) => {
                              if (!e.defaultPrevented) {
-                               console.log("is zoomed ", isZoomed)
-                              //  zoomIn();
-                              // removeSmoothZoom();
-                              console.log("x", e.clientX);
-                              console.log("y ", e.clientY)
-                              } 
-                              else {
-                                removeSmoothZoom();
+                               console.log("CLICK")
+                              zoomIn();
                               }
                            }}
                           id="img" />
