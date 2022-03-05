@@ -54,6 +54,7 @@ export const SlideshowAnim = (props) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [animTransition, setAnimTransition] = useState(slideshowAnimTransition);
   const [panImage, setPanImage] = useState(true);
+  const [zoomImg, setZoomImg] = useState(0);
   const [width, setWidth] = useState(window.innerWidth);
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
@@ -116,36 +117,11 @@ export const SlideshowAnim = (props) => {
   }
 
   const zoomIn = () => {
-
-    let scaleInc = 0.3;
-    let currentScale = mapInteractionValue.scale;
-    let newScale = currentScale + scaleInc;
-    
-    if (newScale <= maxScale) {
-      setMapInteractionValue({scale: newScale, translation: { x: 0, y: 0 }});
-      setPanImage(false);
-      updateImgSwipeMotion(false)
-      setIsZoomed(true);
-    }
-    else {
-      updateImgSwipeMotion(imgSwipeDirection)
-    }
-    console.log("map ", mapInteractionValue)
+    setZoomImg(zoomImg + 1);
   }
 
   const zoomOut = () => {
-    let scaleDec = 0.3;
-    let currentScale = mapInteractionValue.scale;
-    let newScale = currentScale - scaleDec;
-    
-    if (newScale >= minScale) {
-      setMapInteractionValue({scale: newScale, translation: { x: 0, y: 0 }});
-      setIsZoomed(false);
-    }
-    else {
-      updateImgSwipeMotion(imgSwipeDirection);
-    }
-
+    setZoomImg(zoomImg - 1);
   }
 
   const handleImgClick = (e) => {
@@ -228,7 +204,6 @@ export const SlideshowAnim = (props) => {
     let elem = document.getElementById("img");
     let container = elem.parentElement;
     container.style.transition = "transform 0.2s";
-
   }
 
   const removeSmoothZoom = () => {
@@ -241,7 +216,6 @@ export const SlideshowAnim = (props) => {
   const smoothZoomTimeout = () => {
     setTimeout(() => {
       initSmoothZoom();
-      console.log("initz")
     }, 300)
   }
   
@@ -321,19 +295,21 @@ export const SlideshowAnim = (props) => {
                   dragConstraints={{ left: 0, right: 0 }}
                   onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
                     <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
-                     onChange={(value) => {mapInteractionChange(value)}} showControls={true}>
+                     onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg}>
                         <img 
                           className="object-contain"
                           src={images[imageIndex].src}
-                          onLoad={() => smoothZoomTimeout()}
                           onClick={(e) => {
                              if (!e.defaultPrevented) {
                                console.log("is zoomed ", isZoomed)
                               //  zoomIn();
-                              removeSmoothZoom();
+                              // removeSmoothZoom();
                               console.log("x", e.clientX);
                               console.log("y ", e.clientY)
                               } 
+                              else {
+                                removeSmoothZoom();
+                              }
                            }}
                           id="img" />
 
