@@ -54,7 +54,7 @@ export const SlideshowAnim = (props) => {
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [animTransition, setAnimTransition] = useState(slideshowAnimTransition);
+  const [animTransition, setAnimTransition] = useState(animTransitionDefault);
   const [panImage, setPanImage] = useState(true);
   const [zoomImg, setZoomImg] = useState(0);
   const [width, setWidth] = useState(window.innerWidth);
@@ -64,6 +64,8 @@ export const SlideshowAnim = (props) => {
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
   const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
+  const [showThumbnails, setShowThumbnails] = useState(props.showThumbnails ? props.showThumbnails : false);
+
   const isMobile = width <= mobileWidth;
 
   const keyPressHandler = (event) => {
@@ -89,10 +91,30 @@ export const SlideshowAnim = (props) => {
 
 
   const updateCurrentSlide = (newDirection) => {
+    resetMapInteraction();
+    setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
+    initSmoothZoom();
+
+  };
+
+  const resetMapInteraction = () => {
     setPanImage(true);
     setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }})
     setIsZoomed(false);
-    setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
+  }
+
+  const setCurrentSlide = (newIndex) => {
+    let newDirection;
+    if (newIndex > imgSlideIndex) {
+      newDirection = 1;
+    }
+    else {
+      newDirection = -1
+    }
+
+    setAnimTransition(slideshowAnimTransition)
+    resetMapInteraction();
+    setImgSlideIndex([newIndex, newDirection]);
     initSmoothZoom();
 
   };
@@ -125,12 +147,17 @@ export const SlideshowAnim = (props) => {
   }
 
   const zoomIn = () => {
+    console.log("zoom in")
     changeCursor("all-scroll");
+    setIsZoomed(true);
     setZoomImg(zoomImg + 1);
+
   }
 
   const zoomOut = () => {
-    changeCursor("zoom-out");
+    console.log("zoom out")
+    changeCursor("zoom-in");
+    setIsZoomed(false);
     setZoomImg(zoomImg - 1);
   }
 
@@ -196,6 +223,10 @@ export const SlideshowAnim = (props) => {
 
       updateImgSwipeMotion(imgSwipeDirection);
       smoothZoomTimeout();
+    }
+
+    else if (value.scale > defaultMapInteractionValue.scale) {
+      changeCursor("all-scroll")
     }
     
   }
@@ -281,15 +312,18 @@ export const SlideshowAnim = (props) => {
             <div className="lightboxContainer"             
               style={{
                 backgroundColor: backgroundColor
+
               }}>
 
                 <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer" style={{color: iconColor}}>
-                  <FontAwesomeIcon icon="plus" onClick={() => {() => zoomIn()}}  />
-                  <FontAwesomeIcon icon="minus" onClick={() => {() => zoomOut()}}  />
 
-                  <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
+                  <FontAwesomeIcon icon="plus" size="md" onClick={() => zoomIn()}  />
+                  <FontAwesomeIcon icon="minus" size="md" onClick={() => zoomOut()}  />
+                  <FontAwesomeIcon icon="border-all" size="md" onClick={() => {setShowThumbnails(!showThumbnails) }}  />
 
-                  <FontAwesomeIcon icon="close" className="closeIconBtn" onClick={() => {closeModal(1) }}  />
+                  <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} size="md" onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
+
+                  <FontAwesomeIcon icon="close" size="lg" className="closeIconBtn" onClick={() => {closeModal(1) }}  />
                 </section>
                 
                 <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
@@ -302,6 +336,7 @@ export const SlideshowAnim = (props) => {
                 <AnimatePresence initial={false} custom={direction}>
 
                   <motion.div className="slideshowInnerContainer mx-auto text-center flex flex-col justify-center align-center"
+
                   custom={direction}
                   variants={variants}
                   initial="enterImg"
@@ -320,8 +355,14 @@ export const SlideshowAnim = (props) => {
                           src={images[imageIndex].src}
                           onClick={(e) => {
                              if (!e.defaultPrevented) {
-                               console.log("CLICK")
-                              zoomIn();
+                               console.log("CLICK");
+                               if (isZoomed) {
+                                 zoomOut()
+                               }
+                               else {
+                                zoomIn();
+
+                               }
                               }
                            }}
                           id="img" />
@@ -331,9 +372,22 @@ export const SlideshowAnim = (props) => {
                   </motion.div>
                 </AnimatePresence>
 
+                { showThumbnails !== false && (
+
+                  <div className="thumbnails flex justify-centre align-centre gap-4 mx-auto" style={{height: "5vh", position: "absolute", bottom: "5%"}}>
+                    {images.map((img, index) => (
+                      <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} onClick={() => {setCurrentSlide(index) }} alt={img.caption}/>        
+                    ))} 
+                  </div>
+                )}
+
             </div>
+
       </motion.div>
+
+      
     )}
+
     </AnimatePresence>
   );
 };
