@@ -60,6 +60,7 @@ export const SlideshowAnim = (props) => {
   const [width, setWidth] = useState(window.innerWidth);
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
@@ -86,14 +87,12 @@ export const SlideshowAnim = (props) => {
 
 
   function handleWindowResize() {
-      setWidth(window.innerWidth);
+    setWidth(window.innerWidth);
   }
-
 
   const updateCurrentSlide = (newDirection) => {
     resetMapInteraction();
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
-    initSmoothZoom();
 
   };
 
@@ -115,7 +114,6 @@ export const SlideshowAnim = (props) => {
     setAnimTransition(slideshowAnimTransition)
     resetMapInteraction();
     setImgSlideIndex([newIndex, newDirection]);
-    initSmoothZoom();
 
   };
 
@@ -151,7 +149,6 @@ export const SlideshowAnim = (props) => {
     changeCursor("all-scroll");
     setIsZoomed(true);
     setZoomImg(zoomImg + 1);
-
   }
 
   const zoomOut = () => {
@@ -159,17 +156,6 @@ export const SlideshowAnim = (props) => {
     changeCursor("zoom-in");
     setIsZoomed(false);
     setZoomImg(zoomImg - 1);
-  }
-
-  const handleImgClick = (e) => {
-    if (isZoomed) {
-      zoomOut()
-    }
-    else {
-      console.log("event y ", e.clientY);
-      zoomIn();
-    }
-
   }
 
   const checkAndUpdateSlide = (offset, velocity) => {
@@ -232,7 +218,6 @@ export const SlideshowAnim = (props) => {
   }
 
   const updateImgSwipeMotion = (swipeDirection) => {
-    console.log("set img swipe motion to ", swipeDirection)
     setImgSwipeMotion(swipeDirection);
   }
 
@@ -261,7 +246,16 @@ export const SlideshowAnim = (props) => {
     let elem = document.getElementById("img");
     let container = elem.parentElement;
     container.style.transition = "";
+  }
 
+  const initKeyboardEventListeners = () => {
+    document.addEventListener('keydown', keyPressHandler);
+    window.addEventListener('resize', handleWindowResize);
+  }
+
+  const removeKeyboardEventListeners = () => {
+    window.removeEventListener('resize', handleWindowResize);
+    document.removeEventListener('keydown', keyPressHandler);
   }
 
   const smoothZoomTimeout = () => {
@@ -278,16 +272,12 @@ export const SlideshowAnim = (props) => {
     isSlideshowPlaying ? 1100 : null
   );
 
-  // Keyboard event listeners
   useEffect(() => {
-    document.addEventListener('keydown', keyPressHandler);
-    window.addEventListener('resize', handleWindowResize);
+    initKeyboardEventListeners();
+
     initStyling();
-
     return () => {
-      window.removeEventListener('resize', handleWindowResize);
-
-      document.removeEventListener('keydown', keyPressHandler);
+      removeKeyboardEventListeners();
     };
   }, [keyPressHandler]);
 
@@ -312,18 +302,16 @@ export const SlideshowAnim = (props) => {
             <div className="lightboxContainer"             
               style={{
                 backgroundColor: backgroundColor
-
               }}>
 
                 <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer" style={{color: iconColor}}>
 
-                  <FontAwesomeIcon icon="plus" size="md" onClick={() => zoomIn()}  />
-                  <FontAwesomeIcon icon="minus" size="md" onClick={() => zoomOut()}  />
-                  <FontAwesomeIcon icon="border-all" size="md" onClick={() => {setShowThumbnails(!showThumbnails) }}  />
+                  <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
+                  <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
+                  <FontAwesomeIcon icon="border-all"  onClick={() => {setShowThumbnails(!showThumbnails) }}  />
+                  <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
 
-                  <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} size="md" onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
-
-                  <FontAwesomeIcon icon="close" size="lg" className="closeIconBtn" onClick={() => {closeModal(1) }}  />
+                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal(1) }}  />
                 </section>
                 
                 <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
@@ -336,7 +324,6 @@ export const SlideshowAnim = (props) => {
                 <AnimatePresence initial={false} custom={direction}>
 
                   <motion.div className="slideshowInnerContainer mx-auto text-center flex flex-col justify-center align-center"
-
                   custom={direction}
                   variants={variants}
                   initial="enterImg"
@@ -347,7 +334,9 @@ export const SlideshowAnim = (props) => {
                   drag={imgSwipeMotion}
                   dragElastic={1}
                   dragConstraints={{ left: 0, right: 0 }}
-                  onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}>
+                  onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
+                  onAnimationComplete={() => {setIsAnimating(false)}}
+                  onAnimationStart={() => {setIsAnimating(true)}}>
                     <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
                      onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg}>
                         <img 
@@ -355,13 +344,11 @@ export const SlideshowAnim = (props) => {
                           src={images[imageIndex].src}
                           onClick={(e) => {
                              if (!e.defaultPrevented) {
-                               console.log("CLICK");
-                               if (isZoomed) {
-                                 zoomOut()
+                               if (!isZoomed && !isAnimating) {
+                                 zoomIn()
                                }
                                else {
-                                zoomIn();
-
+                                zoomOut();
                                }
                               }
                            }}
@@ -384,8 +371,6 @@ export const SlideshowAnim = (props) => {
             </div>
 
       </motion.div>
-
-      
     )}
 
     </AnimatePresence>
