@@ -15,9 +15,9 @@ import {LightboxZoomAnim} from "./LightboxZoomAnim";
 import {SlideshowAnim} from "./SlideshowAnim";
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faPlay, faPause, faClose, faPlus, faMinus, 
-  faMagnifyingGlassPlus, faMagnifyingGlassMinus, faBorderAll, faTableCellsLarge, faTable } from '@fortawesome/free-solid-svg-icons'
+  faMagnifyingGlassPlus, faMagnifyingGlassMinus, faBorderAll, faTableCellsLarge, faTable, faExpand, faCompress } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faPlay, faPause, faClose, faPlus, faMinus, faMagnifyingGlassPlus, faMagnifyingGlassMinus, faBorderAll, faTableCellsLarge);
+library.add(faPlay, faPause, faClose, faPlus, faMinus, faExpand, faMagnifyingGlassPlus, faCompress, faMagnifyingGlassMinus, faBorderAll, faTableCellsLarge);
 
 export const ExampleComponent = ({ text }) => {
   return <div className="text-4xl italic text-purple-200">Example Component: {text}</div>

@@ -2,10 +2,9 @@ import * as React from "react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {swipePower} from "./mobile-support";
-import {useInterval, wrapNums} from "./utility";
+import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 
 const variants = {
   enterImg: (direction) => {
@@ -53,6 +52,7 @@ export const SlideshowAnim = (props) => {
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
+  const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
   const [isZoomed, setIsZoomed] = useState(false);
   const [animTransition, setAnimTransition] = useState(animTransitionDefault);
   const [panImage, setPanImage] = useState(true);
@@ -61,7 +61,7 @@ export const SlideshowAnim = (props) => {
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
@@ -89,6 +89,18 @@ export const SlideshowAnim = (props) => {
 
   function handleWindowResize() {
     setWidth(window.innerWidth);
+  }
+
+  const fullScreen = () => {
+    let lightbox = document.getElementById("slideshowAnim");
+    openFullScreen(lightbox);
+    setIsFullScreen(true);
+
+  }
+
+  const exitFullScreen = () => {
+    closeFullScreen(document);
+    setIsFullScreen(false);
   }
 
   const updateCurrentSlide = (newDirection) => {
@@ -290,7 +302,8 @@ export const SlideshowAnim = (props) => {
           { showModal !== false && (
             <motion.div 
             className="slideshowAnimContainer"    
-            key="slideshowAnimContainer"                           
+            key="slideshowAnimContainer"   
+            id="slideshowAnim"                        
             initial={{ opacity: 0 }}
             exit={{ opacity: 0, } }
             animate={{ opacity: 1,  }}
@@ -307,11 +320,12 @@ export const SlideshowAnim = (props) => {
 
                   <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
                   <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
-                  <FontAwesomeIcon icon="border-all"  onClick={() => {setShowThumbnails(!showThumbnails) }}  />
-                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal(1) }}  />
+                  <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} />
 
+                  <FontAwesomeIcon icon="border-all"  onClick={() => {setShowThumbnails(!showThumbnails) }}  />
                   <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
 
+                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal(1) }}  />
                 </section>
                 
                 <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
