@@ -29,7 +29,7 @@ const variants = {
 };
 
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
-const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "white"}, 
+const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
                 "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
 
 const swipeConfidenceThreshold = 10000;
@@ -61,6 +61,7 @@ export const SlideshowAnim = (props) => {
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
 
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
@@ -145,14 +146,12 @@ export const SlideshowAnim = (props) => {
   }
 
   const zoomIn = () => {
-    console.log("zoom in")
     changeCursor("all-scroll");
     setIsZoomed(true);
     setZoomImg(zoomImg + 1);
   }
 
   const zoomOut = () => {
-    console.log("zoom out")
     changeCursor("zoom-in");
     setIsZoomed(false);
     setZoomImg(zoomImg - 1);
@@ -211,7 +210,7 @@ export const SlideshowAnim = (props) => {
       smoothZoomTimeout();
     }
 
-    else if (value.scale > defaultMapInteractionValue.scale) {
+    else if (value.scale > defaultMapInteractionValue.scale && !isAnimating) {
       changeCursor("all-scroll")
     }
     
@@ -269,7 +268,7 @@ export const SlideshowAnim = (props) => {
     () => {
       updateCurrentSlide(1);
     },
-    isSlideshowPlaying ? 1100 : null
+    isSlideshowPlaying ? slideshowInterval : null
   );
 
   useEffect(() => {
@@ -304,26 +303,27 @@ export const SlideshowAnim = (props) => {
                 backgroundColor: backgroundColor
               }}>
 
-                <section className="iconsHeader flex flex-row items-centre justify-centre cursor-pointer" style={{color: iconColor}}>
+                <section className="iconsHeader" style={{color: iconColor}}>
 
                   <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
                   <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
                   <FontAwesomeIcon icon="border-all"  onClick={() => {setShowThumbnails(!showThumbnails) }}  />
+                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal(1) }}  />
+
                   <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
 
-                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal(1) }}  />
                 </section>
                 
                 <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
-                    &#10095;
+                    <span>&#10095;</span>
                 </div>
                 <div className="prev1" style={{background: "white"}} onClick={() => updateCurrentSlide(-1)}>
-                    &#10094;
+                   <span>&#10094;</span>
                 </div>
 
                 <AnimatePresence initial={false} custom={direction}>
 
-                  <motion.div className="slideshowInnerContainer mx-auto text-center flex flex-col justify-center align-center"
+                  <motion.div className="slideshowInnerContainer"
                   custom={direction}
                   variants={variants}
                   initial="enterImg"

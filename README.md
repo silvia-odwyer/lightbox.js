@@ -4,6 +4,8 @@
 
 Lightbox.js is an all-in-one lightbox solution for use with React.js. 
 
+![Imgur](https://i.imgur.com/xMPMSza.png)
+
 The following features are provided:
 - Mobile support for swiping 
 - Fully responsive for desktop and mobile devices
@@ -12,13 +14,13 @@ The following features are provided:
 - Zooming functionality (with mobile-support also)
 - Slideshow functionality
 - Keyboard shortcuts
+- Thumbnails
 - Entry/exit animations
 - No external CSS required
 
 ## Features to be added
 - Loading indicators
 - New presets
-- Thumbnails
 
 [![NPM](https://img.shields.io/npm/v/lightbox.js.svg)](https://www.npmjs.com/package/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
