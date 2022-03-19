@@ -1,31 +1,57 @@
 import * as React from "react";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, AnimateSharedLayout } from "framer-motion";
 import {swipePower} from "./mobile-support";
 import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const variants = {
-  enterImg: (direction) => {
-    return {
-      x: direction > 0 ? 1000 : -1000,
-      opacity: 0
-    };
+  "imgDrag": {
+    enterImg: (direction) => {
+      return {
+        x: direction > 0 ? 1000 : -1000,
+        opacity: 0
+      };
+    },
+    centerImg: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exitImg: (direction) => {
+      return {
+        zIndex: 0,
+        x: direction < 0 ? 1000 : -1000,
+        opacity: 0
+      };
+    },
   },
-  centerImg: {
-    zIndex: 1,
-    x: 0,
-    opacity: 1
-  },
-  exitImg: (direction) => {
-    return {
-      zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
-      opacity: 0
-    };
+  "fade" : {
+    enterImg: (direction) => {
+      return {
+        opacity: 0
+      };
+    },
+    centerImg: {
+      zIndex: 1,
+      opacity: 1
+    },
+    exitImg: (direction) => {
+      return {
+        zIndex: 0,
+        opacity: 0
+      };
+    },
   }
+
 };
+
+let thumbnailVariants = {
+  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0 , y: 100},
+};
+
 
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
 const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
@@ -67,10 +93,14 @@ export const SlideshowAnim = (props) => {
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
   const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
   const [showThumbnails, setShowThumbnails] = useState(props.showThumbnails ? props.showThumbnails : false);
+  const [animatedThumbnails, setAnimatedThumbnails] = useState(props.animateThumbnails ? props.animateThumbnails : true);
+  const [imgAnimation, setImgAnimation] = useState(props.imgAnimation ? props.imgAnimation : "imgDrag");
+  const [slideshowVariants, setSlideshowVariants] = useState(variants[imgAnimation] ? variants[imgAnimation]  : variants["imgDrag"]);
 
   const isMobile = width <= mobileWidth;
 
   const keyPressHandler = (event) => {
+    console.log("KEY PRESS")
     let key = event.key;
   
     if (key == "ArrowLeft") {
@@ -81,9 +111,10 @@ export const SlideshowAnim = (props) => {
       updateCurrentSlide(1);
       
     }
-    else if (key == "Escape") {
-      closeModal(1)
+    else if (key == "Escape" && !isFullScreen) {
+      closeModal()
     }
+
   };
 
 
@@ -95,12 +126,20 @@ export const SlideshowAnim = (props) => {
     let lightbox = document.getElementById("slideshowAnim");
     openFullScreen(lightbox);
     setIsFullScreen(true);
+    console.log("full screen set to ", isFullScreen)
+    initFullScreenChangeEventListeners();
 
   }
 
   const exitFullScreen = () => {
-    closeFullScreen(document);
-    setIsFullScreen(false);
+    console.log("EXIT FULL SCREEN", isFullScreen)
+    if (isFullScreen) {
+      console.log("CLOSE FULL SCREEN")
+      closeFullScreen(document);
+      setIsFullScreen(false);
+      removeFullScreenChangeEventListeners();
+    }
+
   }
 
   const updateCurrentSlide = (newDirection) => {
@@ -130,15 +169,19 @@ export const SlideshowAnim = (props) => {
 
   };
 
-  const closeModal = (num) => {
+  const closeModal = () => {
+
+    if (isFullScreen) {
+      exitFullScreen();
+    }
 
     // ensure slideshow is paused
     if (isSlideshowPlaying) {
       setIsSlideshowPlaying(false);
     }
 
-    setIsZoomed(false)
-    setShowModal(false)
+    setIsZoomed(false);
+    setShowModal(false);
   }
 
   const openModal = (num) => {
@@ -239,6 +282,7 @@ export const SlideshowAnim = (props) => {
         setIconColor(themes[props.theme].iconColor)
       }
     }
+
   }
 
   const changeCursor = (cursor_name) => {
@@ -257,6 +301,22 @@ export const SlideshowAnim = (props) => {
     let elem = document.getElementById("img");
     let container = elem.parentElement;
     container.style.transition = "";
+  }
+
+  const initFullScreenChangeEventListeners = () => {
+    document.addEventListener('fullscreenchange', exitFullScreen);
+    document.addEventListener('webkitfullscreenchange', exitFullScreen);
+    document.addEventListener('MSFullscreenChange', exitFullScreen);
+    document.addEventListener('mozfullscreenchange', exitFullScreen);
+
+  }
+
+  const removeFullScreenChangeEventListeners = () => {
+    document.removeEventListener('fullscreenchange', exitFullScreen);
+    document.removeEventListener('webkitfullscreenchange', exitFullScreen);
+    document.removeEventListener('MSFullscreenChange', exitFullScreen);
+    document.removeEventListener('mozfullscreenchange', exitFullScreen);
+
   }
 
   const initKeyboardEventListeners = () => {
@@ -293,6 +353,8 @@ export const SlideshowAnim = (props) => {
   }, [keyPressHandler]);
 
   return (
+    <AnimateSharedLayout type="crossfade">
+
       <AnimatePresence initial={false}>
           {/* Gallery images */}
           {props.children.map((elem, index) => (
@@ -325,7 +387,7 @@ export const SlideshowAnim = (props) => {
                   <FontAwesomeIcon icon="border-all"  onClick={() => {setShowThumbnails(!showThumbnails) }}  />
                   <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />
 
-                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal(1) }}  />
+                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal() }}  />
                 </section>
                 
                 <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
@@ -339,13 +401,13 @@ export const SlideshowAnim = (props) => {
 
                   <motion.div className="slideshowInnerContainer"
                   custom={direction}
-                  variants={variants}
+                  variants={variants[imgAnimation]}
                   initial="enterImg"
                   key={imgSlideIndex}
                   animate={"centerImg"}
                   exit="exitImg"
                   transition={animTransition}
-                  drag={imgSwipeMotion}
+                  drag={(imgAnimation == "imgDrag") ? imgSwipeMotion : false}
                   dragElastic={1}
                   dragConstraints={{ left: 0, right: 0 }}
                   onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
@@ -372,15 +434,25 @@ export const SlideshowAnim = (props) => {
 
                   </motion.div>
                 </AnimatePresence>
-
+              <AnimatePresence initial={animatedThumbnails}>
                 { showThumbnails !== false && (
 
-                  <div className="thumbnails flex justify-centre align-centre gap-4 mx-auto" style={{height: "5vh", position: "absolute", bottom: "5%"}}>
+                  <motion.div
+                  initial={"hidden"}
+                  exit={"hidden" }
+                  animate={"visible"}
+                  transition={{
+                      type: "spring", 
+                      duration: 0.75 ,
+                  }}  
+                  variants={thumbnailVariants}
+                  className="thumbnails flex justify-centre align-centre gap-4 mx-auto">
                     {images.map((img, index) => (
                       <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} onClick={() => {setCurrentSlide(index) }} alt={img.caption}/>        
                     ))} 
-                  </div>
+                  </motion.div>
                 )}
+              </AnimatePresence>
 
             </div>
 
@@ -388,5 +460,6 @@ export const SlideshowAnim = (props) => {
     )}
 
     </AnimatePresence>
+    </AnimateSharedLayout>
   );
 };
