@@ -1,6 +1,7 @@
 # lightbox.js
+[![NPM](https://img.shields.io/npm/v/lightbox.js.svg)](https://www.npmjs.com/package/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-> React lightbox with animation and customization options
+> All-in-one React lightbox with animation and customization options
 
 Lightbox.js is an all-in-one lightbox solution for use with React.js. 
 
@@ -15,6 +16,7 @@ The following features are provided:
 - Slideshow functionality
 - Keyboard shortcuts
 - Thumbnails
+- Multiple image transitions
 - Entry/exit animations
 - No external CSS required
 
@@ -22,42 +24,55 @@ The following features are provided:
 - Loading indicators
 - New presets
 
-[![NPM](https://img.shields.io/npm/v/lightbox.js.svg)](https://www.npmjs.com/package/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+## Getting Started
+To get started, simply install the module via NPM. 
 
-## Usage
+Then, import the components required and import the CSS file for this library. Next, wrap the images in a `Lightbox` component or `SlideshowAnim`
+component as shown below:
 
 ```jsx
 import React, { Component } from 'react'
 
-import Lightbox from 'lightbox.js'
+import {Lightbox, SlideshowAnim} from 'lightbox.js'
 import 'lightbox.js/dist/index.css'
 
-class Example extends Component {
+class Demo extends Component {
   render() {
-    return <Lightbox />
+    return <div className="container grid grid-cols-3 gap-2 mx-auto">
+            <SlideshowAnim>
+              <img className="w-full rounded" src="https://source.unsplash.com/pAKCx4y2H6Q/1400x1200" />
+              <img className="w-full rounded" src="https://source.unsplash.com/AYS2sSAMyhc/1400x1200" />  
+              <img className="w-full rounded" src="https://source.unsplash.com/Kk8mEQAoIpI/1600x1200" />
+              <img className="w-full rounded" src="https://source.unsplash.com/HF3X2TWv1-w/1600x1200" />              
+            </SlideshowAnim> 
+          </div>
   }
 }
 ```
 
-## Types of Lightboxes Available
-Several types of lightboxes have been provided, which have varying features to cater to your project's requirements.
-For instance, a gallery lightbox is provided, which allows users to cycle through images included in the gallery. 
-
-However another lightbox is provided for displaying a single image only.
-
-For further themes and presets, be sure to take a look at the list of available presets below, which incorporate lightboxes 
-of different styles.
-
-
 ## Features
+
+### Zooming 
+Users can zoom into the images displayed in the lightbox on both desktop and mobile devices. 
+
+- **Desktop**: On a desktop device, users can zoom by scrolling with the mouse-wheel or through clicking on the image.
+- **Mobile**: Mobile users can zoom through using the pinch-to-zoom feature. 
+
+### Mobile Support 
+Mobile support is also provided with responsive imagery, and mobile-supported drag/swipe motions.
+- **Drag to swipe**: Users can navigate to the next image in the lightbox through a drag-to-swipe motion. 
+- **Pinch-to-zoom**: Zooming functionality is also provided, and users can zoom on a mobile device through a pinch-to-zoom motion.
+
 ### Multiple Presets 
 
-Several presets are provided, which offer varying themes and customization options. These include:
+Several themes are provided, which offer varying backgrounds and icon colors. These include:
 
-- **Slideshow w/ thumbnails**:  A lightbox which displays images along with thumbnails underneath, so that users can navigate to other imagery in the slideshow.
-- **Full-screen lightbox**: A lightbox which displays images at full-screen width and height.
-- **Video lightbox**: Videos can also be displayed.
-- **Sidebar**: A lightbox with a sidebar, where ads or other content can be displayed.
+- **day**: A light theme with a white background and gray icons
+- **night**: A dark theme with gray icons
+- **lightbox**: A theme with a semi-transparent gray background
+
+However, these just include the preset themes. Full customization of the background and icon colors is available by passing colors through 
+the props provided, see the documentation for more details.
 
 ### Keyboard Shortcuts
 The lightbox can also be controlled using the keyboard by pressing the following keys:
@@ -71,11 +86,21 @@ If you'd like to switch this on, simply click the Play button and the slideshow 
 
 To pause or stop the slideshow, click the Pause button in the upper-right corner.
 
-### Zooming 
-Users can zoom into the images displayed in the lightbox on both desktop and mobile devices. 
 
-- **Desktop**: On a desktop device, users can zoom by scrolling with the mouse-wheel.  
-- **Mobile**: Mobile users can zoom through using the pinch-to-zoom feature. 
+## Types of Lightboxes Available
+Several types of lightboxes have been provided, which have varying features to cater to your project's requirements.
+
+These include:
+- **Slideshow w/ thumbnails**:  A lightbox which displays images along with thumbnails underneath, so that users can navigate to other imagery in the slideshow.
+- **Full-screen lightbox**: A lightbox which displays images at full-screen width and height.
+- **Video lightbox**: Videos can also be displayed.
+- **Sidebar**: A lightbox with a sidebar, where ads or other content can be displayed.
+- **Image**: Another lightbox is provided for displaying a single image only.
+
+For instance, a gallery lightbox is provided, which allows users to cycle through images included in the gallery. 
+
+For further themes and presets, be sure to take a look at the list of available presets below, which incorporate lightboxes 
+of different styles.
 
 ## License
 
