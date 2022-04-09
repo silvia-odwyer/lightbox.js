@@ -341,6 +341,26 @@ export const SlideshowAnim = (props) => {
       initSmoothZoom();
     }, 300)
   }
+
+  const setReducedMotion = (mediaQuery) => {
+    if (mediaQuery.matches) {
+      setImgAnimation("fade");
+    }
+  }
+
+  // Check if the user has a preference for reduced motion
+  // If so, the image animation transitions between slides in the slideshow will be adjusted 
+  // to account for this
+  const checkAndInitReducedMotion = () => {
+    let reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    if (!reducedMotionMediaQuery || reducedMotionMediaQuery.matches) {
+      setImgAnimation("fade")
+    }
+
+    reducedMotionMediaQuery.addEventListener("change", setReducedMotion(reducedMotionMediaQuery));
+    return reducedMotionMediaQuery;
+  }
   
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
@@ -354,9 +374,12 @@ export const SlideshowAnim = (props) => {
     // setImgElem(imgElemRef.current)
     initKeyboardEventListeners();
 
+    let reducedMotionMediaQuery = checkAndInitReducedMotion();
+
     initStyling();
     return () => {
       removeKeyboardEventListeners();
+      reducedMotionMediaQuery.removeEventListener("change", reducedMotionMediaQuery)
     };
   }, [keyPressHandler]);
 
