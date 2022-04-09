@@ -1,4 +1,4 @@
-import React , {useEffect, useState} from 'react'
+import React , {useEffect, useState, useRef} from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion';
 import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
@@ -22,15 +22,15 @@ export const Image = ({children, ...props}) => {
   const [panImage, setPanImage] = useState(true);
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [isAnimating, setIsAnimating] = useState(false);
+  const imgElem = useRef(null);
 
   const changeCursor = (cursor_name) => {
-    let elem = document.getElementById("img");
-    let container = elem.parentElement.parentElement;
+    let container = imgElem.current.parentElement.parentElement;
     container.style.cursor = `${cursor_name}`;
   }
 
   const checkModalClick = (e) => {
-    console.log("modal click")
+
     const modals = document.getElementsByClassName('imageModal');
     let arr_modals = Array.from(modals);
     console.log("modals", modals)
@@ -62,14 +62,13 @@ export const Image = ({children, ...props}) => {
   }, [state]);
 
   const initSmoothZoom = () => {
-    let elem = document.getElementById("img");
-    let container = elem.parentElement;
+    let container = imgElem.current.parentElement;
     container.style.transition = "transform 0.2s";
   }
 
   const removeSmoothZoom = () => {
-    let elem = document.getElementById("img");
-    let container = elem.parentElement;
+
+    let container = imgElem.current.parentElement;
     container.style.transition = "";
   }
 
@@ -90,6 +89,16 @@ export const Image = ({children, ...props}) => {
     changeCursor("zoom-in");
     setIsZoomed(false);
     setZoomImg(zoomImg - 1);
+  }
+
+  const closeLightbox = () => {
+    resetMapInteractionValue();
+
+    setIsOverlayDisplayed(false);
+  }
+
+  const resetMapInteractionValue = () => {
+    setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }});
   }
 
   const reinitZoomSettings = (value) => {
@@ -120,7 +129,7 @@ export const Image = ({children, ...props}) => {
 
     if (value.scale == defaultMapInteractionValue.scale) {
       setPanImage(true);
-      setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }});
+      resetMapInteractionValue();
 
       smoothZoomTimeout();
     }
@@ -136,14 +145,13 @@ export const Image = ({children, ...props}) => {
 
         <motion.div key="imgMotionElem">
 
-          <motion.video
+          <motion.img
             {...props}
             src={props.image.src}
-            id="img"
             onClick={() => setIsOverlayDisplayed(props.image.title)}
             layoutId={"imgMotion-" + props.image.title}
             style={props.style}
-            className={`cursor-pointer`}
+            className="cursor-pointer"
             key={props.image.title}
           />
 
@@ -160,7 +168,7 @@ export const Image = ({children, ...props}) => {
                 position: "fixed",
                 top: 0,
                 left: 0,
-                backgroundColor: "black", 
+                backgroundColor: backgroundColor, 
                 width: "100vw", 
                 height: "100vh",
                 zIndex: 999999,
@@ -169,38 +177,53 @@ export const Image = ({children, ...props}) => {
               onClick={(event) => checkModalClick(event)}
             >
               <div className="lightboxContainer">
-              <section className="iconsHeader imageModal" style={{color: iconColor}}>
+                <section className="iconsHeader imageModal" style={{color: iconColor}}>
 
-                <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
-                <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
-                {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
+                  <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
+                  <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
+                  {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
 
-                <FontAwesomeIcon icon="close" size="lg" onClick={() => {setIsOverlayDisplayed(false) }}  />
+                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeLightbox()}}  />
                 </section>
-                <motion.div className="slideshowInnerContainer imageModal"
-                  key={"image"}
-                  onAnimationComplete={() => {setIsAnimating(false)}}
-                  onAnimationStart={() => {setIsAnimating(true)}}
 
-            >
+                <div className="slideshowInnerContainer">
+                  <motion.div 
+                    key={"image"}
+                    onAnimationComplete={() => {setIsAnimating(false)}}
+                    onAnimationStart={() => {setIsAnimating(true)}}
+                    layoutId={"imgMotion-" + isOverlayDisplayed}
+                    style={{width: 426, height: 500}}
+                    className="m-auto imageModal"
 
-                    <motion.img
-                      src={props.image.src}
-                      className="m-auto"
-                      style={{width: 426, height: 500}}
+              >
+                  <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
+                  onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} >
+                      <img
+                        src={props.image.src}
+                        className="m-auto"
+                        style={{width: 426, height: 500}}
+                        ref={imgElem}
+                        onClick={(e) => {
+                          if (!e.defaultPrevented) {
+                            if (!isZoomed && !isAnimating) {
+                              zoomIn()
+                            }
+                            else {
+                             zoomOut();
+                            }
+                           }
+                        }}
+                      />
+                   </MapInteractionCSS>
 
-                      layoutId={"imgMotion-" + isOverlayDisplayed}
-                    />
+                  </motion.div>
+                </div>
 
-                </motion.div>
+
               </div>
-              
-
 
             </motion.div>
           )}
-
-
           
         </AnimatePresence>
       </AnimateSharedLayout>

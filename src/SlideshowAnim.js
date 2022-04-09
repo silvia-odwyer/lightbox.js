@@ -89,6 +89,10 @@ export const SlideshowAnim = (props) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
+  // Refs
+  // const imgElemRef = useRef(null);
+  // const [imgElem, setImgElem] = useState(null);
+
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
   const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
@@ -143,6 +147,7 @@ export const SlideshowAnim = (props) => {
   }
 
   const updateCurrentSlide = (newDirection) => {
+
     resetMapInteraction();
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
 
@@ -286,20 +291,22 @@ export const SlideshowAnim = (props) => {
   }
 
   const changeCursor = (cursor_name) => {
-    let elem = document.getElementById("img");
-    let container = elem.parentElement.parentElement;
+    let imgElem = document.getElementById("img")
+    let container = imgElem.parentElement.parentElement;
     container.style.cursor = `${cursor_name}`;
   }
 
   const initSmoothZoom = () => {
-    let elem = document.getElementById("img");
-    let container = elem.parentElement;
+    let imgElem = document.getElementById("img")
+
+    let container = imgElem.parentElement;
     container.style.transition = "transform 0.2s";
   }
 
   const removeSmoothZoom = () => {
-    let elem = document.getElementById("img");
-    let container = elem.parentElement;
+    let imgElem = document.getElementById("img")
+
+    let container = imgElem.parentElement;
     container.style.transition = "";
   }
 
@@ -344,6 +351,7 @@ export const SlideshowAnim = (props) => {
   );
 
   useEffect(() => {
+    // setImgElem(imgElemRef.current)
     initKeyboardEventListeners();
 
     initStyling();
@@ -418,6 +426,7 @@ export const SlideshowAnim = (props) => {
                         <img 
                           className="object-contain"
                           src={images[imageIndex].src}
+                          id="img"
                           onClick={(e) => {
                              if (!e.defaultPrevented) {
                                if (!isZoomed && !isAnimating) {
@@ -428,7 +437,7 @@ export const SlideshowAnim = (props) => {
                                }
                               }
                            }}
-                          id="img" />
+                           />
 
                     </MapInteractionCSS>
 
