@@ -49,13 +49,13 @@ export const Image = ({children, ...props}) => {
   }
 
   useEffect(() => {
-      // if (props.theme) {
-      //   if (themes[props.theme]) {
-      //     setBackgroundColor(themes[props.theme].background);
-      //     setIconColor(themes[props.theme].iconColor);
+      if (props.theme) {
+        if (themes[props.theme]) {
+          setBackgroundColor(themes[props.theme].background);
+          setIconColor(themes[props.theme].iconColor);
 
-      //   }
-      // }
+        }
+      }
 
       console.log("icon color ", iconColor)
 
@@ -136,7 +136,7 @@ export const Image = ({children, ...props}) => {
 
         <motion.div key="imgMotionElem">
 
-          <motion.img
+          <motion.video
             {...props}
             src={props.image.src}
             id="img"
@@ -178,13 +178,12 @@ export const Image = ({children, ...props}) => {
                 <FontAwesomeIcon icon="close" size="lg" onClick={() => {setIsOverlayDisplayed(false) }}  />
                 </section>
                 <motion.div className="slideshowInnerContainer imageModal"
-            key={"image"}
-            onAnimationComplete={() => {setIsAnimating(false)}}
-            onAnimationStart={() => {setIsAnimating(true)}}
+                  key={"image"}
+                  onAnimationComplete={() => {setIsAnimating(false)}}
+                  onAnimationStart={() => {setIsAnimating(true)}}
 
             >
-              <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
-              onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} >
+
                     <motion.img
                       src={props.image.src}
                       className="m-auto"
@@ -192,7 +191,7 @@ export const Image = ({children, ...props}) => {
 
                       layoutId={"imgMotion-" + isOverlayDisplayed}
                     />
-                    </MapInteractionCSS>
+
                 </motion.div>
               </div>
               

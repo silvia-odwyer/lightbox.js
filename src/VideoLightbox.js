@@ -1,11 +1,16 @@
-import React , {useEffect, useState} from 'react'
+import React , {useEffect, useState, useRef} from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-const themes = {"day": "white", "night": "rgb(0, 0, 0)", "lightbox": "rgba(0, 0, 0, 0.4)"};
+const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
+                "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
+                
+const defaultTheme = "lightbox";
 
 export const VideoLightbox = (props) => {
     const [isOverlayDisplayed, setIsOverlayDisplayed] = useState(false);
-    
+    const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
+
     const [backgroundColor, setBackgroundColor] = React.useState(props.backgroundColor ? props.backgroundColor : themes["lightbox"]);
     const [state, setState] = React.useState();
     const bodyRef = useRef(null);
@@ -13,7 +18,9 @@ export const VideoLightbox = (props) => {
     React.useEffect(() => {
         if (props.theme) {
           if (themes[props.theme]) {
-            setBackgroundColor(themes[props.theme]);
+            setBackgroundColor(themes[props.theme].background);
+            setIconColor(themes[props.theme].iconColor);
+
           }
         }
 
@@ -37,39 +44,49 @@ export const VideoLightbox = (props) => {
                 height: "100vh",
                 zIndex: 999999,
               }}
-              className = {`flex h-screen w-${props.width * 1.5} h-${props.height * 1.5}`}
+              className = {`slideshowAnimContainer`}
               onClick={() => setIsOverlayDisplayed(false)}
 
             >
-               
-                <motion.video
-                //   onClick={() => setIsOverlayDisplayed(props.image.title)}
-                  layoutId={"vidMotion-" + props.id}
-                //   style={{ height: "50vh", width: "50vw"}}
-                  className={`cursor-pointer m-auto`}
-                  key={props.id}
-                  controls 
-                  width={900}
-                  autoPlay
-                >
-                <source
-                    src={props.videoSrc}
-                    type="video/mp4" />
+              <motion.div className="lightboxContainer">
+              <section className="iconsHeader imageModal" style={{color: iconColor}}>
 
-                </motion.video>
+                {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
+
+                <FontAwesomeIcon icon="close" size="lg" onClick={() => {setIsOverlayDisplayed(false) }}  />
+                </section>
+
+                <motion.div className="slideshowInnerContainer imageModal"
+                    key={"image"}
+                    onAnimationComplete={() => {setIsAnimating(false)}}
+                    onAnimationStart={() => {setIsAnimating(true)}}
+
+              >
+                  <motion.img
+                  //   onClick={() => setIsOverlayDisplayed(props.image.title)}
+                    layoutId={"vidMotion-" + props.id}
+                    className={``}
+                    key={props.id}
+                   width={500}
+                   src={props.videoSrc}
+                    
+                  >
+
+
+                  </motion.img>
+                </motion.div>
+              </motion.div>
 
             </motion.div>
           )}
 
             {/* {isOverlayDisplayed === false && (  */}
 
-            <motion.span
-              key="vidMotionElem"
-              className="mt-16 w-2/4">
 
-                <motion.video
-                //   src={props.image.src}
-                  onClick={() => setIsOverlayDisplayed(props.id)}
+
+                <motion.img
+                   src={props.videoSrc}
+                  onClick={() => setIsOverlayDisplayed(true)}
                   layoutId={"vidMotion-" + props.id}
                   className={`cursor-pointer`}
                   key={props.id}
@@ -77,12 +94,9 @@ export const VideoLightbox = (props) => {
                   controls={false}
                   poster={props.posterUrl} 
                 >
-                <source
-                    src={props.videoSrc}
-                    type="video/mp4" />
-                </motion.video>
+ 
+                </motion.img>
             
-            </motion.span>
             {/* )} */}
         </AnimatePresence>
       </AnimateSharedLayout>
