@@ -57,6 +57,9 @@ const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
 const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
                 "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
 
+
+const arrowStyles = {"light": {background: "white", color: "black"}, "dark" : {background: "#151515", color: "silver"}}
+
 const swipeConfidenceThreshold = 10000;
 const opacityDuration = 0.2;
 const maxScale = 2.6;
@@ -79,6 +82,8 @@ export const SlideshowAnim = (props) => {
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
   const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
+  const [arrowStyle, setArrowStyle] = useState(props.arrowStyle ? props.arrowStyle : "dark");
+
   const [isZoomed, setIsZoomed] = useState(false);
   const [animTransition, setAnimTransition] = useState(animTransitionDefault);
   const [panImage, setPanImage] = useState(true);
@@ -421,10 +426,10 @@ export const SlideshowAnim = (props) => {
                   <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal() }}  />
                 </section>
                 
-                <div className="next1" style={{background: "white"}} onClick={() => updateCurrentSlide(1)}>
+                <div className={"next1 " + arrowStyle + "_arrow"} onClick={() => updateCurrentSlide(1)}>
                     <span>&#10095;</span>
                 </div>
-                <div className="prev1" style={{background: "white"}} onClick={() => updateCurrentSlide(-1)}>
+                <div className={"prev1 " + arrowStyle + "_arrow"} onClick={() => updateCurrentSlide(-1)}>
                    <span>&#10094;</span>
                 </div>
 
@@ -466,25 +471,29 @@ export const SlideshowAnim = (props) => {
 
                   </motion.div>
                 </AnimatePresence>
-              <AnimatePresence initial={animatedThumbnails}>
-                { showThumbnails !== false && (
+                <div className="thumbnailsOuterContainer">
+                  <AnimatePresence initial={animatedThumbnails}>
+                  { showThumbnails !== false && (
 
-                  <motion.div
-                  initial={"hidden"}
-                  exit={"hidden" }
-                  animate={"visible"}
-                  transition={{
-                      type: "spring", 
-                      duration: 0.75 ,
-                  }}  
-                  variants={thumbnailVariants}
-                  className="thumbnails flex justify-centre align-centre gap-4 mx-auto">
-                    {images.map((img, index) => (
-                      <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} onClick={() => {setCurrentSlide(index) }} alt={img.caption}/>        
-                    ))} 
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <motion.div
+                    initial={"hidden"}
+                    exit={"hidden" }
+                    animate={"visible"}
+                    transition={{
+                        type: "spring", 
+                        duration: 0.75 ,
+                    }}  
+                    variants={thumbnailVariants}
+                    className="thumbnails flex justify-centre align-centre gap-4 mx-auto">
+                      {images.map((img, index) => (
+                        <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} onClick={() => {setCurrentSlide(index) }} alt={img.caption}/>        
+                        // <span style={{color: "white"}}>{index}</span>
+                      ))} 
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                </div>
+
 
             </div>
 
