@@ -52,11 +52,9 @@ let thumbnailVariants = {
   hidden: { opacity: 0 , y: 100},
 };
 
-
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
 const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
-                "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
-
+                "lightbox": {background: "rgba(12, 12, 12, 0.93)", iconColor: "silver"}};
 
 const arrowStyles = {"light": {background: "white", color: "black"}, "dark" : {background: "#151515", color: "silver"}}
 
@@ -82,7 +80,6 @@ export const SlideshowAnim = (props) => {
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
   const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
-  const [arrowStyle, setArrowStyle] = useState(props.arrowStyle ? props.arrowStyle : "dark");
 
   const [isZoomed, setIsZoomed] = useState(false);
   const [animTransition, setAnimTransition] = useState(animTransitionDefault);
@@ -104,12 +101,12 @@ export const SlideshowAnim = (props) => {
   const [showThumbnails, setShowThumbnails] = useState(props.showThumbnails ? props.showThumbnails : false);
   const [animatedThumbnails, setAnimatedThumbnails] = useState(props.animateThumbnails ? props.animateThumbnails : true);
   const [imgAnimation, setImgAnimation] = useState(props.imgAnimation ? props.imgAnimation : "imgDrag");
-  const [slideshowVariants, setSlideshowVariants] = useState(variants[imgAnimation] ? variants[imgAnimation]  : variants["imgDrag"]);
+  // const [slideshowVariants, setSlideshowVariants] = useState(variants[imgAnimation] ? variants[imgAnimation]  : variants["imgDrag"]);
+  const [arrowStyle, setArrowStyle] = useState(props.arrowStyle ? props.arrowStyle : "dark");
 
   const isMobile = width <= mobileWidth;
 
   const keyPressHandler = (event) => {
-    console.log("KEY PRESS")
     let key = event.key;
   
     if (key == "ArrowLeft") {
@@ -125,7 +122,6 @@ export const SlideshowAnim = (props) => {
     }
 
   };
-
 
   function handleWindowResize() {
     setWidth(window.innerWidth);
@@ -376,10 +372,15 @@ export const SlideshowAnim = (props) => {
   );
 
   useEffect(() => {
+
+
     // setImgElem(imgElemRef.current)
     initKeyboardEventListeners();
-
+    console.log("imgs ", props.children[0].type)
     let reducedMotionMediaQuery = checkAndInitReducedMotion();
+
+    let img_gallery = document.querySelectorAll('[data-lightboxjs]');
+    console.log("lightbox_js ", img_gallery);
 
     initStyling();
     return () => {
@@ -393,7 +394,7 @@ export const SlideshowAnim = (props) => {
 
       <AnimatePresence initial={false}>
           {/* Gallery images */}
-          {props.children.map((elem, index) => (
+          {props.children.filter(elem => elem.type == "img").map((elem, index) => ( 
             <img {...elem.props} class={elem.props.className + " cursor-pointer"} onClick={() => openModal(index) } key={index} />
           ))}
 
@@ -414,7 +415,7 @@ export const SlideshowAnim = (props) => {
                 backgroundColor: backgroundColor
               }}>
 
-                <section className="iconsHeader" style={{color: iconColor}}>
+                <section className={"iconsHeader " + arrowStyle + "_header_icon"} style={{color: iconColor}}>
 
                   <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
                   <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
@@ -426,16 +427,16 @@ export const SlideshowAnim = (props) => {
                   <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeModal() }}  />
                 </section>
                 
-                <div className={"next1 " + arrowStyle + "_arrow"} onClick={() => updateCurrentSlide(1)}>
+                <div className={"next1 " + arrowStyle + "_icon"} onClick={() => updateCurrentSlide(1)}>
                     <span>&#10095;</span>
                 </div>
-                <div className={"prev1 " + arrowStyle + "_arrow"} onClick={() => updateCurrentSlide(-1)}>
+                <div className={"prev1 " + arrowStyle + "_icon"} onClick={() => updateCurrentSlide(-1)}>
                    <span>&#10094;</span>
                 </div>
 
                 <AnimatePresence initial={false} custom={direction}>
 
-                  <motion.div className="slideshowInnerContainer"
+                  <motion.div className={`slideshowInnerContainer ${showThumbnails ? "slideshowInnerContainerThumbnails": ""}`}
                   custom={direction}
                   variants={variants[imgAnimation]}
                   initial="enterImg"

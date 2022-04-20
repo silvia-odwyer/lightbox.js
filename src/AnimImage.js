@@ -63,7 +63,7 @@ export const AnimImage = ({children, ...props}) => {
     img.src = imageUrl;
   
     img.onload = () => {
-      let { width, height, x, y } = contain(screen.height * 0.6, screen.width * 0.6, img.naturalHeight, img.naturalWidth);
+      let { width, height, x, y } = contain(screen.width * 0.6, screen.height * 0.6, img.naturalWidth, img.naturalHeight);
       setImgContainHeight(height);
       setImgContainWidth(width);
     };
