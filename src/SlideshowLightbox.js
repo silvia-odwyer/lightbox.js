@@ -5,7 +5,7 @@ import {swipePower} from "./mobile-support";
 import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
+import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
 
 import {
   GlassMagnifier,
@@ -439,16 +439,15 @@ export const SlideshowLightbox = (props) => {
                 <section className={"iconsHeader " + arrowStyle + "_header_icon"} style={{color: iconColor}}>
                 <ZoomIn onClick={() => zoomIn()} />
                 <ZoomOut onClick={() => zoomOut()} />
-                <Fullscreen />
-                <GridFill onClick={() => {setShowThumbnails(!showThumbnails) }} />
-                <ZoomIn onClick={() => setMagnifyingGlass(!enableMagnifyingGlass)} />
-
-                <div className="icon">
-                {isSlideshowPlaying ? <PauseFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}  /> : 
-                <PlayFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />}
-                </div>
+                {isFullScreen ? <FullscreenExit onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}}  /> : 
+                <Fullscreen  onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} />}
 
 
+                <GridFill onClick={() => {setShowThumbnails(!showThumbnails) }}  />
+                <Search onClick={() => setMagnifyingGlass(!enableMagnifyingGlass)} />
+
+                {isSlideshowPlaying ? <PauseCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}  /> : 
+                <PlayCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />}
 
                 <XLg onClick={() => {closeModal() }} />
 {/* 
@@ -491,7 +490,7 @@ export const SlideshowLightbox = (props) => {
                      onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg}>
 
                         { enableMagnifyingGlass == true ? 
-                        <Magnifier src={images[imageIndex].src}  /> :                         
+                        <Magnifier src={images[imageIndex].src} className="object-contain" /> :                         
                            <img 
                            className="object-contain"
                            src={images[imageIndex].src}
