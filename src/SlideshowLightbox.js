@@ -6,7 +6,7 @@ import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility"
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
-
+import ScrollContainer from 'react-indiana-drag-scroll'
 import {
   GlassMagnifier,
   MOUSE_ACTIVATION,
@@ -61,8 +61,9 @@ let thumbnailVariants = {
 };
 
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
-const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
-                "lightbox": {background: "rgba(12, 12, 12, 0.93)", iconColor: "silver"}};
+const themes = {"day": {background: "white", iconColor: "black", thumbnailBorder: "solid transparent 0.1em"}, "night": {background: "#151515", iconColor: "silver", 
+thumbnailBorder: "solid rgb(138, 138, 138) 0.1em"}, 
+                "lightbox": {background: "rgba(12, 12, 12, 0.93)", iconColor: "silver", thumbnailBorder: "solid rgb(138, 138, 138) 0.1em"}};
 
 const arrowStyles = {"light": {background: "white", color: "black"}, "dark" : {background: "#151515", color: "silver"}}
 
@@ -99,6 +100,13 @@ export const SlideshowLightbox = (props) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Thumbnails slider
+  const [mouseDown, setMouseDown] = useState(false);
+  const [startX, setStartX] = useState(false);
+  const [scrollLeft, setScrollLeft] = useState(false);
+
 
   // Refs
   // const imgElemRef = useRef(null);
@@ -107,6 +115,8 @@ export const SlideshowLightbox = (props) => {
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
   const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
+  const [thumbnailBorder, setThumbnailBorder] = useState(props.thumbnailBorder ? props.thumbnailBorder : themes[defaultTheme].thumbnailBorder);
+
   const [showThumbnails, setShowThumbnails] = useState(props.showThumbnails ? props.showThumbnails : false);
   const [animatedThumbnails, setAnimatedThumbnails] = useState(props.animateThumbnails ? props.animateThumbnails : true);
   const [imgAnimation, setImgAnimation] = useState(props.imgAnimation ? props.imgAnimation : "imgDrag");
@@ -140,15 +150,12 @@ export const SlideshowLightbox = (props) => {
     let lightbox = document.getElementById("slideshowAnim");
     openFullScreen(lightbox);
     setIsFullScreen(true);
-    console.log("full screen set to ", isFullScreen)
     initFullScreenChangeEventListeners();
 
   }
 
   const exitFullScreen = () => {
-    console.log("EXIT FULL SCREEN", isFullScreen)
     if (isFullScreen) {
-      console.log("CLOSE FULL SCREEN")
       closeFullScreen(document);
       setIsFullScreen(false);
       removeFullScreenChangeEventListeners();
@@ -157,9 +164,14 @@ export const SlideshowLightbox = (props) => {
   }
 
   const updateCurrentSlide = (newDirection) => {
-
+    resetSlideAnim();
     resetMapInteraction();
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
+
+  };
+
+  const resetSlideAnim = () => {
+    setAnimTransition(animTransitionDefault)
 
   };
 
@@ -167,6 +179,7 @@ export const SlideshowLightbox = (props) => {
     setPanImage(true);
     setMapInteractionValue({scale: 1, translation: { x: 0, y: 0 }})
     setIsZoomed(false);
+
   }
 
   const setCurrentSlide = (newIndex) => {
@@ -294,7 +307,8 @@ export const SlideshowLightbox = (props) => {
     if (props.theme) {
       if (themes[props.theme]) {
         setBackgroundColor(themes[props.theme].background);
-        setIconColor(themes[props.theme].iconColor)
+        setIconColor(themes[props.theme].iconColor);
+        setThumbnailBorder(themes[props.theme].thumbnailBorder);
       }
     }
 
@@ -394,11 +408,9 @@ export const SlideshowLightbox = (props) => {
 
     // setImgElem(imgElemRef.current)
     initKeyboardEventListeners();
-    console.log("imgs ", props.children[0].type)
     let reducedMotionMediaQuery = checkAndInitReducedMotion();
 
     let img_gallery = document.querySelectorAll('[data-lightboxjs]');
-    console.log("lightbox_js ", img_gallery);
 
     initStyling();
     return () => {
@@ -412,12 +424,10 @@ export const SlideshowLightbox = (props) => {
 
       <AnimatePresence initial={false}>
 
-
           {/* Gallery images */}
           {props.children.filter(elem => elem.type == "img").map((elem, index) => ( 
             <img {...elem.props} class={elem.props.className + " cursor-pointer"} onClick={() => openModal(index) } key={index} />
           ))}
-
           
           { showModal !== false && (
             <motion.div 
@@ -428,8 +438,7 @@ export const SlideshowLightbox = (props) => {
             exit={{ opacity: 0, } }
             animate={{ opacity: 1,  }}
             transition={{
-                type: "spring", 
-                duration: 0.45 ,
+                duration: 0.20 ,
             }}>
             <div className="lightboxContainer"             
               style={{
@@ -512,29 +521,42 @@ export const SlideshowLightbox = (props) => {
 
                   </motion.div>
                 </AnimatePresence>
-                <div className="thumbnailsOuterContainer">
-                  <AnimatePresence initial={animatedThumbnails}>
-                  { showThumbnails !== false && (
 
-                    <motion.div
-                    initial={"hidden"}
-                    exit={"hidden" }
-                    animate={"visible"}
-                    transition={{
-                        type: "spring", 
-                        duration: 0.75 ,
-                    }}  
-                    variants={thumbnailVariants}
-                    className="thumbnails flex justify-centre align-centre gap-2 mx-auto">
-                      {images.map((img, index) => (
-                        <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} onClick={() => {setCurrentSlide(index) }} alt={img.caption}/>        
-                        // <span style={{color: "white"}}>{index}</span>
-                      ))} 
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+       
+                <div className="thumbnailsOuterContainer" style={imagesLoaded ? {} : {display: "hidden"}} 
+
+                 >
+                <ScrollContainer className="scroll-container" vertical={false} horizontal={true}>
+
+                    <AnimatePresence initial={animatedThumbnails}>
+                      { showThumbnails !== false && (
+              
+                          <motion.div
+                            initial={"hidden"}
+                            exit={"hidden" }
+                            animate={"visible"}
+                            transition={{
+                              type: "spring", 
+                              duration: 0.75 ,
+                              }}  
+                            variants={thumbnailVariants}
+                            className="thumbnails flex justify-centre align-centre gap-4 mx-auto">
+                              {images.map((img, index) => (
+                                      <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} 
+                                      style={imageIndex === index ? {border: "solid rgb(107, 133, 206) 0.1em"} : {border: thumbnailBorder }}
+                                      onClick={() => {setCurrentSlide(index) }} alt={img.caption}
+                                      onLoad={() => setImagesLoaded(true)}
+                                      />        
+                                      // <span style={{color: "white"}}>{index}</span>
+                                    ))} 
+                            </motion.div>
+                        )}
+                      </AnimatePresence>
+                      </ScrollContainer>
+
                 </div>
-
+                
+              
 
             </div>
 
