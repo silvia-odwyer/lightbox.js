@@ -13,6 +13,9 @@ import {
   TOUCH_ACTIVATION
 } from "react-image-magnifiers";
 import Magnifier from "react-magnifier";
+import {cover, contain} from 'intrinsic-scale';
+import { isBrowser } from './utility'; 
+import { Portal } from 'react-portal';
 
 const variants = {
   "imgDrag": {
@@ -61,10 +64,10 @@ let thumbnailVariants = {
 };
 
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
-const themes = {"day": {background: "white", iconColor: "black", thumbnailBorder: "solid transparent 0.1em"}, "night": {background: "#151515", iconColor: "silver", 
-thumbnailBorder: "solid rgb(138, 138, 138) 0.1em"}, 
-                "lightbox": {background: "rgba(12, 12, 12, 0.93)", iconColor: "silver", thumbnailBorder: "solid rgb(138, 138, 138) 0.1em"}};
-
+const themes = {"day": {background: "white", iconColor: "black", thumbnailBorder: "solid transparent 2px"}, "night": {background: "#151515", iconColor: "silver", 
+thumbnailBorder: "solid rgb(138, 138, 138) 2px"}, 
+                "lightbox": {background: "rgba(12, 12, 12, 0.93)", iconColor: "silver", thumbnailBorder: "solid rgb(138, 138, 138) 2px"}};
+const activeThumbnailBorder = "solid rgba(107, 133, 206, 0.6) 2px";
 const arrowStyles = {"light": {background: "white", color: "black"}, "dark" : {background: "#151515", color: "silver"}}
 
 const swipeConfidenceThreshold = 10000;
@@ -84,24 +87,32 @@ const slideshowAnimTransition =   {
 
 export const SlideshowLightbox = (props) => {
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0]);
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
   const [images, setImages] = useState(props.children ? props.children.map(obj => obj.props) : []);
   const imageIndex = wrapNums(0, images.length, imgSlideIndex);
   const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
+  const [roundedImages, setRoundedImages] = useState(props.roundedImages ? props.roundedImages : true);
+  const [lightboxIdentifier, setLightboxIdentifier] = useState(props.lightboxIdentifier ? props.lightboxIdentifier : false);
 
   const [isZoomed, setIsZoomed] = useState(false);
   const [animTransition, setAnimTransition] = useState(animTransitionDefault);
   const [panImage, setPanImage] = useState(true);
   const [zoomImg, setZoomImg] = useState(0);
-  const [width, setWidth] = useState(window.innerWidth);
+  const [width, setWidth] = useState(0);
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [imgContainHeight, setImgContainHeight] = useState(500);
+  const [imgContainWidth, setImgContainWidth] = useState(426);
+  const [isInit, setIsInit] = useState(false);
+  const [imgElems, setImgElems] = useState(false);
 
+  const [usesDataAttr, setUsesDataAttr] = useState(false);
+  
   // Thumbnails slider
   const [mouseDown, setMouseDown] = useState(false);
   const [startX, setStartX] = useState(false);
@@ -146,6 +157,25 @@ export const SlideshowLightbox = (props) => {
     setWidth(window.innerWidth);
   }
 
+  const checkModalClick = (e) => {
+    
+    const modals = document.getElementsByClassName('imageModal');
+    let arr_modals = Array.from(modals);
+
+    for (let i=0; i < arr_modals.length; i++) {
+      let elem = arr_modals[i];
+      let clickInside = elem.contains(e.target)
+    
+      if (clickInside) {
+         return;
+      }
+    }
+    
+    console.log("closing, iszoomed ", isZoomed)
+    setShowModal(false);
+
+  }
+
   const fullScreen = () => {
     let lightbox = document.getElementById("slideshowAnim");
     openFullScreen(lightbox);
@@ -165,12 +195,20 @@ export const SlideshowLightbox = (props) => {
 
   const updateCurrentSlide = (newDirection) => {
     resetSlideAnim();
+    setMagnifyingGlass(false)
     resetMapInteraction();
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
 
   };
 
+  const updateImageSlideshow = (newDirection) => {
+    resetMapInteraction();
+    setImgSlideIndex([imgSlideIndex + newDirection, newDirection]);
+  };
+
   const resetSlideAnim = () => {
+    console.log("set anim transition ", animTransitionDefault)
+
     setAnimTransition(animTransitionDefault)
 
   };
@@ -190,6 +228,7 @@ export const SlideshowLightbox = (props) => {
     else {
       newDirection = -1
     }
+    console.log("set anim transition ", slideshowAnimTransition)
 
     setAnimTransition(slideshowAnimTransition)
     resetMapInteraction();
@@ -208,6 +247,7 @@ export const SlideshowLightbox = (props) => {
       setIsSlideshowPlaying(false);
     }
 
+    resetMapInteraction()
     setIsZoomed(false);
     setShowModal(false);
   }
@@ -218,12 +258,14 @@ export const SlideshowLightbox = (props) => {
   }
 
   const playSlideshow = () => {
+    setMagnifyingGlass(false);
     setAnimTransition(slideshowAnimTransition)
-    updateCurrentSlide(1);
+    updateImageSlideshow(1);
     setIsSlideshowPlaying(true);
   }
 
   const stopSlideshow = () => {
+    console.log("set anim transition ", animTransitionDefault)
     setAnimTransition(animTransitionDefault);
     setIsSlideshowPlaying(false);
   }
@@ -314,6 +356,43 @@ export const SlideshowLightbox = (props) => {
 
   }
 
+  const initMagnifyingGlass = () => {
+    if (!enableMagnifyingGlass) {
+      let img = document.getElementById("img");
+      let imageContainerH, imageContainerW;
+      if (isMobile) {
+        imageContainerW = 0.92;
+
+        // horizontal image
+        if (img.naturalWidth > img.naturalHeight) {
+          imageContainerH = 0.65;
+        } 
+        //vertical image
+        else {
+          imageContainerH = 0.60;
+        }
+
+        // remove dragging motion
+      }
+      else {
+        imageContainerW = 0.92;
+        imageContainerH = 0.65;
+      }
+      
+      let { width, height, x, y } = contain(screen.width * imageContainerW, screen.height * imageContainerH, img.naturalWidth, img.naturalHeight);
+      setImgContainHeight(height);
+      setImgContainWidth(width);
+    }
+
+    else {
+      setImgAnimation("imgDrag");
+    }
+
+    setMagnifyingGlass(!enableMagnifyingGlass);
+
+  }
+
+
   const changeCursor = (cursor_name) => {
     if (!enableMagnifyingGlass) {
       let imgElem = document.getElementById("img")
@@ -361,12 +440,18 @@ export const SlideshowLightbox = (props) => {
 
   const initKeyboardEventListeners = () => {
     document.addEventListener('keydown', keyPressHandler);
-    window.addEventListener('resize', handleWindowResize);
+
+    if (isBrowser) {
+      window.addEventListener('resize', handleWindowResize);
+    }
   }
 
   const removeKeyboardEventListeners = () => {
-    window.removeEventListener('resize', handleWindowResize);
-    document.removeEventListener('keydown', keyPressHandler);
+    if (isBrowser) {
+      window.removeEventListener('resize', handleWindowResize);
+      document.removeEventListener('keydown', keyPressHandler);
+
+    }
   }
 
   const smoothZoomTimeout = () => {
@@ -385,32 +470,81 @@ export const SlideshowLightbox = (props) => {
   // If so, the image animation transitions between slides in the slideshow will be adjusted 
   // to account for this
   const checkAndInitReducedMotion = () => {
-    let reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    if (!reducedMotionMediaQuery || reducedMotionMediaQuery.matches) {
-      setImgAnimation("fade")
+    let reducedMotionMediaQuery = "";
+
+    if (isBrowser) {
+      reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      if (!reducedMotionMediaQuery || reducedMotionMediaQuery.matches) {
+        setImgAnimation("fade")
+      }
+  
+      reducedMotionMediaQuery.addEventListener("change", setReducedMotion(reducedMotionMediaQuery));
     }
 
-    reducedMotionMediaQuery.addEventListener("change", setReducedMotion(reducedMotionMediaQuery));
     return reducedMotionMediaQuery;
   }
   
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
     () => {
-      updateCurrentSlide(1);
+      updateImageSlideshow(1);
     },
     isSlideshowPlaying ? slideshowInterval : null
   );
 
   useEffect(() => {
-
+    if (isBrowser) {
+      setWidth(window.innerWidth);
+    }
 
     // setImgElem(imgElemRef.current)
     initKeyboardEventListeners();
     let reducedMotionMediaQuery = checkAndInitReducedMotion();
 
-    let img_gallery = document.querySelectorAll('[data-lightboxjs]');
+    if (!isInit) {
+      if (lightboxIdentifier) {
+        let img_gallery = document.querySelectorAll('[data-lightboxjs]');
+        let img_elements = [];
+
+        let usesAttr = false;
+        if (img_gallery.length > 0) {
+          for (let i = 0; i <= img_gallery.length - 1; i++) {
+            let img = img_gallery[i];
+            console.log("loop", img.nodeType)
+
+            let attr_val = img.getAttribute("data-lightboxjs");
+            console.log("loop attr val ", attr_val)
+            if (attr_val == lightboxIdentifier) {
+
+              img.addEventListener("click", () => {console.log("open"); openModal(i)}, false);
+              img.classList.add("cursor-pointer");
+              usesAttr = true;
+              img_elements.push({src: img.src, alt: img.alt});
+            }
+  
+          }
+  
+          if (usesAttr) {
+
+            setUsesDataAttr(true);
+          }
+          
+          setImages(img_elements)
+        }
+      }
+      else {
+        if (props.children) {
+          setImages(props.children.filter(elem => elem.type == "img").map(obj => obj.props));
+        }
+        
+      }
+ 
+      setIsInit(true)
+
+    }
+
 
     initStyling();
     return () => {
@@ -419,151 +553,165 @@ export const SlideshowLightbox = (props) => {
     };
   }, [keyPressHandler]);
 
-  return (
-    <AnimateSharedLayout type="crossfade">
-
-      <AnimatePresence initial={false}>
-
-          {/* Gallery images */}
-          {props.children.filter(elem => elem.type == "img").map((elem, index) => ( 
-            <img {...elem.props} class={elem.props.className + " cursor-pointer"} onClick={() => openModal(index) } key={index} />
-          ))}
+  return (<div class={props.className}>
+          {lightboxIdentifier != false ? props.children : null}
           
-          { showModal !== false && (
-            <motion.div 
-            className="slideshowAnimContainer"    
-            key="slideshowAnimContainer"   
-            id="slideshowAnim"                        
-            initial={{ opacity: 0 }}
-            exit={{ opacity: 0, } }
-            animate={{ opacity: 1,  }}
-            transition={{
-                duration: 0.20 ,
-            }}>
-            <div className="lightboxContainer"             
-              style={{
-                backgroundColor: backgroundColor
-              }}>
+          <AnimateSharedLayout type="crossfade">
 
-                <section className={"iconsHeader " + arrowStyle + "_header_icon"} style={{color: iconColor}}>
-                <ZoomIn onClick={() => zoomIn()} />
-                <ZoomOut onClick={() => zoomOut()} />
-                {isFullScreen ? <FullscreenExit onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}}  /> : 
-                <Fullscreen  onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} />}
+            <AnimatePresence initial={false}>
+                {/* Gallery images */}
+                {lightboxIdentifier != false
+                  ? null : props.children.filter(elem => elem.type == "img").map((elem, index) => ( 
+                    <motion.img {...elem.props} class={elem.props.className + " cursor-pointer"} onClick={() => openModal(index) } key={index} 
+                    whileTap={{ scale: 0.97 }} />
+                  ))
+                }
 
-
-                <GridFill onClick={() => {setShowThumbnails(!showThumbnails) }}  />
-                <Search onClick={() => setMagnifyingGlass(!enableMagnifyingGlass)} />
-
-                {isSlideshowPlaying ? <PauseCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}  /> : 
-                <PlayCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />}
-
-                <XLg onClick={() => {closeModal() }} />
-{/* 
-                  <FontAwesomeIcon icon="plus"  />
-                  <FontAwesomeIcon icon="minus"    />
-                  <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} />
-
-                  <FontAwesomeIcon icon="border-all"    />
-                  <FontAwesomeIcon icon={isSlideshowPlaying ? "pause" : "play"} />
-
-                  <FontAwesomeIcon icon="close" size="lg"   /> */}
-
-
-                </section>
                 
-                <div className={"next1 " + arrowStyle + "_icon"} onClick={() => updateCurrentSlide(1)}>
-                    <span>&#10095;</span>
-                </div>
-                <div className={"prev1 " + arrowStyle + "_icon"} onClick={() => updateCurrentSlide(-1)}>
-                   <span>&#10094;</span>
-                </div>
+                { showModal !== false && (
+                  <Portal>
+                    <motion.div 
+                    className="slideshowAnimContainer"    
+                    key="slideshowAnimContainer"   
+                    id="slideshowAnim"       
+                    onClick={(event) => {if (!isZoomed) checkModalClick(event)}}
+                        
+                    initial={{ opacity: 0 }}
+                    exit={{ opacity: 0, } }
+                    animate={{ opacity: 1,  }}
+                    transition={{
+                        duration: 0.20 ,
+                    }}>
+                    <div className="lightboxContainer"             
+                      style={{
+                        backgroundColor: backgroundColor
+                      }}>
 
-                <AnimatePresence initial={false} custom={direction}>
+                        <section className={"iconsHeader imageModal " + arrowStyle + "_header_icon"} style={{color: iconColor}}>
+                          <motion.div whileTap={{scale: 0.95}}>
+                            <ZoomIn onClick={() => zoomIn()} />
+                          </motion.div>
 
-                  <motion.div className={`slideshowInnerContainer ${showThumbnails ? "slideshowInnerContainerThumbnails": ""}`}
-                  custom={direction}
-                  variants={variants[imgAnimation]}
-                  initial="enterImg"
-                  key={imgSlideIndex}
-                  animate={"centerImg"}
-                  exit="exitImg"
-                  transition={animTransition}
-                  drag={(imgAnimation == "imgDrag") ? imgSwipeMotion : false}
-                  dragElastic={1}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
-                  onAnimationComplete={() => {setIsAnimating(false)}}
-                  onAnimationStart={() => {setIsAnimating(true)}}>
-                    <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
-                     onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg}>
+                          <motion.div whileTap={{scale: 0.95}}>
+                            <ZoomOut onClick={() => zoomOut()} />
+                          </motion.div>
 
-                        { enableMagnifyingGlass == true ? 
-                        <Magnifier src={images[imageIndex].src} className="object-contain" /> :                         
-                           <img 
-                           className="object-contain"
-                           src={images[imageIndex].src}
-                           id="img"
-                           onClick={(e) => {
-                              if (!e.defaultPrevented) {
-                                if (!isZoomed && !isAnimating) {
-                                  zoomIn()
-                                }
-                                else {
-                                 zoomOut();
-                                }
-                               }
-                            }}
-                            />
-                        }
+                          
+                          {isFullScreen ? <motion.div whileTap={{scale: 0.95}}><FullscreenExit onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}}  /></motion.div> : 
+                          <motion.div whileTap={{scale: 0.95}}><Fullscreen  onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /></motion.div>}
 
-                    </MapInteractionCSS>
+                          <motion.div whileTap={{scale: 0.95}}>
 
-                  </motion.div>
-                </AnimatePresence>
+                            <GridFill onClick={() => {setShowThumbnails(!showThumbnails) }}  />
+                          </motion.div>
 
-       
-                <div className="thumbnailsOuterContainer" style={imagesLoaded ? {} : {display: "hidden"}} 
+                          {isMobile ? null : <motion.div whileTap={{scale: 0.95}}>
+                            <Search onClick={() => initMagnifyingGlass()} />
+                          </motion.div>}
 
-                 >
-                <ScrollContainer className="scroll-container" vertical={false} horizontal={true}>
+                          {isSlideshowPlaying ? <PauseCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}  /> : 
+                          <PlayCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />}
 
-                    <AnimatePresence initial={animatedThumbnails}>
-                      { showThumbnails !== false && (
-              
-                          <motion.div
-                            initial={"hidden"}
-                            exit={"hidden" }
-                            animate={"visible"}
-                            transition={{
-                              type: "spring", 
-                              duration: 0.75 ,
-                              }}  
-                            variants={thumbnailVariants}
-                            className="thumbnails flex justify-centre align-centre gap-4 mx-auto">
-                              {images.map((img, index) => (
-                                      <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} 
-                                      style={imageIndex === index ? {border: "solid rgb(107, 133, 206) 0.1em"} : {border: thumbnailBorder }}
-                                      onClick={() => {setCurrentSlide(index) }} alt={img.caption}
-                                      onLoad={() => setImagesLoaded(true)}
-                                      />        
-                                      // <span style={{color: "white"}}>{index}</span>
-                                    ))} 
+                          <motion.div whileTap={{scale: 0.95}}>
+
+                            <XLg onClick={() => {closeModal() }} />
                             </motion.div>
-                        )}
-                      </AnimatePresence>
-                      </ScrollContainer>
 
-                </div>
-                
+                        </section>
+                        
+                        <div className={"next1 " + arrowStyle + "_icon imageModal"} onClick={() => updateCurrentSlide(1)}>
+                            <span>&#10095;</span>
+                        </div>
+                        <div className={"prev1 " + arrowStyle + "_icon imageModal"} onClick={() => updateCurrentSlide(-1)}>
+                          <span>&#10094;</span>
+                        </div>
+
+                        <AnimatePresence initial={false} custom={direction}>
+
+                          <motion.div className={`slideshowInnerContainer ${showThumbnails ? "slideshowInnerContainerThumbnails": ""}`}
+                          custom={direction}
+                          variants={variants[imgAnimation]}
+                          initial="enterImg"
+                          key={imgSlideIndex}
+                          animate={"centerImg"}
+                          exit="exitImg"
+                          transition={animTransition}
+                          drag={(imgAnimation == "imgDrag") ? imgSwipeMotion : false}
+                          dragElastic={1}
+                          dragConstraints={{ left: 0, right: 0 }}
+                          onDragEnd={(e, { offset, velocity }) => {checkAndUpdateSlide(offset, velocity)}}
+                          onAnimationComplete={() => {setIsAnimating(false)}}
+                          onAnimationStart={() => {setIsAnimating(true)}}>
+                            <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
+                            onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} 
+                            translationBounds={{xMin: -500, xMax: 400, yMin: -500, yMax: 400}}>
+
+                                { enableMagnifyingGlass == true ? 
+                                <Magnifier src={images[imageIndex].src} className="imageModal" style={{width: imgContainWidth, height: imgContainHeight}} /> :                         
+                                  <img 
+                                  className={`object-contain imageModal ${roundedImages ? "rounded-lg" : ""}`}
+                                  src={images[imageIndex].src}
+                                  id="img"
+                                  onClick={(e) => {
+                                      if (!e.defaultPrevented) {
+                                        if (!isZoomed && !isAnimating) {
+                                          zoomIn()
+                                        }
+                                        else {
+                                        zoomOut();
+                                        }
+                                      }
+                                    }}
+                                    />
+                                }
+
+                            </MapInteractionCSS>
+
+                          </motion.div>
+                        </AnimatePresence>
+
               
+                        <div className="thumbnailsOuterContainer imageModal" style={imagesLoaded ? {} : {display: "hidden"}} 
 
-            </div>
+                        >
+                        <ScrollContainer className="scroll-container" vertical={false} horizontal={true}>
 
-      </motion.div>
-    )}
+                            <AnimatePresence initial={animatedThumbnails}>
+                              { showThumbnails !== false && (
+                      
+                                  <motion.div
+                                    initial={"hidden"}
+                                    exit={"hidden" }
+                                    animate={"visible"}
+                                    transition={{
+                                      type: "spring", 
+                                      duration: 0.75 ,
+                                      }}  
+                                    variants={thumbnailVariants}
+                                    className="thumbnails flex justify-centre align-centre gap-2 md:gap-4 rounded-sm mx-auto">
+                                      {images.map((img, index) => (
+                                              <img className={"thumbnail " + (imageIndex === index ? 'active' : '')} src={img.src} 
+                                              style={imageIndex === index ? {border: activeThumbnailBorder} : {border: thumbnailBorder }}
+                                              onClick={() => {setCurrentSlide(index) }} alt={img.caption}
+                                              onLoad={() => setImagesLoaded(true)}
+                                              />        
+                                              // <span style={{color: "white"}}>{index}</span>
+                                            ))} 
+                                    </motion.div>
+                                )}
+                              </AnimatePresence>
+                              </ScrollContainer>
 
-    </AnimatePresence>
-    </AnimateSharedLayout>
+                        </div>
+                    </div>
+
+              </motion.div>
+              </Portal>
+            )}
+
+            </AnimatePresence>
+            </AnimateSharedLayout>
+    </div>
+   
   );
 };
