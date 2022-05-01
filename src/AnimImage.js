@@ -4,6 +4,9 @@ import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility"
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {cover, contain} from 'intrinsic-scale';
+import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
+import { isBrowser } from './utility'; 
+import {Portal} from "react-portal";
 
 const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
                 "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
@@ -17,6 +20,9 @@ export const AnimImage = ({children, ...props}) => {
   const [isOverlayDisplayed, setIsOverlayDisplayed] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomImg, setZoomImg] = useState(0);
+  const [isFullScreenImage, setIsFullScreenImage] = useState(props.fullScreenImage ? props.fullScreenImage : false);
+  const [roundedImage, setRoundedImage] = useState(props.roundedImage ? props.roundedImage : true);
+
   const [imgContainHeight, setImgContainHeight] = useState(500);
   const [imgContainWidth, setImgContainWidth] = useState(426);
   const [imgLayoutID, setImgLayoutID] = useState(props.imgAnimation ? props.imgAnimation : "imgMotion-");
@@ -63,7 +69,7 @@ export const AnimImage = ({children, ...props}) => {
     img.src = imageUrl;
   
     img.onload = () => {
-      let { width, height, x, y } = contain(screen.width * 0.6, screen.height * 0.6, img.naturalWidth, img.naturalHeight);
+      let { width, height, x, y } = contain(screen.width * 0.92, screen.height * 0.8, img.naturalWidth, img.naturalHeight);
       setImgContainHeight(height);
       setImgContainWidth(width);
     };
@@ -85,30 +91,10 @@ export const AnimImage = ({children, ...props}) => {
         }
       }
 
-
-      //loadImage(props.image.src);
-
-      // getImageDimensions(props.image.src);
-
-      // const img = new Image();
-      // img.onload = () => {
-      //     let imgNaturalWidth = this.naturalWidth;
-      //     let imgNaturalHeight = this.naturalHeight;
-          
-      //     let { width, height, x, y } = contain(screen.height * 0.8, screen.width * 0.8, imgNaturalWidth, imgNaturalHeight);
-      //     console.log("contain", width, height, x, y);
-      // };
-      // img.src = "https://picsum.photos/200/300";
-
-
-      // let { width, height, x, y } = contain(100, 200, 50, 50);
-      // console.log("contain", width, height, x, y);
-
       let reducedMotionMediaQuery = checkAndInitReducedMotion();
 
       return () => {
-
-        mediaQuery.removeEventListener("change", reducedMotionMediaQuery)
+        reducedMotionMediaQuery.removeEventListener("change", reducedMotionMediaQuery)
       };
 
       console.log("icon color ", iconColor)
@@ -184,13 +170,17 @@ export const AnimImage = ({children, ...props}) => {
   // If so, the image animation transitions between slides in the slideshow will be adjusted 
   // to account for this
   const checkAndInitReducedMotion = () => {
-    let reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reducedMotionMediaQuery;
+    if (isBrowser) {
+      reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    if (!reducedMotionMediaQuery || reducedMotionMediaQuery.matches) {
-      setImgLayoutID(null)
+      if (!reducedMotionMediaQuery || reducedMotionMediaQuery.matches) {
+        setImgLayoutID(null)
+      }
+  
+      reducedMotionMediaQuery.addEventListener("change", setReducedMotion(reducedMotionMediaQuery));
     }
 
-    reducedMotionMediaQuery.addEventListener("change", setReducedMotion(reducedMotionMediaQuery));
     return reducedMotionMediaQuery;
   }
 
@@ -214,94 +204,101 @@ export const AnimImage = ({children, ...props}) => {
     
   }
     return (
-      <AnimateSharedLayout type="crossfade">
+      <div>
         <AnimatePresence>
-
-        <motion.div key="imgMotionElem">
 
           <motion.img
             {...props}
             src={props.image.src}
             onClick={() => setIsOverlayDisplayed(props.image.title)}
-            layoutId={imgLayoutID + props.image.title}
+            // layoutId={"imgMotion-" + props.image.title}
+            whileTap={{scale: 0.97}}
             style={props.style}
             className="cursor-pointer"
             key={props.image.title}
           />
 
-        </motion.div>
+        <Portal>
+          <AnimatePresence>
 
+            {isOverlayDisplayed !== false && (
 
-          {isOverlayDisplayed !== false && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              exit={{ opacity: 0 } }
-              animate={{ opacity: 1,}}
-              key="imgOverlay"
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                backgroundColor: backgroundColor, 
-                width: "100vw", 
-                height: "100vh",
-                zIndex: 999999,
-              }}
-              className = {`flex h-screen slideshowAnimContainer`}
-              onClick={(event) => checkModalClick(event)}
-            >
-              <div className="lightboxContainer">
-                <section className="iconsHeader imageModal" style={{color: iconColor}}>
-
-                  <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
-                  <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
-                  {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
-
-                  <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeLightbox()}}  />
-                </section>
-
-                <div className="slideshowInnerContainer">
-                  <motion.div 
-                    key={"image"}
-                    onAnimationComplete={() => {setIsAnimating(false)}}
-                    onAnimationStart={() => {setIsAnimating(true)}}
-                    layoutId={imgLayoutID + isOverlayDisplayed}
-                    style={{width: imgContainWidth, height: imgContainHeight}}
-                    className="m-auto imageModal"
-
+              <motion.div
+                initial={{ opacity: 0 }}
+                exit={{ opacity: 0 } }
+                animate={{ opacity: 1,}}
+                key="imgOverlay"
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  backgroundColor: backgroundColor, 
+                  width: "100vw", 
+                  height: "100vh",
+                  zIndex: 999999,
+                }}
+                className = {`flex h-screen slideshowAnimContainer`}
+                onClick={(event) => checkModalClick(event)}
               >
-                  <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
-                  onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} >
-                      <img
-                        src={props.image.src}
-                        className="m-auto"
-                        style={{width: imgContainWidth, height: imgContainHeight}}
-                        ref={imgElem}
-                        //id="img"
-                        onClick={(e) => {
-                          if (!e.defaultPrevented) {
-                            if (!isZoomed && !isAnimating) {
-                              zoomIn()
+                <motion.div className="lightboxContainer">
+                  <section className="iconsHeader imageModal" style={{color: iconColor}}>
+
+                    <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
+                    <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
+                    {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
+
+                    <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeLightbox()}}  />
+                  </section>
+
+                  <motion.div className="imageInnerContainer">
+
+                    {/* <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
+                    onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} > */}
+                        <motion.img
+                          src={props.image.src}
+                          key={"image"}
+                          // layoutId={"imgMotion-" + isOverlayDisplayed}
+                          // initial={{ scale: 0.7 }}
+                          // exit={{ scale: 0.7, opacity: 0 } }
+                          // animate={{scale: 1}}
+                          onAnimationComplete={() => {setIsAnimating(false)}}
+                          onAnimationStart={() => {setIsAnimating(true)}}
+                          className="m-auto"
+                          style={{width: imgContainWidth, height: imgContainHeight}}
+                          ref={imgElem}
+                          onClick={(e) => {
+                            if (!e.defaultPrevented) {
+                              if (!isZoomed && !isAnimating) {
+                                zoomIn()
+                              }
+                              else {
+                              zoomOut();
+                              }
                             }
-                            else {
-                             zoomOut();
-                            }
-                           }
-                        }}
-                      />
-                   </MapInteractionCSS>
+                          }}
+                        />
+                    {/* </MapInteractionCSS> */}
 
                   </motion.div>
-                </div>
 
 
-              </div>
+                </motion.div>
 
-            </motion.div>
-          )}
-          
+              </motion.div>
+
+            )}
+            </AnimatePresence>
+
+          </Portal>
+
+
+
         </AnimatePresence>
-      </AnimateSharedLayout>
+
+
+      </div>
+      
+
 
   );
 
