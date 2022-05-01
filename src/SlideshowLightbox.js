@@ -5,6 +5,7 @@ import {swipePower} from "./mobile-support";
 import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import axios from "axios";
 import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
 import ScrollContainer from 'react-indiana-drag-scroll'
 import {
@@ -94,6 +95,8 @@ export const SlideshowLightbox = (props) => {
   const [slideshowInterval, setSlideshowInterval] = useState(props.slideshowInterval ? props.slideshowInterval : 1100);
   const [roundedImages, setRoundedImages] = useState(props.roundedImages ? props.roundedImages : true);
   const [lightboxIdentifier, setLightboxIdentifier] = useState(props.lightboxIdentifier ? props.lightboxIdentifier : false);
+  const [imageFullScreen, setImageFullScreen] = useState(props.fullScreen ? props.fullScreen : false);
+  const [licenseKey, setLicenseKey] = useState(props.licenseKey ? props.licenseKey : "");
 
   const [isZoomed, setIsZoomed] = useState(false);
   const [animTransition, setAnimTransition] = useState(animTransitionDefault);
@@ -103,7 +106,7 @@ export const SlideshowLightbox = (props) => {
   const [mapInteractionValue, setMapInteractionValue] = useState(defaultMapInteractionValue);
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isBrowserFullScreen, setIsBrowserFullScreen] = useState(false);
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [imgContainHeight, setImgContainHeight] = useState(500);
@@ -147,7 +150,7 @@ export const SlideshowLightbox = (props) => {
       updateCurrentSlide(1);
       
     }
-    else if (key == "Escape" && !isFullScreen) {
+    else if (key == "Escape" && !isBrowserFullScreen) {
       closeModal()
     }
 
@@ -179,15 +182,15 @@ export const SlideshowLightbox = (props) => {
   const fullScreen = () => {
     let lightbox = document.getElementById("slideshowAnim");
     openFullScreen(lightbox);
-    setIsFullScreen(true);
+    setIsBrowserFullScreen(true);
     initFullScreenChangeEventListeners();
 
   }
 
   const exitFullScreen = () => {
-    if (isFullScreen) {
+    if (isBrowserFullScreen) {
       closeFullScreen(document);
-      setIsFullScreen(false);
+      setIsBrowserFullScreen(false);
       removeFullScreenChangeEventListeners();
     }
 
@@ -238,7 +241,7 @@ export const SlideshowLightbox = (props) => {
 
   const closeModal = () => {
 
-    if (isFullScreen) {
+    if (isBrowserFullScreen) {
       exitFullScreen();
     }
 
@@ -351,6 +354,13 @@ export const SlideshowLightbox = (props) => {
         setBackgroundColor(themes[props.theme].background);
         setIconColor(themes[props.theme].iconColor);
         setThumbnailBorder(themes[props.theme].thumbnailBorder);
+      }
+    }
+
+    if (props.fullScreen) {
+      if (props.fullScreen == true) {
+        setImgAnimation("fade");
+        setRoundedImages(false);
       }
     }
 
@@ -485,7 +495,36 @@ export const SlideshowLightbox = (props) => {
 
     return reducedMotionMediaQuery;
   }
+
+  const checkLicenseKeyValid = () => {
+    var body = {
+      license_key: licenseKey,
+  };
   
+  axios.post('https://lightboxjs-server.herokuapp.com/license', body)
+    .then(function (response) {
+      console.log(response);
+      let licenseKeyValid = response.data.license_valid;
+
+      if (!licenseKeyValid) {
+        console.warn("Lightbox.js: Invalid license key specified, a valid license key must be provided.")
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+  const initLicenseKey = () => {
+    if (!props.licenseKey) {
+      console.warn("Lightbox.js: No license key specified, a license key must be provided.")
+    }
+    else {
+      // check license key
+      checkLicenseKeyValid();
+    }
+  }
+
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
     () => {
@@ -495,6 +534,7 @@ export const SlideshowLightbox = (props) => {
   );
 
   useEffect(() => {
+
     if (isBrowser) {
       setWidth(window.innerWidth);
     }
@@ -504,6 +544,7 @@ export const SlideshowLightbox = (props) => {
     let reducedMotionMediaQuery = checkAndInitReducedMotion();
 
     if (!isInit) {
+      initLicenseKey();
       if (lightboxIdentifier) {
         let img_gallery = document.querySelectorAll('[data-lightboxjs]');
         let img_elements = [];
@@ -566,7 +607,6 @@ export const SlideshowLightbox = (props) => {
                     whileTap={{ scale: 0.97 }} />
                   ))
                 }
-
                 
                 { showModal !== false && (
                   <Portal>
@@ -576,13 +616,13 @@ export const SlideshowLightbox = (props) => {
                     id="slideshowAnim"       
                     onClick={(event) => {if (!isZoomed) checkModalClick(event)}}
                         
-                    initial={{ opacity: 0 }}
-                    exit={{ opacity: 0, } }
-                    animate={{ opacity: 1,  }}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    exit={{ opacity: 0, scale: 0.98} }
+                    animate={{ opacity: 1, scale:1  }}
                     transition={{
                         duration: 0.20 ,
                     }}>
-                    <div className="lightboxContainer"             
+                    <div className={`lightboxContainer`}            
                       style={{
                         backgroundColor: backgroundColor
                       }}>
@@ -597,8 +637,8 @@ export const SlideshowLightbox = (props) => {
                           </motion.div>
 
                           
-                          {isFullScreen ? <motion.div whileTap={{scale: 0.95}}><FullscreenExit onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}}  /></motion.div> : 
-                          <motion.div whileTap={{scale: 0.95}}><Fullscreen  onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /></motion.div>}
+                          {isBrowserFullScreen ? <motion.div whileTap={{scale: 0.95}}><FullscreenExit onClick={() => {isBrowserFullScreen ? exitFullScreen() : fullScreen()}}  /></motion.div> : 
+                          <motion.div whileTap={{scale: 0.95}}><Fullscreen  onClick={() => {isBrowserFullScreen ? exitFullScreen() : fullScreen()}} /></motion.div>}
 
                           <motion.div whileTap={{scale: 0.95}}>
 
@@ -628,7 +668,8 @@ export const SlideshowLightbox = (props) => {
 
                         <AnimatePresence initial={false} custom={direction}>
 
-                          <motion.div className={`slideshowInnerContainer ${showThumbnails ? "slideshowInnerContainerThumbnails": ""}`}
+                          <motion.div className={`slideshowInnerContainer ${showThumbnails ? "slideshowInnerContainerThumbnails": ""} 
+                           ${imageFullScreen ? "fullScreenContainer" : ""}`}
                           custom={direction}
                           variants={variants[imgAnimation]}
                           initial="enterImg"
@@ -644,12 +685,12 @@ export const SlideshowLightbox = (props) => {
                           onAnimationStart={() => {setIsAnimating(true)}}>
                             <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
                             onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} 
-                            translationBounds={{xMin: -500, xMax: 400, yMin: -500, yMax: 400}}>
+                            translationBounds={imageFullScreen ? {}: {xMin: -500, xMax: 400, yMin: -500, yMax: 400}}>
 
                                 { enableMagnifyingGlass == true ? 
                                 <Magnifier src={images[imageIndex].src} className="imageModal" style={{width: imgContainWidth, height: imgContainHeight}} /> :                         
                                   <img 
-                                  className={`object-contain imageModal ${roundedImages ? "rounded-lg" : ""}`}
+                                  className={` ${imageFullScreen ? "":"object-contain"} imageModal ${roundedImages ? "rounded-lg" : ""}`}
                                   src={images[imageIndex].src}
                                   id="img"
                                   onClick={(e) => {
