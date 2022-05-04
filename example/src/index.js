@@ -1,6 +1,5 @@
-import './index.css'
+import './assets/main.css'
 import './App.css'
-
 
 import React from 'react'
 import ReactDOM from 'react-dom'

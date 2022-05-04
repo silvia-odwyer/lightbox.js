@@ -1,5 +1,5 @@
 {
-  "name": "lightbox.js",
+  "name": "lightboxjs",
   "version": "0.0.1",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
@@ -24,7 +24,7 @@
     "deploy": "gh-pages -d example/build"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": "^16.13.1"
   },
   "devDependencies": {
     "microbundle-crl": "^0.13.10",
@@ -43,7 +43,6 @@
     "gh-pages": "^2.2.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.4",
-    "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1"
   },
@@ -56,10 +55,17 @@
     "@fortawesome/react-fontawesome": "^0.1.17",
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "autoprefixer": "^9.8.8",
+    "axios": "^0.27.2",
+    "bootstrap-icons": "^1.8.1",
     "framer-motion": "^4.1.17",
+    "intrinsic-scale": "^3.0.4",
     "postcss": "^7.0.39",
+    "react-bootstrap-icons": "^1.8.1",
     "react-image-magnifiers": "^1.4.0",
+    "react-indiana-drag-scroll": "^2.1.0",
+    "react-magnifier": "^3.0.4",
     "react-map-interaction": "^2.1.0",
+    "react-portal": "^4.2.2",
     "react-quick-pinch-zoom": "^4.1.0",
     "react-responsive-pinch-zoom-pan": "^0.3.0",
     "react-swipeable": "^6.1.0",

@@ -1,11 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Arimo:wght@700&family=Inter:wght@500;800&family=Poppins:wght@600;700&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
-    background: rgb(15, 15, 15);
+    background: white;
     width: 100vw;
 }
-
 
 h1, h2 {
     color: white;

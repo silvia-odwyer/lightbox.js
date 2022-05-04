@@ -1,0 +1,36 @@
+{
+  "name": "lightbox.js-example",
+  "homepage": ".",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run watch:css && node ../node_modules/react-scripts/bin/react-scripts.js start",
+    "build": "npm run build:css && node ../node_modules/react-scripts/bin/react-scripts.js build",
+    "test": "node ../node_modules/react-scripts/bin/react-scripts.js test",
+    "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject",
+    "build:css": "postcss src/assets/tailwind.css -o src/assets/main.css",
+    "watch:css": "postcss src/assets/tailwind.css -o src/assets/main.css"
+  },
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-dom": "file:../node_modules/react-dom",
+    "react-scripts": "file:../node_modules/react-scripts",
+    "lightboxjs": "file:.."
+  },
+  "devDependencies": {
+    "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
+    "autoprefixer": "^10.4.7",
+    "postcss": "^8.4.13",
+    "postcss-cli": "^9.1.0",
+    "tailwindcss": "^3.0.24"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
