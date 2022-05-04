@@ -1,5 +1,5 @@
 # lightbox.js
-[![NPM](https://img.shields.io/npm/v/lightbox.js.svg)](https://www.npmjs.com/package/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/lightboxjs.svg)](https://www.npmjs.com/package/lightboxjs) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 > All-in-one React lightbox with animation and customization options
 
@@ -20,32 +20,29 @@ The following features are provided:
 - Entry/exit animations
 - No external CSS required
 
-## Features to be added
-- Loading indicators
-- New presets
-
 ## Getting Started
 To get started, simply install the module via NPM. 
 
-Then, import the components required and import the CSS file for this library. Next, wrap the images in a `Lightbox` component or `SlideshowAnim`
-component as shown below:
+```bash
+npm install lightboxjs
+```
+
+Then, import the components required and import the CSS file for this library. Next, wrap the images in a `SlideshowLightbox` component as shown below:
 
 ```jsx
 import React, { Component } from 'react'
 
-import {Lightbox, SlideshowAnim} from 'lightbox.js'
-import 'lightbox.js/dist/index.css'
+import {SlideshowLightbox} from 'lightboxjs'
+import 'lightboxjs/dist/index.css'
 
 class Demo extends Component {
   render() {
-    return <div className="container grid grid-cols-3 gap-2 mx-auto">
-            <SlideshowAnim>
+    return <SlideshowLightbox className="container grid grid-cols-3 gap-2 mx-auto" licenseKey="Insert License Key Here">
               <img className="w-full rounded" src="https://source.unsplash.com/pAKCx4y2H6Q/1400x1200" />
               <img className="w-full rounded" src="https://source.unsplash.com/AYS2sSAMyhc/1400x1200" />  
               <img className="w-full rounded" src="https://source.unsplash.com/Kk8mEQAoIpI/1600x1200" />
               <img className="w-full rounded" src="https://source.unsplash.com/HF3X2TWv1-w/1600x1200" />              
-            </SlideshowAnim> 
-          </div>
+            </SlideshowLightbox> 
   }
 }
 ```
@@ -93,8 +90,6 @@ Several types of lightboxes have been provided, which have varying features to c
 These include:
 - **Slideshow w/ thumbnails**:  A lightbox which displays images along with thumbnails underneath, so that users can navigate to other imagery in the slideshow.
 - **Full-screen lightbox**: A lightbox which displays images at full-screen width and height.
-- **Video lightbox**: Videos can also be displayed.
-- **Sidebar**: A lightbox with a sidebar, where ads or other content can be displayed.
 - **Image**: Another lightbox is provided for displaying a single image only.
 
 For instance, a gallery lightbox is provided, which allows users to cycle through images included in the gallery. 

@@ -3,9 +3,9 @@
   padding: 0;
 }
 
-img,
-svg,
-video {
+.lightboxjs img,
+.lightboxjs svg,
+.lightboxjs video {
   display: block;
   vertical-align: middle;
   height: auto;
@@ -21,15 +21,8 @@ video {
   left: 0;
 }
 
-.modal {
-  display: block;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  padding-top: 8vh;
-  overflow: auto;
-  background-color: black;
+.slideshowBtn {
+  padding-bottom: 2px;
 }
 
 .closeIcon:hover,
@@ -39,7 +32,6 @@ video {
   cursor: pointer;
   color: rgb(230, 230, 230);
 }
-
 
 /* On hover, add a black background color with a little bit see-through */
 .prevIcon:hover,
@@ -60,7 +52,7 @@ video {
   display: flex;
 }
 
-.hidden{
+.displayHidden{
   display: none;
 }
 
@@ -70,11 +62,6 @@ video {
   transition: all 0.3s;
   cursor: pointer;
   position: relative;
-}
-
-.active,
-.thumbnail:hover {
-  opacity: 1;
 }
 
 img.hoverShadow {
@@ -87,16 +74,15 @@ img.hoverShadow {
 
 .next1 {
   right: 2%;
+  padding-left: 2vw;
+
 }
 
 .prev1 {
   left: 1%;
-}
+  padding-right: 2vw;
 
-.thumbnails {
-  overflow-x: scroll;
 }
-
 
 /* Mobile screens */
 @media screen and (min-width: 20em) {
@@ -111,9 +97,9 @@ img.hoverShadow {
     /* width: 100%; */
   }
   
-  .slideshowInnerContainer img {
+  /* .slideshowInnerContainer img {
     margin-top: 20vh;
-  }
+  } */
 
   .thumbnails {
     margin-left: auto;
@@ -138,15 +124,15 @@ img.hoverShadow {
 
 .thumbnails img {
   height: 5vh;
-  width: 50px;
-  border: solid silver 0.1em;
-  border-radius: 0.1em;
+  width: 50px;  
+  border-radius: 6px;
 }
 
 .thumbnailsOuterContainer {
   position: absolute; 
-  bottom: 12%;
+  bottom: 10%;
   height: 5vh;
+  z-index: 10000000;
   /* width: 100%; */
 }
 
@@ -171,11 +157,38 @@ img.hoverShadow {
 }
 
 .slideshowInnerContainer img {
-  /* width: 80vw;
-  height: 80vh; */
+  /* width: 80vw; */
+  height: 68vh; 
   max-width: 100%;
   max-height: 100%;
 }
+
+.fullScreenContainer img {
+  /* width: 80vw; */
+  height: 98vh; 
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.imageInnerContainer img {
+  /* width: 80vw; */
+  height: 80vh; 
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.imageInnerContainer {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  top: 10%;
+  align-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  z-index: 1000000;
+} 
 
 .slideshowInnerContainer {
   position: fixed;
@@ -195,34 +208,10 @@ img.hoverShadow {
   top: 12%;
 }
 
-@media screen and (min-width: 40em) {
-
-  .slideshowAnimContainer {
-    width: 100vw;
-  }
-
-  .slideshowInnerContainer {
-    width: 80vw;
-    /* height: 80vh; */
-    position: absolute;
-  } 
-
-  .slideshowInnerContainer img {
-    width: 80vw;
-    height: 70vh;
-   
-    margin-top: 0vh;
-  }
-
-  .thumbnails {
-    margin-top: 0.6em;
-  }
-
-  .thumbnails img {
-    height: 8vh;
-    width: 4em;
-  }
+.fullScreenContainer {
+  top: 0;
 }
+
 
 .lightboxContainer {
   width: 100vw;
@@ -241,6 +230,8 @@ img.hoverShadow {
   transition: all 0.2s;
   justify-content: center;
   align-items: center;
+  padding-bottom: 2vh;
+  padding-top: 2vh;
   user-select: none;
   cursor: pointer;
   font-weight: bold;
@@ -271,18 +262,30 @@ img.hoverShadow {
   top: 10px;
   right: 45px;
   z-index: 9999;
+  padding: 0.14vw;
 
 }
 
 .iconsHeader svg {
   margin-left: 0.6em;
-  padding: 0.1em;
+  padding: 0.2em;
   transition: all 0.1s;
-  width: 20px;
+  width: 32px; 
+  font-size: 18px;
+  line-height: 16px;
+  vertical-align: baseline;
 }
 
 .icon {
-  width: 20px;
+  width: 32px; 
+}
+
+.btnControls {
+  position: fixed; 
+  display: flex; 
+  flex-direction: row; 
+  top: 0; 
+  right: 0
 }
 
 @media screen and (min-width: 6em) {
@@ -295,34 +298,80 @@ img.hoverShadow {
     width: 100vw;
   }
 
+  .iconsHeader svg {
+    width: 34px; 
+    padding-right: 0.3em;
+  }
+
+  .lightboxjs img {
+    cursor: pointer;
+  }
+
   .slideshowInnerContainer {
    /* height: 60vh; */
      /* width: 80vw; */
   }
 
-
   .thumbnails img {
-    height: 6vh;
-    width: 70px;
+    height: 9vh;
+    width: 22vw;
   }
 
   .next1 {
-    top: calc(50% - 12px);
+    top: calc(48% - 20px);
+    right: 2%;
   }
 
   .prev1 {
-    top: calc(50% - 12px);
+    top: calc(48% - 20px);
   }
 
 } 
 
-.btnControls {
-  position: fixed; 
-  display: flex; 
-  flex-direction: row; 
-  top: 0; 
-  right: 0
+
+@media screen and (min-width: 40em) {
+
+  .slideshowAnimContainer {
+    width: 100vw;
+  }
+
+  .slideshowInnerContainer {
+    width: 80vw;
+    height: 80vh; 
+    position: absolute;
+  } 
+
+  .slideshowInnerContainer img {
+    height: 70vh;
+    max-width: 100%;
+    max-height: 100%;
+    margin-top: 0vh;
+  }
+
+  .fullScreenContainer {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .fullScreenContainer img {
+    height: 100vh;
+  }
+
+  .thumbnails {
+    margin-top: 0.6em;
+  }
+
+  .thumbnails img {
+    height: 8vh;
+    width: 4em;
+  }
+
+  .iconsHeader svg {
+    width: 32px; 
+  }
+
 }
+
 
 /* Desktop screens */
 @media screen and (min-width: 70em) {
@@ -334,6 +383,11 @@ img.hoverShadow {
   
   .slideshowInnerContainer img {
     margin-top: 0vh;
+    /* width: 70vw; */
+  }
+
+  .fullScreenContainer img {
+    width: 100vw;
   }
 
   .thumbnails {
@@ -345,6 +399,13 @@ img.hoverShadow {
     display: none;  /* Safari and Chrome */
   }
 
+  .opacity-fade {
+    transition: opacity 0.3s;
+    -webkit-transition: opacity 0.3s;
+    opacity: 1;
+  }
+
+
   .thumbnailsOuterContainer {
     margin-top: 0.1em;
     padding-top: 0.3em;
@@ -354,7 +415,7 @@ img.hoverShadow {
 
   .thumbnails img {
     height: 10vh;
-    width: 5em;
+    /* width: 7em; */
   }
 
   .slideshowAnimContainer {
@@ -363,10 +424,25 @@ img.hoverShadow {
 
   .slideshowInnerContainer {
     width: 70vw;
-    /* height: 70vh; */
+    height: 70vh; 
+  }
+
+  .fullScreenContainer {
+    width: 100vw;
+    height: 100vh;
   }
 
 }  
+
+@media screen and (min-width: 80em) {
+  .slideshowInnerContainer img {
+    /* width: 60vw; */
+  }
+
+  .fullScreenContainer img {
+    width: 100vw;
+  }
+}
 
 .light_icon, .light_icon svg {
   background-color: white;
@@ -404,13 +480,49 @@ img.hoverShadow {
 .dark_header_icon svg  {
   background-color: transparent;
   /* background-color: #151515; */
-  color: silver;
+  color: #626B77
 }
 
 .dark_header_icon svg:hover {
-  color: rgba(107, 107, 107, 0.8);
+  color: rgba(99, 99, 99, 0.8);
 }
 
 .magnifier-image {
   object-fit: contain;
 }
+
+.thumbnails .active {
+  border: solid rgb(107, 133, 206) 4px; 
+}
+
+@media screen and (max-width: 30em) {
+  .fullScreenContainer img {
+    object-fit: cover;
+  }
+
+  .next1, .prev1 {
+    padding-bottom: 2vh;
+    padding-top: 2vh;
+  }
+
+  .next1 {
+    padding-left: 4vw;
+  }
+
+  .prev1 {
+    padding-right: 4vw;
+  }
+
+  .iconsHeader {
+    font-size: 28px;
+  }
+}
+
+.fullScreenContainer img {
+  object-fit: cover;
+}
+
+/* .thumbnails {
+  overflow-x: scroll;
+} */
+

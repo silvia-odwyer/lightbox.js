@@ -4,7 +4,7 @@ import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility"
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {cover, contain} from 'intrinsic-scale';
-import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
+// import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
 import { isBrowser } from './utility'; 
 import {Portal} from "react-portal";
 
@@ -204,7 +204,7 @@ export const AnimImage = ({children, ...props}) => {
     
   }
     return (
-      <div>
+      <div className="lightboxjs">
         <AnimatePresence>
 
           <motion.img

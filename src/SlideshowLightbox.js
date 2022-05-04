@@ -1,22 +1,16 @@
 import * as React from "react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence, AnimateSharedLayout } from "framer-motion";
-import {swipePower} from "./mobile-support";
-import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
+import {useInterval, wrapNums, openFullScreen, closeFullScreen, swipePower} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import axios from "axios";
 import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
 import ScrollContainer from 'react-indiana-drag-scroll'
-import {
-  GlassMagnifier,
-  MOUSE_ACTIVATION,
-  TOUCH_ACTIVATION
-} from "react-image-magnifiers";
 import Magnifier from "react-magnifier";
 import {cover, contain} from 'intrinsic-scale';
 import { isBrowser } from './utility'; 
 import { Portal } from 'react-portal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const variants = {
   "imgDrag": {
@@ -283,6 +277,10 @@ export const SlideshowLightbox = (props) => {
     changeCursor("zoom-in");
     setIsZoomed(false);
     setZoomImg(zoomImg - 1);
+
+    if (zoomImg == 1) {
+      resetMapInteraction()
+    }
   }
 
   const checkAndUpdateSlide = (offset, velocity) => {
@@ -594,7 +592,7 @@ export const SlideshowLightbox = (props) => {
     };
   }, [keyPressHandler]);
 
-  return (<div class={props.className}>
+  return (<div class={`${props.className} lightboxjs`}>
           {lightboxIdentifier != false ? props.children : null}
           
           <AnimateSharedLayout type="crossfade">
@@ -649,13 +647,15 @@ export const SlideshowLightbox = (props) => {
                             <Search onClick={() => initMagnifyingGlass()} />
                           </motion.div>}
 
-                          {isSlideshowPlaying ? <PauseCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}  /> : 
-                          <PlayCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />}
+                          <motion.div whileTap={{scale: 0.95}} className="slideshowPlayBtn" >
+                            {isSlideshowPlaying ? <PauseCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}}  /> : 
+                            <PlayCircleFill onClick={() => {isSlideshowPlaying ? stopSlideshow() : playSlideshow()}} />}
+                          </motion.div>
 
-                          <motion.div whileTap={{scale: 0.95}}>
+                          <motion.div whileTap={{scale: 0.95}} className="closeIcon">
 
                             <XLg onClick={() => {closeModal() }} />
-                            </motion.div>
+                          </motion.div>
 
                         </section>
                         
@@ -712,7 +712,7 @@ export const SlideshowLightbox = (props) => {
                         </AnimatePresence>
 
               
-                        <div className="thumbnailsOuterContainer imageModal" style={imagesLoaded ? {} : {display: "hidden"}} 
+                        <div className="thumbnailsOuterContainer imageModal" style={imagesLoaded ? {} : {display: "displayHidden"}} 
 
                         >
                         <ScrollContainer className="scroll-container" vertical={false} horizontal={true}>
