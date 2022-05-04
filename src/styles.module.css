@@ -84,6 +84,10 @@ img.hoverShadow {
 
 }
 
+.thumbnails img {
+  display: inline;
+}
+
 /* Mobile screens */
 @media screen and (min-width: 20em) {
   .imageSlide {
@@ -326,6 +330,11 @@ img.hoverShadow {
     top: calc(48% - 20px);
   }
 
+  .iconsHeader svg {
+    width: 30px; 
+    font-size: 30px;
+  }
+
 } 
 
 
@@ -368,6 +377,7 @@ img.hoverShadow {
 
   .iconsHeader svg {
     width: 32px; 
+    font-size: 32px;
   }
 
 }
@@ -430,6 +440,11 @@ img.hoverShadow {
   .fullScreenContainer {
     width: 100vw;
     height: 100vh;
+  }
+
+  .iconsHeader svg {
+    width: 37px;
+    font-size: 34px;
   }
 
 }  
@@ -524,5 +539,5 @@ img.hoverShadow {
 
 /* .thumbnails {
   overflow-x: scroll;
-} */
+}  */
 

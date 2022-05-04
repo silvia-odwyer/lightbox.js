@@ -15,7 +15,7 @@
     "react": "^16.13.1",
     "react-dom": "file:../node_modules/react-dom",
     "react-scripts": "file:../node_modules/react-scripts",
-    "lightboxjs": "file:.."
+    "lightbox.js-react": "file:.."
   },
   "devDependencies": {
     "@babel/plugin-syntax-object-rest-spread": "^7.8.3",

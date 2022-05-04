@@ -1,7 +1,6 @@
 import React from 'react'
 import './App.css'
 import { Image, SlideshowLightbox } from 'lightboxjs'
-import 'lightboxjs/dist/index.css'
 // import img1 from "./cloud1.jpg";
 
 const App = () => {

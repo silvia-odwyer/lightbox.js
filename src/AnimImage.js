@@ -4,7 +4,7 @@ import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility"
 import { MapInteractionCSS } from 'react-map-interaction';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {cover, contain} from 'intrinsic-scale';
-// import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
+import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
 import { isBrowser } from './utility'; 
 import {Portal} from "react-portal";
 
@@ -243,11 +243,19 @@ export const AnimImage = ({children, ...props}) => {
                 <motion.div className="lightboxContainer">
                   <section className="iconsHeader imageModal" style={{color: iconColor}}>
 
-                    <FontAwesomeIcon icon="plus" onClick={() => zoomIn()}  />
-                    <FontAwesomeIcon icon="minus"  onClick={() => zoomOut()}  />
+                  <motion.div whileTap={{scale: 0.95}}>
+                            <ZoomIn onClick={() => zoomIn()} />
+                  </motion.div>
+
+                    <motion.div whileTap={{scale: 0.95}}>
+                            <ZoomOut onClick={() => zoomOut()} />
+                          </motion.div>
                     {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
 
-                    <FontAwesomeIcon icon="close" size="lg" onClick={() => {closeLightbox()}}  />
+                    <motion.div whileTap={{scale: 0.95}} className="closeIcon">
+
+                      <XLg onClick={() => {closeLightbox() }} />
+                    </motion.div>
                   </section>
 
                   <motion.div className="imageInnerContainer">
