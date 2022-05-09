@@ -73,8 +73,9 @@ img.hoverShadow {
 } 
 
 .next1 {
-  right: 2%;
+  right: 1%;
   padding-left: 2vw;
+  padding-right: 3vw;
 
 }
 
@@ -96,7 +97,7 @@ img.hoverShadow {
   }
 
   .thumbnailsOuterContainer {
-    position: absolute;
+    position: fixed;
     bottom: 5%;
     /* width: 100%; */
   }
@@ -148,8 +149,10 @@ img.hoverShadow {
 .slideshowAnimContainer {
   width: 99vw;
   height: 100vh;
+  max-height: 100%;
   overflow: hidden;
   padding: 0;
+  overflow-y: auto;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -169,7 +172,7 @@ img.hoverShadow {
 
 .fullScreenContainer img {
   /* width: 80vw; */
-  height: 98vh; 
+  height: 100vh; 
   max-width: 100%;
   max-height: 100%;
 }
@@ -215,7 +218,6 @@ img.hoverShadow {
 .fullScreenContainer {
   top: 0;
 }
-
 
 .lightboxContainer {
   width: 100vw;
@@ -414,7 +416,6 @@ img.hoverShadow {
     -webkit-transition: opacity 0.3s;
     opacity: 1;
   }
-
 
   .thumbnailsOuterContainer {
     margin-top: 0.1em;

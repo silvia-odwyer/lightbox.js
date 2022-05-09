@@ -1,6 +1,6 @@
 import './assets/main.css'
 import './App.css'
-import 'lightboxjs/dist/index.css'
+import 'lightbox.js-react/dist/index.css'
 
 import React from 'react'
 import ReactDOM from 'react-dom'

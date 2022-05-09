@@ -2,11 +2,11 @@ import React , {useEffect, useState, useRef} from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion';
 import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
 import { MapInteractionCSS } from 'react-map-interaction';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {cover, contain} from 'intrinsic-scale';
-import { ArrowRight, ZoomIn, ZoomOut, PlayFill, Fullscreen, PlayCircleFill, Search, PauseCircleFill, FullscreenExit, XLg, GridFill, PauseFill } from 'react-bootstrap-icons';
+import {  ZoomIn, ZoomOut,Fullscreen, Search, XLg, GridFill} from 'react-bootstrap-icons';
 import { isBrowser } from './utility'; 
 import {Portal} from "react-portal";
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 const themes = {"day": {background: "white", iconColor: "black"}, "night": {background: "#151515", iconColor: "silver"}, 
                 "lightbox": {background: "rgba(0, 0, 0, 0.4)", iconColor: "silver"}};
@@ -43,7 +43,6 @@ export const AnimImage = ({children, ...props}) => {
 
     const modals = document.getElementsByClassName('imageModal');
     let arr_modals = Array.from(modals);
-    console.log("modals", modals)
 
     for (let i =0; i < arr_modals.length; i++) {
       let elem = arr_modals[i];
@@ -74,7 +73,6 @@ export const AnimImage = ({children, ...props}) => {
       setImgContainWidth(width);
     };
     img.onerror = (err) => {
-      console.log("img error");
       console.error(err);
     };
   };
@@ -97,7 +95,6 @@ export const AnimImage = ({children, ...props}) => {
         reducedMotionMediaQuery.removeEventListener("change", reducedMotionMediaQuery)
       };
 
-      console.log("icon color ", iconColor)
 
   }, [state]);
 
@@ -258,10 +255,10 @@ export const AnimImage = ({children, ...props}) => {
                     </motion.div>
                   </section>
 
-                  <motion.div className="imageInnerContainer">
+                  <motion.div className="imageInnerContainer imageModal">
 
-                    {/* <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
-                    onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} > */}
+                     <MapInteractionCSS maxScale={maxScale} minScale={minScale} disablePan={panImage} value={mapInteractionValue}
+                    onChange={(value) => {mapInteractionChange(value)}} zoomIn={zoomImg} > 
                         <motion.img
                           src={props.image.src}
                           key={"image"}
@@ -285,10 +282,9 @@ export const AnimImage = ({children, ...props}) => {
                             }
                           }}
                         />
-                    {/* </MapInteractionCSS> */}
+                    </MapInteractionCSS> 
 
                   </motion.div>
-
 
                 </motion.div>
 
@@ -299,15 +295,10 @@ export const AnimImage = ({children, ...props}) => {
 
           </Portal>
 
-
-
         </AnimatePresence>
-
 
       </div>
       
-
-
   );
 
 }

@@ -1,16 +1,21 @@
 {
   "name": "lightbox.js-react",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
   "repository": "https://github.com/silvia-odwyer/lightbox.js",
+  "homepage": "https://getlightboxjs.com",
+  "bugs": {
+    "url": "https://github.com/silvia-odwyer/lightbox.js/issues"
+  },
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.js",
   "engines": {
     "node": ">=10"
   },
+  "keywords": ["react", "lightbox", "zoom", "gallery"],
   "scripts": {
     "build": "NODE_ENV=production microbundle-crl --no-compress --css-modules false --format modern,cjs",
     "start": "microbundle-crl watch --css-modules false --no-compress --format modern,cjs",
@@ -50,9 +55,6 @@
     "dist"
   ],
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.3.0",
-    "@fortawesome/free-solid-svg-icons": "^6.0.0",
-    "@fortawesome/react-fontawesome": "^0.1.17",
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "autoprefixer": "^9.8.8",
     "axios": "^0.27.2",

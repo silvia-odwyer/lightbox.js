@@ -1,5 +1,5 @@
 # lightbox.js
-[![NPM](https://img.shields.io/npm/v/lightboxjs.svg)](https://www.npmjs.com/package/lightboxjs) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/lightbox.js-react.svg)](https://www.npmjs.com/package/lightbox.js-react) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 > All-in-one React lightbox with animation and customization options
 
@@ -19,7 +19,7 @@ The following features are provided:
         - Mouse wheel
         - Single-click
 - **Panning**: Once an image is zoomed into, the image can be panned by dragging the image through the mouse, or if on a mobile device, with a swipe-to-drag motion.
-- **Image drag/swipe:** Images can be navigated from one image to the next by dragging the image using the mouse or with a swipe-to-drag motion.
+<!-- - **Image drag/swipe:** Images can be navigated from one image to the next by dragging the image using the mouse or with a swipe-to-drag motion. -->
 - **Built-in themes:** Three pre-built lightbox designs with variations in UI and theme are available
 - **Customization:** All lightbox components can be fully customized, including background color, icon colors and so much more.
 - **Thumbnails:** The option to add thumbnails is also available, along with animated entry/exit transitions.
@@ -31,28 +31,39 @@ The following features are provided:
 To get started, simply install the module via NPM. 
 
 ```bash
-npm install lightboxjs
+npm install lightbox.js-react
 ```
 
 ### Usage
 Then, import the components required and import the CSS file for this library. 
 
 ```jsx
-import {SlideshowLightbox} from 'lightboxjs'
-import 'lightboxjs/dist/index.css'
+import {SlideshowLightbox} from 'lightbox.js-react'
+import 'lightbox.js-react/dist/index.css'
 ```
+
+You can initialize the license key as so:
+
+```js
+  useEffect(() => {
+    console.log("init")
+    initLightboxJS("Insert License key", "Insert plan type here");
+  });
+```
+
+The two plan types are `individual` and `team`.
 
 Next, wrap the images in a `SlideshowLightbox` component as shown below:
 
 ```jsx
 import React, { Component } from 'react'
 
-import {SlideshowLightbox} from 'lightboxjs'
-import 'lightboxjs/dist/index.css'
+import {SlideshowLightbox} from 'lightbox.js-react'
+import 'lightbox.js-react/dist/index.css'
 
 class Demo extends Component {
   render() {
-    return <SlideshowLightbox className="container grid grid-cols-3 gap-2 mx-auto" licenseKey="Insert License Key Here">
+    return <SlideshowLightbox className="container grid grid-cols-3 gap-2 mx-auto">
               <img className="w-full rounded" src="https://source.unsplash.com/pAKCx4y2H6Q/1400x1200" />
               <img className="w-full rounded" src="https://source.unsplash.com/AYS2sSAMyhc/1400x1200" />  
               <img className="w-full rounded" src="https://source.unsplash.com/Kk8mEQAoIpI/1600x1200" />
@@ -64,7 +75,7 @@ class Demo extends Component {
 
 #### Getting A License Key
 Depending on the nature of your project, there are two ways to get a license key:
-1. **Commercial product:** If you require Lightbox.js for a commercial product, then a license can be purchase from [our website](https://getlightbox.com/pricing). 
+1. **Commercial product:** If you require Lightbox.js for a commercial product, then a license can be purchased from [our website](https://getlightboxjs.com/pricing). 
 2. **Open-source:** If your project is open-source, then you can request a free license key from our [website's contact form](https://getlightboxjs.com/contact/). 
 
 ## Features
@@ -147,11 +158,11 @@ To start the development server for the library, run:
 npm run start
 ```
 
-You can then make changes to the library and after any saved changes, the development server will provide hot reloading 
+You can then make changes to the library and after any saved changes, the development server will provide live reloading 
 and build the library. In order to view your changes, simply set-up and run the example demo as shown below. That way, when 
 you make edits to the library, you'll see these changes reflected in the demo and can try out the lightbox upon making changes, and so forth.
 
-## Running the example demo
+### Running the example demo
 An example demo has been set-up that integrates with the library. 
 
 Navigate to `lightbox.js/example`:

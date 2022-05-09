@@ -1,9 +1,15 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import './App.css'
-import { Image, SlideshowLightbox } from 'lightboxjs'
+import { Image, SlideshowLightbox, initLightboxJS } from 'lightbox.js-react'
 // import img1 from "./cloud1.jpg";
 
 const App = () => {
+
+  useEffect(() => {
+    console.log("init")
+    initLightboxJS("License key", "individual");
+  });
+
   const images = [
     {
       title: 0,

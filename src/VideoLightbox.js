@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {  XLg,  } from 'react-bootstrap-icons';
 
 const themes = {
   day: { background: 'white', iconColor: 'black' },
@@ -59,14 +59,11 @@ export const VideoLightbox = (props) => {
                   style={{ color: iconColor }}
                 >
                   {/* <FontAwesomeIcon icon={isFullScreen ? "compress" : "expand"} onClick={() => {isFullScreen ? exitFullScreen() : fullScreen()}} /> */}
+                  <motion.div whileTap={{scale: 0.95}} className="closeIcon">
 
-                  <FontAwesomeIcon
-                    icon='close'
-                    size='lg'
-                    onClick={() => {
-                      setIsOverlayDisplayed(false)
-                    }}
-                  />
+                    <XLg onClick={() => {setIsOverlayDisplayed(false) }} />
+                  </motion.div>
+
                 </section>
 
                 <motion.div
