@@ -5,7 +5,7 @@
 
 Lightbox.js is a fully-responsive, customizable React lightbox with intuitive zooming and theming options.
 
-![Imgur](https://i.imgur.com/hvP2BYf.gif)
+![Imgur](https://i.imgur.com/n7HvgOX.gif)
 
 The following features are provided:
 - **Fully responsive** for mobile devices
@@ -15,10 +15,13 @@ The following features are provided:
         - Mouse wheel
         - Single-click
 - **Panning**: Once an image is zoomed into, the image can be panned by dragging the image through the mouse, or if on a mobile device, with a swipe-to-drag motion.
-- **Keyboard shortcuts:** You can cycle through the images by pressing the right and left arrow keys.
-- **Full-screen mode:** To exit full-screen mode, click the minimize icon or press the `Esc` key
 
-- **Built-in themes:** Three pre-built lightbox designs with variations in UI and theme are available
+![Imgur](https://i.imgur.com/iUGOQSj.gif)
+
+- **Keyboard shortcuts:** You can cycle through the images by pressing the right and left arrow keys.
+- **Full-screen mode:** To exit full-screen mode, click the minimize icon or press the `Esc` key.
+- **Built-in themes:** Three pre-built lightbox designs with variations in UI and theme are available.
+
 ![Imgur](https://i.imgur.com/eo4MANK.gif)
 
 - **Slideshow feature**: A slideshow feature is also available, allowing for images to automatically transition to the next.
@@ -26,6 +29,7 @@ The following features are provided:
 - **Customization:** All lightbox components can be fully customized, including background color, icon colors and so much more.
 
 - **Magnifying glass**: A built-in magnifying glass is also included, allowing users to view the details. 🧐
+
 ![Imgur](https://i.imgur.com/5A3PBx4.gif)
 
 - **Thumbnails:** The option to add thumbnails is also available, along with animated entry/exit transitions.
@@ -103,7 +107,7 @@ Depending on the nature of your project, there are two ways to get a license key
 ### 📚 Documentation
 View the [official documentation here](https://www.getlightboxjs.com/docs/), which includes code samples, prop information, details on customizing the lightbox and much more.
 
-## Types of Lightboxes Available
+### Types of Lightboxes Available
 Several types of lightboxes have been provided, which have varying features to cater to your project's requirements.
 
 These include:
@@ -112,9 +116,6 @@ These include:
 - **Image**: Another lightbox is provided for displaying a single image only.
 
 For instance, a gallery lightbox is provided, which allows users to cycle through images included in the gallery. 
-
-![Imgur](https://i.imgur.com/ehgapw9.gif)
-
 
 For further themes and presets, be sure to take a look at the list of available presets below, which incorporate lightboxes of different styles.
 
@@ -130,6 +131,13 @@ For further themes and presets, be sure to take a look at the list of available 
 | slideshowInterval   | The time in milliseconds before the slideshow transitions to the next image.        |
 | animateThumbnails   | Whether or not to animate the thumbnails as they enter the view.        |
 | imgAnimation   | The image animation type to show between image transitions in the slideshow, options include "fade" and "imgDrag"        |
+
+## Contact & Support
+If you'd like to contact us with any questions, feedback or queries you may have, be sure to drop a message through [our contact form](https://www.getlightboxjs.com/contact/), and we'll get back to you as soon as possible.
+
+- **Bug Reports**: Want to report a bug? You can open an issue in this repository, and we'll take a look!
+- **Feature Requests**: If you'd like to request a new feature, simply open a new issue in this repository. 
+- **Support**: If you'd like additional support or want a custom solution for your website, be sure to contact us through our [contact form here](https://www.getlightboxjs.com/contact/). 
 
 ## Development 
 Contributions are always welcome! If you'd like to add new features or wish to work on the library, simply clone this repo:

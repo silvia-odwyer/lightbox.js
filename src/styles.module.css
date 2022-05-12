@@ -82,7 +82,6 @@ img.hoverShadow {
 .prev1 {
   left: 1%;
   padding-right: 2vw;
-
 }
 
 .thumbnails img {
@@ -325,7 +324,7 @@ img.hoverShadow {
 
   .next1 {
     top: calc(48% - 20px);
-    right: 2%;
+    right: 1%;
   }
 
   .prev1 {
