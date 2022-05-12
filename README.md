@@ -5,7 +5,7 @@
 
 Lightbox.js is a fully-responsive, customizable React lightbox with intuitive zooming and theming options.
 
-![Imgur](https://i.imgur.com/Civ1xD8.gif)
+![Imgur](https://i.imgur.com/0HXpCs6.gif)
 
 The following features are provided:
 - **Fully responsive** for mobile devices
@@ -37,6 +37,9 @@ The following features are provided:
 
 <!-- - **Image drag/swipe:** Images can be navigated from one image to the next by dragging the image using the mouse or with a swipe-to-drag motion. -->
 - **New features**: This is only the beginning! We're working hard to add even more new features to make Lightbox.js even better. If you have any feature requests, be sure to let us know by opening an issue.
+
+### Demos
+You can try out the demos [here](https://www.getlightboxjs.com/demo/).
 
 ## Getting Started
 ### Install
@@ -112,12 +115,9 @@ Several types of lightboxes have been provided, which have varying features to c
 
 These include:
 - **Slideshow w/ thumbnails**:  A lightbox which displays images along with thumbnails underneath, so that users can navigate to other imagery in the slideshow.
-- **Full-screen lightbox**: A lightbox which displays images at full-screen width and height.
-- **Image**: Another lightbox is provided for displaying a single image only.
-
-For instance, a gallery lightbox is provided, which allows users to cycle through images included in the gallery. 
-
-For further themes and presets, be sure to take a look at the list of available presets below, which incorporate lightboxes of different styles.
+- **Full-screen lightbox**: A lightbox which displays images at full-screen width and height. Simply set the `fullScreen` prop to `true`
+for the `SlideshowLightbox` component.
+- **Image**: Another lightbox is provided for displaying a single image only. See the documentation for the [Image component here](https://www.getlightboxjs.com/docs/Image/).
 
 ## Props
 | Prop Name      | Description |
