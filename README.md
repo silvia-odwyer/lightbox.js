@@ -5,7 +5,7 @@
 
 Lightbox.js is a fully-responsive, customizable React lightbox with intuitive zooming and theming options.
 
-![Imgur](https://i.imgur.com/yPeyhDU.gif)
+![Imgur](https://i.imgur.com/Civ1xD8.gif)
 
 The following features are provided:
 - **Fully responsive** for mobile devices
@@ -16,7 +16,7 @@ The following features are provided:
         - Single-click
 - **Panning**: Once an image is zoomed into, the image can be panned by dragging the image through the mouse, or if on a mobile device, with a swipe-to-drag motion.
 
-![Imgur](https://i.imgur.com/DMTsdsq.gif)
+![Imgur](https://i.imgur.com/wNgsJFB.gif)
 
 - **Keyboard shortcuts:** You can cycle through the images by pressing the right and left arrow keys.
 - **Full-screen mode:** To exit full-screen mode, click the minimize icon or press the `Esc` key.
