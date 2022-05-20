@@ -1,5 +1,5 @@
 # lightbox.js
-[![NPM](https://img.shields.io/npm/v/lightbox.js-react.svg)](https://www.npmjs.com/package/lightbox.js-react)  ![JavaScript Style Guide](https://img.shields.io/github/languages/top/silvia-odwyer/lightbox.js) ![JavaScript Style Guide](https://img.shields.io/gitter/room/silvia-odwyer/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![JavaScript Style Guide](https://img.shields.io/tokei/lines/github/silvia-odwyer/lightbox.js)
+[![NPM](https://img.shields.io/npm/v/lightbox.js-react.svg)](https://www.npmjs.com/package/lightbox.js-react) ![JavaScript Style Guide](https://img.shields.io/github/languages/top/silvia-odwyer/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/gitter/room/silvia-odwyer/lightbox.js)](https://gitter.im/lightbox-js/community) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![JavaScript Style Guide](https://img.shields.io/tokei/lines/github/silvia-odwyer/lightbox.js)
 
 > All-in-one React lightbox with animation and customization options
 
@@ -135,8 +135,9 @@ for the `SlideshowLightbox` component.
 ## Contact & Support
 If you'd like to contact us with any questions, feedback or queries you may have, be sure to drop a message through [our contact form](https://www.getlightboxjs.com/contact/), and we'll get back to you as soon as possible.
 
+- **Gitter**: We have a Gitter community setup for any feature requests, questions and support queries. [Simply visit it here](https://gitter.im/lightbox-js/community). 
 - **Bug Reports**: Want to report a bug? You can open an issue in this repository, and we'll take a look!
-- **Feature Requests**: If you'd like to request a new feature, simply open a new issue in this repository. 
+- **Feature Requests**: If you'd like to request a new feature, simply open a new issue in this repository or let us know via Gitter. 
 - **Support**: If you'd like additional support or want a custom solution for your website, be sure to contact us through our [contact form here](https://www.getlightboxjs.com/contact/). 
 
 ## Development 

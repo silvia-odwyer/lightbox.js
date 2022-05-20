@@ -1,6 +1,6 @@
 {
   "name": "lightbox.js-react",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
@@ -69,7 +69,7 @@
     "react-bootstrap-icons": "^1.8.1",
     "react-indiana-drag-scroll": "^2.1.0",
     "react-magnifier": "^3.0.4",
-    "react-map-interaction": "^2.1.0",
+    "@silvia-odwyer/react-map-interaction-fork": "^2.1.0",
     "react-portal": "^4.2.2",
     "react-swipeable": "^6.1.0",
     "react-zoom-pan-pinch": "^2.1.3",

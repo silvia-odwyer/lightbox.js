@@ -8,7 +8,7 @@ import {
   closeFullScreen,
   swipePower
 } from './utility'
-import { MapInteractionCSS } from 'react-map-interaction'
+import { MapInteractionCSS } from '@silvia-odwyer/react-map-interaction-fork'
 import {
   ZoomIn,
   ZoomOut,

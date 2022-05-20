@@ -1,7 +1,7 @@
 import React , {useEffect, useState, useRef} from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion';
 import {useInterval, wrapNums, openFullScreen, closeFullScreen} from "./utility";
-import { MapInteractionCSS } from 'react-map-interaction';
+import { MapInteractionCSS } from '@silvia-odwyer/react-map-interaction-fork';
 import {cover, contain} from 'intrinsic-scale';
 import {  ZoomIn, ZoomOut,Fullscreen, Search, XLg, GridFill} from 'react-bootstrap-icons';
 import { isBrowser } from './utility'; 
