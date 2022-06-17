@@ -1,6 +1,6 @@
 {
   "name": "lightbox.js-react",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
@@ -34,7 +34,7 @@
     "deploy": "gh-pages -d example/build"
   },
   "peerDependencies": {
-    "react": "^16.13.1"
+    "react": ">=16.13.1"
   },
   "devDependencies": {
     "microbundle-crl": "^0.13.10",

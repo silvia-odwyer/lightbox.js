@@ -202,7 +202,7 @@ img.hoverShadow {
   flex-direction: column;
   justify-content: center;
   transition: top 0.2s ease-in-out 0s;
-  top: 16%;
+  top: 10%;
   align-content: center;
   margin-left: auto;
   margin-right: auto;
@@ -336,6 +336,14 @@ img.hoverShadow {
     font-size: 30px;
   }
 
+  .slideshowInnerContainer img {
+    /* width: 80vw; */
+    margin-top: 10vh;
+    height: 48vh; 
+    max-width: 100%;
+    max-height: 100%;
+  }
+
 } 
 
 
@@ -346,8 +354,8 @@ img.hoverShadow {
   }
 
   .slideshowInnerContainer {
-    width: 80vw;
-    height: 80vh; 
+    width: 95vw;
+    height: 95vh; 
     position: absolute;
   } 
 
@@ -433,8 +441,8 @@ img.hoverShadow {
   }
 
   .slideshowInnerContainer {
-    width: 70vw;
-    height: 70vh; 
+    width: 95vw;
+    height: 95vh; 
   }
 
   .fullScreenContainer {
@@ -541,3 +549,8 @@ img.hoverShadow {
   overflow-x: scroll;
 }  */
 
+.react-transform-component {
+  margin-left: auto;
+  margin-right: auto;
+  cursor: zoom-in;
+}

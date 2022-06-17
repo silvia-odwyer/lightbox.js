@@ -321,26 +321,19 @@ export const SlideshowLightbox = (props) => {
   }
 
   const zoomIn = () => {
-    if (isMobile) {
-      if (zoomBtnRef) {
-        zoomBtnRef.zoomIn();
-      }
-    }
-    else {
+
+    if (!isMobile) {
       changeCursor('all-scroll')
       setIsZoomed(true)
       setZoomImg(zoomImg + 1)
     }
-
+    if (zoomBtnRef) {
+      zoomBtnRef.zoomIn();
+    }
   }
 
   const zoomOut = () => {
-    if (isMobile) {
-      if (zoomBtnRef) {
-        zoomBtnRef.zoomOut();
-      }
-    }
-    else {
+    if (!isMobile) {
       changeCursor('zoom-in')
       setIsZoomed(false)
       setZoomImg(zoomImg - 1)
@@ -348,6 +341,10 @@ export const SlideshowLightbox = (props) => {
       if (zoomImg == 1) {
         resetMapInteraction()
       }
+    }
+
+    if (zoomBtnRef) {
+      zoomBtnRef.zoomOut();
     }
 
   }
@@ -428,39 +425,43 @@ export const SlideshowLightbox = (props) => {
 
   const initMagnifyingGlass = () => {
     if (!enableMagnifyingGlass) {
-      let img = document.getElementById('img')
-      let imageContainerH, imageContainerW
-      if (isMobile) {
-        imageContainerW = 0.92
-
-        // horizontal image
-        if (img.naturalWidth > img.naturalHeight) {
-          imageContainerH = 0.65
-        }
-        //vertical image
+        initImageDimensions();
+    }
         else {
-          imageContainerH = 0.6
+          setImgAnimation('imgDrag')
         }
+    setMagnifyingGlass(!enableMagnifyingGlass)
+  }
 
-        // remove dragging motion
-      } else {
-        imageContainerW = 0.92
+  const initImageDimensions = () => {
+    let img = document.getElementById('img')
+    let imageContainerH, imageContainerW
+    if (isMobile) {
+      imageContainerW = 0.92
+
+      // horizontal image
+      if (img.naturalWidth > img.naturalHeight) {
         imageContainerH = 0.65
       }
+      //vertical image
+      else {
+        imageContainerH = 0.6
+      }
 
-      let { width, height, x, y } = contain(
-        screen.width * imageContainerW,
-        screen.height * imageContainerH,
-        img.naturalWidth,
-        img.naturalHeight
-      )
-      setImgContainHeight(height)
-      setImgContainWidth(width)
+      // remove dragging motion
     } else {
-      setImgAnimation('imgDrag')
+      imageContainerW = 0.92
+      imageContainerH = 0.65
     }
 
-    setMagnifyingGlass(!enableMagnifyingGlass)
+    let { width, height, x, y } = contain(
+      screen.width * imageContainerW,
+      screen.height * imageContainerH,
+      img.naturalWidth,
+      img.naturalHeight
+    )
+    setImgContainHeight(height)
+    setImgContainWidth(width)
   }
 
   const changeCursor = (cursor_name) => {
@@ -658,9 +659,6 @@ export const SlideshowLightbox = (props) => {
     }
   }, [keyPressHandler])
 
-  useEffect(() => {
-    console.log("zoomref", zoomBtnRef);
-  }, [zoomBtnRef]);
 
   return (
     <div class={`${props.className} lightboxjs`}>
@@ -804,12 +802,13 @@ export const SlideshowLightbox = (props) => {
 
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.div
+                    // onClick={(event) => {zoomIn()}}
                       className={`slideshowInnerContainer ${
                         showThumbnails
                           ? 'slideshowInnerContainerThumbnails'
                           : ''
                       } 
-                           ${imageFullScreen ? 'fullScreenContainer' : ''}`}
+                      ${imageFullScreen ? 'fullScreenContainer' : ''}`}
                       custom={direction}
                       variants={variants[imgAnimation]}
                       initial='enterImg'
@@ -817,8 +816,8 @@ export const SlideshowLightbox = (props) => {
                       animate={'centerImg'}
                       exit='exitImg'
                       transition={animTransition}
-                      // drag={(imgAnimation == "imgDrag") ? imgSwipeMotion : false}
-                      drag={imgAnimation == 'imgDrag' ? imgSwipeMotion : false}
+                      drag={(imgAnimation == "imgDrag") ? imgSwipeMotion : false}
+                      drag={false}
                       dragElastic={1}
                       dragConstraints={{ left: 0, right: 0 }}
                       onDragStart={(e, { offset, velocity }) => {
@@ -835,16 +834,18 @@ export const SlideshowLightbox = (props) => {
                         setIsAnimating(true)
                       }}
                     >
-                      {isMobile ? (
+                     
                         <TransformWrapper
                           ref={initZoomRef}
-                          panning={{ lockAxisY: lockAxisY }}
                           onWheel={{ wheelEvent }}
                           onZoom={zoomEvent}
+                          centerZoomedOut={true}
                         >
-                          <TransformComponent>
+                          <TransformComponent wrapperStyle={{marginLeft: "auto", marginRight: "auto"}}
+                          contentStyle={fullScreen ? { width: "100vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} 
+                        : { width: "80vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} }>
                             <img
-                              className={` ${
+                              className={`mx-auto ${
                                 imageFullScreen ? '' : 'object-contain'
                               } imageModal ${
                                 roundedImages ? 'rounded-lg' : ''
@@ -854,49 +855,9 @@ export const SlideshowLightbox = (props) => {
                             />
                           </TransformComponent>
                         </TransformWrapper>
-                      ) : (
-                        <MapInteractionCSS
-                          maxScale={maxScale}
-                          minScale={minScale}
-                          disablePan={panImage}
-                          value={mapInteractionValue}
-                          onChange={(value) => {
-                            mapInteractionChange(value)
-                          }}
-                          zoomIn={zoomImg}
-                          translationBounds={
-                            imageFullScreen
-                              ? {}
-                              : { xMin: -500, xMax: 400, yMin: -500, yMax: 400 }
-                          }
-                        >
-                          {enableMagnifyingGlass == true ? (
-                            <Magnifier
-                              src={images[imageIndex].src}
-                              className='imageModal'
-                              style={{
-                                width: imgContainWidth,
-                                height: imgContainHeight
-                              }}
-                            />
-                          ) : (
-                            <img
-                              className={`${imageFullScreen ? '' : 'object-contain'} imageModal ${roundedImages ? 'rounded-lg' : ''}`}
-                              src={images[imageIndex].src}
-                              id='img'
-                              onClick={(e) => {
-                                if (!e.defaultPrevented) {
-                                  if (!isZoomed && !isAnimating) {
-                                    zoomIn()
-                                  } else {
-                                    zoomOut()
-                                  }
-                                }
-                              }}
-                            />
-                          )}
-                        </MapInteractionCSS>
-                      )}
+                      
+                       
+                      
                     </motion.div>
                   </AnimatePresence>
 
