@@ -320,19 +320,19 @@ export const SlideshowLightbox = (props) => {
     setIsSlideshowPlaying(false)
   }
 
-  const zoomIn = () => {
+  const zoomIntoImg = () => {
 
     if (!isMobile) {
-      changeCursor('all-scroll')
+      // changeCursor('all-scroll')
       setIsZoomed(true)
-      setZoomImg(zoomImg + 1)
+
     }
     if (zoomBtnRef) {
       zoomBtnRef.zoomIn();
     }
   }
 
-  const zoomOut = () => {
+  const zoomOutFromImg = () => {
     if (!isMobile) {
       changeCursor('zoom-in')
       setIsZoomed(false)
@@ -434,6 +434,7 @@ export const SlideshowLightbox = (props) => {
   }
 
   const initImageDimensions = () => {
+    console.log("Init img dimensions ")
     let img = document.getElementById('img')
     let imageContainerH, imageContainerW
     if (isMobile) {
@@ -445,13 +446,13 @@ export const SlideshowLightbox = (props) => {
       }
       //vertical image
       else {
-        imageContainerH = 0.6
+        imageContainerH = 0.57
       }
 
       // remove dragging motion
     } else {
       imageContainerW = 0.92
-      imageContainerH = 0.65
+      imageContainerH = 0.71
     }
 
     let { width, height, x, y } = contain(
@@ -460,6 +461,9 @@ export const SlideshowLightbox = (props) => {
       img.naturalWidth,
       img.naturalHeight
     )
+
+    console.log("Width ", width);
+    console.log("height ", height);
     setImgContainHeight(height)
     setImgContainWidth(width)
   }
@@ -602,7 +606,8 @@ export const SlideshowLightbox = (props) => {
     }
 
     // setImgElem(imgElemRef.current)
-    initKeyboardEventListeners()
+    initKeyboardEventListeners();
+
     let reducedMotionMediaQuery = checkAndInitReducedMotion()
 
     if (!isInit) {
@@ -696,18 +701,32 @@ export const SlideshowLightbox = (props) => {
                   duration: 0.2
                 }}
               >
+                                      <TransformWrapper
+                          ref={initZoomRef}
+                          onWheel={{ wheelEvent }}
+                          onZoom={zoomEvent}
+                          centerZoomedOut={true}
+                          initialScale={1}
+
+                        >
+                          {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+          <React.Fragment>
+
                 <div
                   className={`lightboxContainer`}
                   style={{
                     backgroundColor: backgroundColor
                   }}
                 >
+                                       
+  
                   <section
                     className={
                       'iconsHeader imageModal ' + arrowStyle + '_header_icon'
                     }
                     style={{ color: iconColor }}
                   >
+                    
                     <motion.div whileTap={{ scale: 0.95 }}>
                       <ZoomIn onClick={() => zoomIn()} />
                     </motion.div>
@@ -803,7 +822,7 @@ export const SlideshowLightbox = (props) => {
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.div
                     // onClick={(event) => {zoomIn()}}
-                      className={`slideshowInnerContainer ${
+                      className={`slideshowInnerContainer  ${
                         showThumbnails
                           ? 'slideshowInnerContainerThumbnails'
                           : ''
@@ -834,16 +853,23 @@ export const SlideshowLightbox = (props) => {
                         setIsAnimating(true)
                       }}
                     >
-                     
-                        <TransformWrapper
-                          ref={initZoomRef}
-                          onWheel={{ wheelEvent }}
-                          onZoom={zoomEvent}
-                          centerZoomedOut={true}
-                        >
-                          <TransformComponent wrapperStyle={{marginLeft: "auto", marginRight: "auto"}}
+{enableMagnifyingGlass == true ? (
+                            <Magnifier
+                              src={images[imageIndex].src}
+                              className="imageModal mx-auto mt-0 magnifyWrapper"         
+                              height={imgContainHeight}
+                              width={imgContainWidth}          
+                              mgShowOverflow={false}        
+                              style={{
+                                width: imgContainWidth,
+                                height: imgContainHeight,
+                              }}
+                            />
+                          ) : (
+            <TransformComponent wrapperStyle={{marginLeft: "auto", marginRight: "auto"}}
                           contentStyle={fullScreen ? { width: "100vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} 
                         : { width: "80vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} }>
+
                             <img
                               className={`mx-auto ${
                                 imageFullScreen ? '' : 'object-contain'
@@ -854,10 +880,7 @@ export const SlideshowLightbox = (props) => {
                               id='img'
                             />
                           </TransformComponent>
-                        </TransformWrapper>
-                      
-                       
-                      
+       )}
                     </motion.div>
                   </AnimatePresence>
 
@@ -909,6 +932,11 @@ export const SlideshowLightbox = (props) => {
                     </ScrollContainer>
                   </div>
                 </div>
+                </React.Fragment>
+        )}
+
+                        </TransformWrapper>     
+
               </motion.div>
             </Portal>
           )}

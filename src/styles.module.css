@@ -196,6 +196,10 @@ img.hoverShadow {
   z-index: 1000000;
 } 
 
+.magnifyWrapper {
+  margin-bottom: 3em;
+}
+
 .slideshowInnerContainer {
   position: fixed;
   display: flex;
@@ -552,5 +556,13 @@ img.hoverShadow {
 .react-transform-component {
   margin-left: auto;
   margin-right: auto;
+}
+
+#img {
   cursor: zoom-in;
+}
+
+.magnifier-image {
+  margin-left: auto;
+  margin-right: auto;
 }
