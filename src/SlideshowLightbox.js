@@ -26,6 +26,7 @@ import { cover, contain } from 'intrinsic-scale'
 import { isBrowser } from './utility'
 import { Portal } from 'react-portal'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import ReactSwipe from 'react-swipe';
 
 const variants = {
   imgDrag: {
@@ -125,6 +126,9 @@ export const SlideshowLightbox = (props) => {
   const [roundedImages, setRoundedImages] = useState(
     props.roundedImages ? props.roundedImages : true
   )
+  const [showControls, setShowControls] = useState(
+    props.showControls ? props.showControls : true
+  )
   const [lightboxIdentifier, setLightboxIdentifier] = useState(
     props.lightboxIdentifier ? props.lightboxIdentifier : false
   )
@@ -149,6 +153,8 @@ export const SlideshowLightbox = (props) => {
   const [isBrowserFullScreen, setIsBrowserFullScreen] = useState(false)
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false)
   const [imagesLoaded, setImagesLoaded] = useState(false)
+  const [refIndex, setRefIndex] = useState(0)
+
   const [imgContainHeight, setImgContainHeight] = useState(500)
   const [imgContainWidth, setImgContainWidth] = useState(426)
   const [isInit, setIsInit] = useState(false)
@@ -166,10 +172,21 @@ export const SlideshowLightbox = (props) => {
   // const [imgElem, setImgElem] = useState(null);
   const zoomRef = useRef(null);
   const [zoomBtnRef, setZoomBtnRef] = useState(null);
+  const [zoomRefs, setZoomRefs] = useState([]);
+
+  const [zoomBtnRef2, setZoomBtnRef2] = useState(null);
 
   const initZoomRef = (ref) => {
     if (ref) setZoomBtnRef(ref);
     else setZoomBtnRef(null)
+  };
+
+  const initZoomRef2 = (ref) => {
+    let refs = zoomRefs;
+    if (ref) {
+      zoomRefs.push(ref)
+    };
+    // else setZoomBtnRef2(null)
   };
 
   // Styling/theming
@@ -285,7 +302,8 @@ export const SlideshowLightbox = (props) => {
 
     setAnimTransition(slideshowAnimTransition)
     resetMapInteraction()
-    setImgSlideIndex([newIndex, newDirection])
+    setImgSlideIndex([newIndex, newDirection]);
+    reactSwipeEl.slide(newIndex, 500)
   }
 
   const closeModal = () => {
@@ -421,7 +439,59 @@ export const SlideshowLightbox = (props) => {
         setRoundedImages(false)
       }
     }
+
+
   }
+
+  const paneNodes = Array.apply(null, Array(images.length)).map((_, index) => {
+    return (
+      <div key={index}>
+       
+{enableMagnifyingGlass == true ? (
+                            <Magnifier
+                              src={images[index].src}
+                              className="imageModal mx-auto mt-0 magnifyWrapper"         
+                              height={imgContainHeight}
+                              width={imgContainWidth}          
+                              mgShowOverflow={false}        
+                              style={{
+                                width: imgContainWidth,
+                                height: imgContainHeight,
+                              }}
+                            />
+                          ) : ( 1 == 1 ?  <div>
+                                  <TransformWrapper
+                          ref={initZoomRef2}
+                          onWheel={{ wheelEvent }}
+                          onZoom={zoomEvent}
+                          centerZoomedOut={true}
+                          initialScale={1}
+
+                        >
+        <TransformComponent wrapperStyle={{marginLeft: "auto", marginRight: "auto"}}
+                          contentStyle={fullScreen ? { width: "100vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} 
+                        : { width: "100vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} } key={index}> 
+
+                            <img
+                              className={`mx-auto ${
+                                imageFullScreen ? '' : 'object-contain'
+                              } imageModal ${
+                                roundedImages ? 'rounded-lg' : ''
+                              }`}
+                              src={images[index].src}
+                              id='img'
+                            />
+                          </TransformComponent> 
+          </TransformWrapper> 
+                            
+                            </div> : null
+
+       )}
+    
+
+      </div>
+    );
+  });
 
   const initMagnifyingGlass = () => {
     if (!enableMagnifyingGlass) {
@@ -588,6 +658,21 @@ export const SlideshowLightbox = (props) => {
     return reducedMotionMediaQuery
   }
 
+  const initProps = () => {
+    if (props.showControls != undefined) {
+      setShowControls(props.showControls);
+    }
+
+    if (isBrowser) {
+      setWidth(window.innerWidth)
+    }
+
+    if (window.innerWidth <= mobileWidth) {
+      setImgAnimation('fade')
+    }
+
+  }
+
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
     () => {
@@ -597,13 +682,8 @@ export const SlideshowLightbox = (props) => {
   )
 
   useEffect(() => {
-    if (isBrowser) {
-      setWidth(window.innerWidth)
-    }
 
-    if (window.innerWidth <= mobileWidth) {
-      setImgAnimation('fade')
-    }
+    initProps();
 
     // setImgElem(imgElemRef.current)
     initKeyboardEventListeners();
@@ -664,10 +744,55 @@ export const SlideshowLightbox = (props) => {
     }
   }, [keyPressHandler])
 
+  let rows = [];
+for (let index = 0; index < images.length; index++) {
+    // note: we are adding a key prop here to allow react to uniquely identify each
+    // element in this array. see: https://reactjs.org/docs/lists-and-keys.html
+    rows.push(<div key={index}>
+         <div>
+           <h1>{index}</h1>
+        {enableMagnifyingGlass == true ? (
+                            <Magnifier
+                              src={images[index].src}
+                              className="imageModal mt-0 magnifyWrapper"         
+                              height={imgContainHeight}
+                              width={imgContainWidth}          
+                              mgShowOverflow={false}        
+                              style={{
+                                width: imgContainWidth,
+                                height: imgContainHeight,
+                              }}
+                            />
+                          ) : ( <div>
+                                    <TransformComponent wrapperStyle={{marginLeft: "auto", marginRight: "auto"}}
+                          contentStyle={fullScreen ? { width: "100vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} 
+                        : { width: "30vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} } key={index}>
 
+                            <img
+                              className={`mx-auto ${
+                                imageFullScreen ? '' : 'object-contain'
+                              } imageModal ${
+                                roundedImages ? 'rounded-lg' : ''
+                              }`}
+                              src={images[index].src}
+                              id='img'
+                            />
+                          </TransformComponent> 
+                            </div>
+
+       )}
+        </div>;
+    
+
+    </div>);
+}
+    
+
+  let reactSwipeEl;
   return (
     <div class={`${props.className} lightboxjs`}>
       {lightboxIdentifier != false ? props.children : null}
+
 
       <AnimateSharedLayout type='crossfade'>
         <AnimatePresence initial={false}>
@@ -680,11 +805,12 @@ export const SlideshowLightbox = (props) => {
                   <motion.img
                     {...elem.props}
                     class={elem.props.className + ' cursor-pointer'}
-                    onClick={() => openModal(index)}
+                    onClick={() => {openModal(index); reactSwipeEl.slide(index, 0)}}
                     key={index}
                     whileTap={{ scale: 0.97 }}
                   />
                 ))}
+
 
           {showModal !== false && (
             <Portal>
@@ -701,7 +827,7 @@ export const SlideshowLightbox = (props) => {
                   duration: 0.2
                 }}
               >
-                                      <TransformWrapper
+                                      {/* <TransformWrapper
                           ref={initZoomRef}
                           onWheel={{ wheelEvent }}
                           onZoom={zoomEvent}
@@ -710,7 +836,7 @@ export const SlideshowLightbox = (props) => {
 
                         >
                           {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-          <React.Fragment>
+          <React.Fragment> */}
 
                 <div
                   className={`lightboxContainer`}
@@ -718,82 +844,87 @@ export const SlideshowLightbox = (props) => {
                     backgroundColor: backgroundColor
                   }}
                 >
-                                       
-  
                   <section
                     className={
                       'iconsHeader imageModal ' + arrowStyle + '_header_icon'
                     }
                     style={{ color: iconColor }}
                   >
-                    
-                    <motion.div whileTap={{ scale: 0.95 }}>
-                      <ZoomIn onClick={() => zoomIn()} />
-                    </motion.div>
+                          {/* <button onClick={() => {console.log("img slide index prev ", imgSlideIndex); setCurrentSlide(imgSlideIndex + 1); console.log("img slide index ", imgSlideIndex); 
+                        reactSwipeEl.next(); }}>N</button>
+      <button onClick={() => reactSwipeEl.prev()}>P</button> */}
+                    {showControls && (
+                        <div className="controls">
+                          <motion.div whileTap={{ scale: 0.95 }}>
+                            <ZoomIn onClick={() => {console.log("zoom refs", zoomRefs[refIndex]); zoomRefs[refIndex].zoomIn()}} />
+                          </motion.div>
 
-                    <motion.div whileTap={{ scale: 0.95 }}>
-                      <ZoomOut onClick={() => zoomOut()} />
-                    </motion.div>
+                          <motion.div whileTap={{ scale: 0.95 }}>
+                            <ZoomOut onClick={() => {console.log("zoom refs ", zoomRefs[refIndex]); zoomRefs[refIndex].zoomOut()}} />
+                          </motion.div>
 
-                    {isBrowserFullScreen ? (
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <FullscreenExit
-                          onClick={() => {
-                            isBrowserFullScreen
-                              ? exitFullScreen()
-                              : fullScreen()
-                          }}
-                        />
-                      </motion.div>
-                    ) : (
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Fullscreen
-                          onClick={() => {
-                            isBrowserFullScreen
-                              ? exitFullScreen()
-                              : fullScreen()
-                          }}
-                        />
-                      </motion.div>
+                          {isBrowserFullScreen ? (
+                            <motion.div whileTap={{ scale: 0.95 }}>
+                              <FullscreenExit
+                                onClick={() => {
+                                  isBrowserFullScreen
+                                    ? exitFullScreen()
+                                    : fullScreen()
+                                }}
+                              />
+                            </motion.div>
+                          ) : (
+                            <motion.div whileTap={{ scale: 0.95 }}>
+                              <Fullscreen
+                                onClick={() => {
+                                  isBrowserFullScreen
+                                    ? exitFullScreen()
+                                    : fullScreen()
+                                }}
+                              />
+                            </motion.div>
+                          )}
+
+                        <motion.div whileTap={{ scale: 0.95 }}>
+                          <GridFill
+                            onClick={() => {
+                              setShowThumbnails(!showThumbnails)
+                            }}
+                          />
+                        </motion.div>
+
+                        {isMobile ? null : (
+                          <motion.div whileTap={{ scale: 0.95 }}>
+                            <Search onClick={() => initMagnifyingGlass()} />
+                          </motion.div>
+                        )}
+
+                        <motion.div
+                          whileTap={{ scale: 0.95 }}
+                          className='slideshowPlayBtn'
+                        >
+                          {isSlideshowPlaying ? (
+                            <PauseCircleFill
+                              onClick={() => {
+                                isSlideshowPlaying
+                                  ? stopSlideshow()
+                                  : playSlideshow()
+                              }}
+                            />
+                          ) : (
+                            <PlayCircleFill
+                              onClick={() => {
+                                isSlideshowPlaying
+                                  ? stopSlideshow()
+                                  : playSlideshow()
+                              }}
+                            />
+                          )}
+                        </motion.div>
+                        </div>
                     )}
-
-                    <motion.div whileTap={{ scale: 0.95 }}>
-                      <GridFill
-                        onClick={() => {
-                          setShowThumbnails(!showThumbnails)
-                        }}
-                      />
-                    </motion.div>
-
-                    {isMobile ? null : (
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Search onClick={() => initMagnifyingGlass()} />
-                      </motion.div>
-                    )}
-
-                    <motion.div
-                      whileTap={{ scale: 0.95 }}
-                      className='slideshowPlayBtn'
-                    >
-                      {isSlideshowPlaying ? (
-                        <PauseCircleFill
-                          onClick={() => {
-                            isSlideshowPlaying
-                              ? stopSlideshow()
-                              : playSlideshow()
-                          }}
-                        />
-                      ) : (
-                        <PlayCircleFill
-                          onClick={() => {
-                            isSlideshowPlaying
-                              ? stopSlideshow()
-                              : playSlideshow()
-                          }}
-                        />
-                      )}
-                    </motion.div>
-
+                   
+                   
                     <motion.div
                       whileTap={{ scale: 0.95 }}
                       className='closeIcon'
@@ -808,80 +939,37 @@ export const SlideshowLightbox = (props) => {
 
                   <div
                     className={'next1 ' + arrowStyle + '_icon imageModal'}
-                    onClick={() => updateCurrentSlide(1)}
+                    onClick={() => {setRefIndex(refIndex + 1); reactSwipeEl.next();}}
                   >
                     <span>&#10095;</span>
                   </div>
                   <div
                     className={'prev1 ' + arrowStyle + '_icon imageModal'}
-                    onClick={() => updateCurrentSlide(-1)}
+                    onClick={() => {setRefIndex(refIndex - 1); reactSwipeEl.prev(); }}
                   >
                     <span>&#10094;</span>
                   </div>
 
+
                   <AnimatePresence initial={false} custom={direction}>
-                    <motion.div
-                    // onClick={(event) => {zoomIn()}}
+   
+
+
+                                        <ReactSwipe
                       className={`slideshowInnerContainer  ${
                         showThumbnails
                           ? 'slideshowInnerContainerThumbnails'
                           : ''
-                      } 
-                      ${imageFullScreen ? 'fullScreenContainer' : ''}`}
-                      custom={direction}
-                      variants={variants[imgAnimation]}
-                      initial='enterImg'
-                      key={imgSlideIndex}
-                      animate={'centerImg'}
-                      exit='exitImg'
-                      transition={animTransition}
-                      drag={(imgAnimation == "imgDrag") ? imgSwipeMotion : false}
-                      drag={false}
-                      dragElastic={1}
-                      dragConstraints={{ left: 0, right: 0 }}
-                      onDragStart={(e, { offset, velocity }) => {
-                        setLockAxisY(true)
-                      }}
-                      onDragEnd={(e, { offset, velocity }) => {
-                        checkAndUpdateSlide(offset, velocity)
-                        setLockAxisY(false)
-                      }}
-                      onAnimationComplete={() => {
-                        setIsAnimating(false)
-                      }}
-                      onAnimationStart={() => {
-                        setIsAnimating(true)
-                      }}
-                    >
-{enableMagnifyingGlass == true ? (
-                            <Magnifier
-                              src={images[imageIndex].src}
-                              className="imageModal mx-auto mt-0 magnifyWrapper"         
-                              height={imgContainHeight}
-                              width={imgContainWidth}          
-                              mgShowOverflow={false}        
-                              style={{
-                                width: imgContainWidth,
-                                height: imgContainHeight,
-                              }}
-                            />
-                          ) : (
-            <TransformComponent wrapperStyle={{marginLeft: "auto", marginRight: "auto"}}
-                          contentStyle={fullScreen ? { width: "100vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} 
-                        : { width: "80vw", height: "100vh", marginLeft: "auto", marginRight: "auto"} }>
+                      } `}
+        swipeOptions={{ continuous: true }}
+        ref={el => (reactSwipeEl = el)}
+        childCount={images.length}
+      >
+          {paneNodes}
 
-                            <img
-                              className={`mx-auto ${
-                                imageFullScreen ? '' : 'object-contain'
-                              } imageModal ${
-                                roundedImages ? 'rounded-lg' : ''
-                              }`}
-                              src={images[imageIndex].src}
-                              id='img'
-                            />
-                          </TransformComponent>
-       )}
-                    </motion.div>
+
+      </ReactSwipe>
+ 
                   </AnimatePresence>
 
                   <div
@@ -932,10 +1020,10 @@ export const SlideshowLightbox = (props) => {
                     </ScrollContainer>
                   </div>
                 </div>
-                </React.Fragment>
-        )}
+                {/* </React.Fragment> */}
+        {/* )} */}
 
-                        </TransformWrapper>     
+                        {/* </TransformWrapper>      */}
 
               </motion.div>
             </Portal>

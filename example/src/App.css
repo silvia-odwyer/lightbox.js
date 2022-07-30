@@ -20,3 +20,15 @@ h1, h2 {
     margin-bottom: 4vh;
     margin-top: 4vh;
 }
+
+.images {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    
+}
+
+.images img {
+    flex-basis: 33%;
+    padding: 2px;
+}

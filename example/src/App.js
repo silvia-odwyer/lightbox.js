@@ -54,12 +54,14 @@ const App = () => {
       </div>
 
       <SlideshowLightbox
-        className='container grid grid-cols-3 gap-2 mx-auto mb-8'
+        className='images'
         theme='day'
         lightboxIdentifier='l1'
         animateThumbnails={false}
         roundedImages={true}
         showThumbnails={true}
+        showControls={true}
+
       >
         <img
           className='w-full rounded'
@@ -69,7 +71,25 @@ const App = () => {
         />
         <img
           className='w-full rounded'
+          src={'https://source.unsplash.com/1600x1200/?green+hills+mountains'}
+          alt="Green hills"
+          data-lightboxjs='l1'
+        />
+        <img
+          className='w-full rounded'
           src={'https://source.unsplash.com/1600x1200/?green+hills'}
+          alt="Green hills"
+          data-lightboxjs='l1'
+        />
+                <img
+          className='w-full rounded'
+          src={'https://source.unsplash.com/1600x1200/?clouds+hills+mountains'}
+          alt="Green hills"
+          data-lightboxjs='l1'
+        />
+        <img
+          className='w-full rounded'
+          src={'https://source.unsplash.com/1600x1200/?blue+sky+hills'}
           alt="Green hills"
           data-lightboxjs='l1'
         />
@@ -78,6 +98,8 @@ const App = () => {
       <SlideshowLightbox
         theme='day'
         animateThumbnails={false}
+        showControls={false}
+
         showThumbnails={true}
         imgAnimation={'imgDrag'}
         className='container grid grid-cols-3 gap-2 mx-auto mt-8'
@@ -101,6 +123,8 @@ const App = () => {
         theme='day'
         animateThumbnails={false}
         fullScreen={true}
+        showControls={false}
+
         showThumbnails={true}
         imgAnimation={'imgDrag'}
         className='container grid grid-cols-3 gap-2 mx-auto mt-8'
@@ -122,6 +146,8 @@ const App = () => {
         animateThumbnails={false}
         fullScreen={true}
         showThumbnails={true}
+        showControls={false}
+
         imgAnimation={'imgDrag'}
         className='container grid grid-cols-3 gap-2 mx-auto mt-8'
       >
