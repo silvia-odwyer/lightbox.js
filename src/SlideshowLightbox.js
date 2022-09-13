@@ -113,17 +113,24 @@ const slideshowAnimTransition = {
 }
 
 export const SlideshowLightbox = (props) => {
-
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0])
   const [showModal, setShowModal] = useState(false)
-  const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
+  const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false)
   // const [reactSwipeEl, setReactSwipeEl] = useState(false);
 
-  const [images, setImages] = useState(
-    props.children ? props.children.map((obj) => obj.props) : []
+  const [images, setImages] = useState([])
+
+  const [imagesMetadata, setImagesMetadata] = useState(
+    props.images ? props.images : []
   )
-  const imageIndex = wrapNums(0, images.length, imgSlideIndex);
-  const [reactSwipeOptions, setReactSwipeOptions] = useState(  { continuous: true, startSlide: 0 }    )
+
+  const [previewImageElems, setPreviewImageElems] = useState([])
+
+  const imageIndex = wrapNums(0, images.length, imgSlideIndex)
+  const [reactSwipeOptions, setReactSwipeOptions] = useState({
+    continuous: true,
+    startSlide: 0
+  })
 
   const [slideshowInterval, setSlideshowInterval] = useState(
     props.slideshowInterval ? props.slideshowInterval : 1100
@@ -144,7 +151,9 @@ export const SlideshowLightbox = (props) => {
     props.licenseKey ? props.licenseKey : ''
   )
   const [lockAxisY, setLockAxisY] = useState(false)
-
+  const [showLoader, setShowLoader] = useState(
+    props.showLoader ? props.showLoader : false
+  )
   const [isZoomed, setIsZoomed] = useState(false)
   const [animTransition, setAnimTransition] = useState(animTransitionDefault)
   const [panImage, setPanImage] = useState(true)
@@ -179,14 +188,33 @@ export const SlideshowLightbox = (props) => {
   const [zoomBtnRef, setZoomBtnRef] = useState(null)
   const [zoomRefs, setZoomRefs] = useState([])
 
-  const [zoomBtnRef2, setZoomBtnRef2] = useState(null)
-
-  // const reactSwipeEl = useRef(null)
-  // const [reactSwipeElRef, setReactSwipeElRef] = useState(null)
-
   const initZoomRef = (ref) => {
     if (ref) setZoomBtnRef(ref)
     else setZoomBtnRef(null)
+  }
+
+  const shouldDisplayLoader = () => {
+    if (imgSlideIndex) {
+      if (images[imgSlideIndex % images.length]['loaded'] == true) {
+        return true
+      }
+    }
+    if (!showLoader) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  const getLoaderThemeClass = () => {
+    if (props.theme) {
+      if (props.theme == 'night' || props.theme == 'lightbox') {
+        return 'night_loader'
+      } else if (props.theme == 'day') {
+        return 'day_loader'
+      }
+    }
+    return 'night_loader'
   }
 
   const initZoomRef2 = (ref) => {
@@ -196,8 +224,6 @@ export const SlideshowLightbox = (props) => {
     }
     // else setZoomBtnRef2(null)
   }
-
-  
 
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(
@@ -288,6 +314,8 @@ export const SlideshowLightbox = (props) => {
   }
 
   const updateImageSlideshow = (newDirection) => {
+    reactSwipeEl.next()
+
     resetMapInteraction()
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection])
   }
@@ -333,24 +361,21 @@ export const SlideshowLightbox = (props) => {
 
   const openModal = (num) => {
     setImgSlideIndex([num, 1])
-    setShowModal(true);
-    
+    setShowModal(true)
   }
 
   const openModalAndSetSlide = (num) => {
     reactSwipeEl.slide(num, 0)
-    
+
     setImgSlideIndex([num, 1])
-    setShowModal(true);
-
-
+    setShowModal(true)
   }
 
   const playSlideshow = () => {
     setMagnifyingGlass(false)
     setAnimTransition(slideshowAnimTransition)
     updateImageSlideshow(1)
-    setIsSlideshowPlaying(true)
+    setIsSlideshowPlaying(true);
   }
 
   const stopSlideshow = () => {
@@ -505,7 +530,15 @@ export const SlideshowLightbox = (props) => {
                   className={`mx-auto ${
                     imageFullScreen ? '' : 'object-contain'
                   } imageModal ${roundedImages ? 'rounded-lg' : ''}`}
-                  src={images[index].src}
+                  loading='lazy'
+                  src={
+                    images[index].original
+                      ? images[index].original
+                      : images[index].src
+                  }
+                  onLoad={() => {
+                    images[index]['loaded'] = true
+                  }}
                   id='img'
                 />
               </TransformComponent>
@@ -526,7 +559,6 @@ export const SlideshowLightbox = (props) => {
   }
 
   const initImageDimensions = () => {
-    console.log('Init img dimensions ')
     let img = document.getElementById('img')
     let imageContainerH, imageContainerW
     if (isMobile) {
@@ -554,8 +586,6 @@ export const SlideshowLightbox = (props) => {
       img.naturalHeight
     )
 
-    console.log('Width ', width)
-    console.log('height ', height)
     setImgContainHeight(height)
     setImgContainWidth(width)
   }
@@ -568,32 +598,22 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const removeDragEffect = (ref, e) => {
-    console.log('call remove effect')
-    setImgAnimation('')
-  }
-
   const zoomEvent = (ref, e) => {
-    console.log('ZOOM EVENT ', ref)
-
     if (ref.state.scale == 1) {
       setImgAnimation('imgDrag')
       setImgSwipeMotion(imgSwipeDirection)
-      console.log('reinit drag anim')
     } else {
       // setImgAnimation("fade");
     }
   }
 
   const wheelEvent = (ref, e) => {
-    console.log('WHEEL EVENT ', ref)
     setImgAnimation('fade')
 
     setLockAxisY(false)
     // if (ref.state.scale == 1) {
     //   setImgAnimation("imgDrag");
     //   setImgSwipeMotion(imgSwipeDirection)
-    //   console.log("reinit drag anim")
     // }
   }
 
@@ -697,17 +717,18 @@ export const SlideshowLightbox = (props) => {
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
     () => {
-      updateImageSlideshow(1)
+      updateImageSlideshow(1);
     },
     isSlideshowPlaying ? slideshowInterval : null
   )
 
   useEffect(() => {
-    console.log("use effect", props.fullScreen)
-    initProps()
+    let isMounted = true;
+    console.log("react swipe el ", reactSwipeEl)
+    if (isMounted) initProps()
 
     // setImgElem(imgElemRef.current)
-    initKeyboardEventListeners()
+    if (isMounted) initKeyboardEventListeners()
 
     let reducedMotionMediaQuery = checkAndInitReducedMotion()
 
@@ -716,7 +737,7 @@ export const SlideshowLightbox = (props) => {
         let img_gallery = document.querySelectorAll('[data-lightboxjs]')
         let img_elements = []
 
-        let usesAttr = false
+        let usesAttr = false;
         if (img_gallery.length > 0) {
           for (let i = 0; i <= img_gallery.length - 1; i++) {
             let img = img_gallery[i]
@@ -726,40 +747,55 @@ export const SlideshowLightbox = (props) => {
               img.addEventListener(
                 'click',
                 () => {
-                  let reactSwipeOptionConfig = reactSwipeOptions;
-                  reactSwipeOptionConfig.startSlide = i;
-                  setReactSwipeOptions(reactSwipeOptionConfig);
+                  let reactSwipeOptionConfig = reactSwipeOptions
+                  reactSwipeOptionConfig.startSlide = i
+                  if (isMounted) setReactSwipeOptions(reactSwipeOptionConfig)
                   openModal(i)
                 },
                 false
               )
               img.classList.add('cursor-pointer')
               usesAttr = true
-              img_elements.push({ src: img.src, alt: img.alt })
+              img_elements.push({ src: img.src, alt: img.alt, loaded: 'false' })
             }
           }
 
           if (usesAttr) {
-            setUsesDataAttr(true)
+            if (isMounted) setUsesDataAttr(true)
           }
 
-          setImages(img_elements)
+          if (isMounted) setImages(img_elements)
         }
       } else {
         if (props.children) {
-          setImages(
-            props.children
-              .filter((elem) => elem.type == 'img')
-              .map((obj) => obj.props)
-          )
+          let imgs = []
+          for (let k = 0; k < props.children.length; k++) {
+            let img_elem = props.children[k]
+            let img_obj = {
+              src: img_elem.props.src,
+              alt: img_elem.props.alt,
+              loaded: 'false'
+            }
+            imgs.push(img_obj)
+          }
+          if (isMounted) setImages(imgs)
+          if (isMounted) setPreviewImageElems(props.children)
+        } else {
+          if (isMounted) setImages(props.images)
         }
       }
 
-      setIsInit(true)
-    };
+      if (isMounted) setIsInit(true)
+    }
 
-    initStyling()
+    if (isMounted) initStyling()
     return () => {
+      isMounted = false;
+      // zoomRef.current = false;
+      // for (let i = 0; i < zoomRefs.length; i++) {
+      //   let zoomRef1 = zoomRefs[i];
+      //   zoomRef1.current = false;
+      // }
       removeKeyboardEventListeners()
       reducedMotionMediaQuery.removeEventListener(
         'change',
@@ -768,11 +804,8 @@ export const SlideshowLightbox = (props) => {
     }
   }, [keyPressHandler])
 
-
   let rows = []
   for (let index = 0; index < images.length; index++) {
-    // note: we are adding a key prop here to allow react to uniquely identify each
-    // element in this array. see: https://reactjs.org/docs/lists-and-keys.html
     rows.push(
       <div key={index}>
         <div>
@@ -814,7 +847,11 @@ export const SlideshowLightbox = (props) => {
                   className={`mx-auto ${
                     imageFullScreen ? '' : 'object-contain'
                   } imageModal ${roundedImages ? 'rounded-lg' : ''}`}
-                  src={images[index].src}
+                  src={
+                    images[index].original
+                      ? images[index].original
+                      : images[index].src
+                  }
                   id='img'
                 />
               </TransformComponent>
@@ -825,42 +862,53 @@ export const SlideshowLightbox = (props) => {
       </div>
     )
   }
-  let reactSwipeEl;
+  let reactSwipeEl
   return (
     <div class={`${props.className} lightboxjs`}>
-      {lightboxIdentifier != false ? props.children : null}
-          {/* Gallery images */}
-          {lightboxIdentifier != false
-            ? null
-            : props.children
-                .filter((elem) => elem.type == 'img')
-                .map((elem, index) => (
-                  <img
-                    {...elem.props}
-                    class={elem.props.className + ' cursor-pointer'}
-                    onClick={() => {
-                      console.log("hi2")
-                      let reactSwipeOptionConfig = reactSwipeOptions;
-                      reactSwipeOptionConfig.startSlide = index;
-                      setReactSwipeOptions(reactSwipeOptionConfig);
-                      openModal();
-                    }}
-                    key={index}
-                    whileTap={{ scale: 0.97 }}
-                  />
-                ))}
+      {props.images
+        ? props.images.map((elem, index) => (
+            <img
+              class={' cursor-pointer'}
+              src={elem.src}
+              onClick={() => {
+                let reactSwipeOptionConfig = reactSwipeOptions
+                reactSwipeOptionConfig.startSlide = index
+                setReactSwipeOptions(reactSwipeOptionConfig)
+                openModal(index)
+              }}
+              key={index}
+              whileTap={{ scale: 0.97 }}
+            />
+          ))
+        : null}
+      {lightboxIdentifier != false ? previewImageElems : null}
+      {/* Gallery images */}
+      {lightboxIdentifier != false
+        ? null
+        : previewImageElems
+            .filter((elem) => elem.type == 'img')
+            .map((elem, index) => (
+              <img
+                {...elem.props}
+                class={elem.props.className + ' cursor-pointer'}
+                onClick={() => {
+                  let reactSwipeOptionConfig = reactSwipeOptions
+                  reactSwipeOptionConfig.startSlide = index
+                  setReactSwipeOptions(reactSwipeOptionConfig)
+                  openModal()
+                }}
+                key={index}
+                whileTap={{ scale: 0.97 }}
+              />
+            ))}
       <AnimateSharedLayout type='crossfade'>
         <AnimatePresence initial={false}>
-
-
           {showModal !== false && (
             <Portal>
               <motion.div
                 className='slideshowAnimContainer'
                 key='slideshowAnimContainer'
                 id='slideshowAnim'
-                // onClick={(event) => {if (!isZoomed) checkModalClick(event)}}
-
                 initial={{ opacity: 0, scale: 0.98 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -891,15 +939,12 @@ export const SlideshowLightbox = (props) => {
                     }
                     style={{ color: iconColor }}
                   >
-                    {/* <button onClick={() => {console.log("img slide index prev ", imgSlideIndex); setCurrentSlide(imgSlideIndex + 1); console.log("img slide index ", imgSlideIndex); 
-                        reactSwipeEl.next(); }}>N</button>
-      <button onClick={() => reactSwipeEl.prev()}>P</button> */}
                     {showControls && (
                       <div className='controls'>
-                        <motion.div whileTap={{ scale: 0.95 }}>
+                        {/* <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomIn
                             onClick={() => {
-                              console.log('zoom refs', zoomRefs[refIndex])
+                              console.log("zoom in ", zoomRefs[refIndex]);
                               zoomRefs[refIndex].zoomIn()
                             }}
                           />
@@ -908,11 +953,10 @@ export const SlideshowLightbox = (props) => {
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomOut
                             onClick={() => {
-                              console.log('zoom refs ', zoomRefs[refIndex])
                               zoomRefs[refIndex].zoomOut()
                             }}
                           />
-                        </motion.div>
+                        </motion.div> */}
 
                         {isBrowserFullScreen ? (
                           <motion.div whileTap={{ scale: 0.95 }}>
@@ -957,6 +1001,7 @@ export const SlideshowLightbox = (props) => {
                           {isSlideshowPlaying ? (
                             <PauseCircleFill
                               onClick={() => {
+
                                 isSlideshowPlaying
                                   ? stopSlideshow()
                                   : playSlideshow()
@@ -965,6 +1010,7 @@ export const SlideshowLightbox = (props) => {
                           ) : (
                             <PlayCircleFill
                               onClick={() => {
+                                console.log("play slideshow")
                                 isSlideshowPlaying
                                   ? stopSlideshow()
                                   : playSlideshow()
@@ -990,10 +1036,9 @@ export const SlideshowLightbox = (props) => {
                   <div
                     className={'next1 ' + arrowStyle + '_icon imageModal'}
                     onClick={() => {
-                      setRefIndex(refIndex + 1);
-                      reactSwipeEl.next();
-                      setImgSlideIndex([imgSlideIndex + 1 , 1])
-
+                      setRefIndex(refIndex + 1)
+                      reactSwipeEl.next()
+                      setImgSlideIndex([imgSlideIndex + 1, 1])
                     }}
                   >
                     <span>&#10095;</span>
@@ -1016,11 +1061,15 @@ export const SlideshowLightbox = (props) => {
                           : ''
                       } `}
                       swipeOptions={reactSwipeOptions}
-                      ref={el => (reactSwipeEl = el)}
+                      ref={(el) => (reactSwipeEl = el)}
                       childCount={images.length}
                     >
                       {paneNodes}
                     </ReactSwipe>
+
+                    {shouldDisplayLoader() ? null : (
+                      <span key="loader" class={`loader ${getLoaderThemeClass()}`}></span>
+                    )}
                   </AnimatePresence>
 
                   <div
@@ -1057,6 +1106,7 @@ export const SlideshowLightbox = (props) => {
                                     ? { border: activeThumbnailBorder }
                                     : { border: thumbnailBorder }
                                 }
+                                key={index}
                                 onClick={() => {
                                   setCurrentSlide(index)
                                 }}

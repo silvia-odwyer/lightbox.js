@@ -577,3 +577,38 @@ img.hoverShadow {
   margin-left: auto;
   margin-right: auto;
 }
+
+
+/* CSS loader  */
+.loader {
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+
+  border-radius: 50%;
+  
+  display: inline-block;
+  position: fixed;
+  top: 50%;
+  left:50%;
+  animation: rotation 1s linear infinite;
+  }
+
+  @keyframes rotation {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+  } 
+
+.day_loader {
+  border: 5px solid #626B77;
+  border-bottom-color: transparent;
+}
+
+.night_loader {
+  border: 5px solid #FFF;
+  border-bottom-color: transparent;
+}
