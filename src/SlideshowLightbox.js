@@ -169,6 +169,8 @@ export const SlideshowLightbox = (props) => {
   const [imagesLoaded, setImagesLoaded] = useState(false)
   const [refIndex, setRefIndex] = useState(0)
 
+  const [zoomIdx, setZoomIdx] = useState(0);
+
   const [imgContainHeight, setImgContainHeight] = useState(500)
   const [imgContainWidth, setImgContainWidth] = useState(426)
   const [isInit, setIsInit] = useState(false)
@@ -187,6 +189,7 @@ export const SlideshowLightbox = (props) => {
   const zoomRef = useRef(null)
   const [zoomBtnRef, setZoomBtnRef] = useState(null)
   const [zoomRefs, setZoomRefs] = useState([])
+  const zoomReferences = useRef([]);
 
   const initZoomRef = (ref) => {
     if (ref) setZoomBtnRef(ref)
@@ -222,6 +225,7 @@ export const SlideshowLightbox = (props) => {
     if (ref) {
       zoomRefs.push(ref)
     }
+    setZoomRefs(refs)
     // else setZoomBtnRef2(null)
   }
 
@@ -345,6 +349,9 @@ export const SlideshowLightbox = (props) => {
   }
 
   const closeModal = () => {
+    //reset zoom ref
+    setZoomIdx(0);
+
     if (isBrowserFullScreen) {
       exitFullScreen()
     }
@@ -501,8 +508,9 @@ export const SlideshowLightbox = (props) => {
         ) : 1 == 1 ? (
           <div>
             <TransformWrapper
-              ref={initZoomRef2}
+              ref={el => zoomReferences.current[index] = el}
               onWheel={{ wheelEvent }}
+              key={index}
               onZoom={zoomEvent}
               centerZoomedOut={true}
               initialScale={1}
@@ -873,7 +881,8 @@ export const SlideshowLightbox = (props) => {
               onClick={() => {
                 let reactSwipeOptionConfig = reactSwipeOptions
                 reactSwipeOptionConfig.startSlide = index
-                setReactSwipeOptions(reactSwipeOptionConfig)
+                setReactSwipeOptions(reactSwipeOptionConfig);
+                setZoomIdx(index);
                 openModal(index)
               }}
               key={index}
@@ -894,7 +903,8 @@ export const SlideshowLightbox = (props) => {
                 onClick={() => {
                   let reactSwipeOptionConfig = reactSwipeOptions
                   reactSwipeOptionConfig.startSlide = index
-                  setReactSwipeOptions(reactSwipeOptionConfig)
+                  setReactSwipeOptions(reactSwipeOptionConfig);
+                  setZoomIdx(index);
                   openModal()
                 }}
                 key={index}
@@ -941,11 +951,12 @@ export const SlideshowLightbox = (props) => {
                   >
                     {showControls && (
                       <div className='controls'>
-                        {/* <motion.div whileTap={{ scale: 0.95 }}>
+                        <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomIn
                             onClick={() => {
                               console.log("zoom in ", zoomRefs[refIndex]);
-                              zoomRefs[refIndex].zoomIn()
+                              zoomReferences.current[zoomIdx].zoomIn();
+                              console.log("zoom idx ", zoomIdx)
                             }}
                           />
                         </motion.div>
@@ -953,10 +964,12 @@ export const SlideshowLightbox = (props) => {
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomOut
                             onClick={() => {
-                              zoomRefs[refIndex].zoomOut()
+                              zoomReferences.current[zoomIdx].zoomOut();
+                              console.log("zoom idx ", zoomIdx)
+
                             }}
                           />
-                        </motion.div> */}
+                        </motion.div> 
 
                         {isBrowserFullScreen ? (
                           <motion.div whileTap={{ scale: 0.95 }}>
@@ -1039,6 +1052,7 @@ export const SlideshowLightbox = (props) => {
                       setRefIndex(refIndex + 1)
                       reactSwipeEl.next()
                       setImgSlideIndex([imgSlideIndex + 1, 1])
+                      setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1);
                     }}
                   >
                     <span>&#10095;</span>
@@ -1047,7 +1061,10 @@ export const SlideshowLightbox = (props) => {
                     className={'prev1 ' + arrowStyle + '_icon imageModal'}
                     onClick={() => {
                       setRefIndex(refIndex - 1)
-                      reactSwipeEl.prev()
+                      reactSwipeEl.prev();
+                      setZoomIdx(zoomIdx - 1 < 0 ? images.length -1 : zoomIdx - 1);
+                      setImgSlideIndex([imgSlideIndex - 1, 1])
+
                     }}
                   >
                     <span>&#10094;</span>
