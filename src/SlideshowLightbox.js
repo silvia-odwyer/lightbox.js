@@ -369,6 +369,7 @@ export const SlideshowLightbox = (props) => {
   const openModal = (num) => {
     setImgSlideIndex([num, 1])
     setShowModal(true)
+    console.log("img slide index set to ", num)
   }
 
   const openModalAndSetSlide = (num) => {
@@ -732,7 +733,6 @@ export const SlideshowLightbox = (props) => {
 
   useEffect(() => {
     let isMounted = true;
-    console.log("react swipe el ", reactSwipeEl)
     if (isMounted) initProps()
 
     // setImgElem(imgElemRef.current)
@@ -905,7 +905,7 @@ export const SlideshowLightbox = (props) => {
                   reactSwipeOptionConfig.startSlide = index
                   setReactSwipeOptions(reactSwipeOptionConfig);
                   setZoomIdx(index);
-                  openModal()
+                  openModal(index)
                 }}
                 key={index}
                 whileTap={{ scale: 0.97 }}
@@ -953,19 +953,18 @@ export const SlideshowLightbox = (props) => {
                       <div className='controls'>
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomIn
+                          size={24}
                             onClick={() => {
-                              console.log("zoom in ", zoomRefs[refIndex]);
                               zoomReferences.current[zoomIdx].zoomIn();
-                              console.log("zoom idx ", zoomIdx)
                             }}
                           />
                         </motion.div>
 
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomOut
+                          size={24}
                             onClick={() => {
                               zoomReferences.current[zoomIdx].zoomOut();
-                              console.log("zoom idx ", zoomIdx)
 
                             }}
                           />
@@ -974,6 +973,7 @@ export const SlideshowLightbox = (props) => {
                         {isBrowserFullScreen ? (
                           <motion.div whileTap={{ scale: 0.95 }}>
                             <FullscreenExit
+                            size={24}
                               onClick={() => {
                                 isBrowserFullScreen
                                   ? exitFullScreen()
@@ -984,6 +984,7 @@ export const SlideshowLightbox = (props) => {
                         ) : (
                           <motion.div whileTap={{ scale: 0.95 }}>
                             <Fullscreen
+                            size={24}
                               onClick={() => {
                                 isBrowserFullScreen
                                   ? exitFullScreen()
@@ -995,6 +996,7 @@ export const SlideshowLightbox = (props) => {
 
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <GridFill
+                          size={24}
                             onClick={() => {
                               setShowThumbnails(!showThumbnails)
                             }}
@@ -1003,7 +1005,9 @@ export const SlideshowLightbox = (props) => {
 
                         {isMobile ? null : (
                           <motion.div whileTap={{ scale: 0.95 }}>
-                            <Search onClick={() => initMagnifyingGlass()} />
+                            <Search 
+                            size={24}
+                            onClick={() => initMagnifyingGlass()} />
                           </motion.div>
                         )}
 
@@ -1013,7 +1017,8 @@ export const SlideshowLightbox = (props) => {
                         >
                           {isSlideshowPlaying ? (
                             <PauseCircleFill
-                              onClick={() => {
+                            size={24}
+                            onClick={() => {
 
                                 isSlideshowPlaying
                                   ? stopSlideshow()
@@ -1022,8 +1027,8 @@ export const SlideshowLightbox = (props) => {
                             />
                           ) : (
                             <PlayCircleFill
-                              onClick={() => {
-                                console.log("play slideshow")
+                            size={24}  
+                            onClick={() => {
                                 isSlideshowPlaying
                                   ? stopSlideshow()
                                   : playSlideshow()
@@ -1039,6 +1044,7 @@ export const SlideshowLightbox = (props) => {
                       className='closeIcon'
                     >
                       <XLg
+                      size={24}
                         onClick={() => {
                           closeModal()
                         }}
@@ -1049,10 +1055,13 @@ export const SlideshowLightbox = (props) => {
                   <div
                     className={'next1 ' + arrowStyle + '_icon imageModal'}
                     onClick={() => {
+                      zoomReferences.current[zoomIdx].resetTransform();
                       setRefIndex(refIndex + 1)
                       reactSwipeEl.next()
                       setImgSlideIndex([imgSlideIndex + 1, 1])
                       setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1);
+                      console.log("Image index ", imgSlideIndex);
+
                     }}
                   >
                     <span>&#10095;</span>
@@ -1093,11 +1102,7 @@ export const SlideshowLightbox = (props) => {
                     className='thumbnailsOuterContainer imageModal'
                     style={imagesLoaded ? {} : { display: 'displayHidden' }}
                   >
-                    <ScrollContainer
-                      className='scroll-container'
-                      vertical={false}
-                      horizontal={true}
-                    >
+
                       <AnimatePresence initial={animatedThumbnails}>
                         {showThumbnails !== false && (
                           <motion.div
@@ -1109,8 +1114,14 @@ export const SlideshowLightbox = (props) => {
                               duration: 0.75
                             }}
                             variants={thumbnailVariants}
-                            className='thumbnails flex justify-centre align-centre gap-2 md:gap-4 rounded-sm mx-auto'
+                            className='thumbnails  rounded-sm mx-auto'
                           >
+                            <ScrollContainer
+                              className='scroll-container'
+                              vertical={false}
+                              horizontal={true}
+                              hideScrollbars={false}
+                            >
                             {images.map((img, index) => (
                               <img
                                 className={
@@ -1132,10 +1143,11 @@ export const SlideshowLightbox = (props) => {
                               />
                               // <span style={{color: "white"}}>{index}</span>
                             ))}
+                            </ScrollContainer>
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </ScrollContainer>
+                   
                   </div>
                 </div>
                 {/* </React.Fragment> */}

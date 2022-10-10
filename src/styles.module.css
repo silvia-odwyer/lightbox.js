@@ -130,6 +130,8 @@ img.hoverShadow {
   height: 5vh;
   width: 50px;  
   border-radius: 6px;
+  margin-right: 7px;
+  object-fit: cover;
 }
 
 .thumbnailsOuterContainer {
@@ -137,6 +139,7 @@ img.hoverShadow {
   bottom: 10%;
   height: 5vh;
   z-index: 10000000;
+  margin-top: 10px;
   /* width: 100%; */
 }
 
@@ -287,14 +290,14 @@ img.hoverShadow {
   margin-left: 0.6em;
   padding: 0.2em;
   transition: all 0.1s;
-  width: 32px; 
-  font-size: 18px;
+  /* width: 32px;  */
+  /* font-size: 18px; */
   line-height: 16px;
   vertical-align: baseline;
 }
 
 .icon {
-  width: 32px; 
+  /* width: 32px;  */
 }
 
 .btnControls {
@@ -316,7 +319,7 @@ img.hoverShadow {
   }
 
   .iconsHeader svg {
-    width: 34px; 
+    /* width: 34px;  */
     padding-right: 0.3em;
   }
 
@@ -344,8 +347,8 @@ img.hoverShadow {
   }
 
   .iconsHeader svg {
-    width: 30px; 
-    font-size: 30px;
+    /* width: 30px;  */
+    /* font-size: 30px; */
   }
 
   .slideshowInnerContainer img {
@@ -393,12 +396,12 @@ img.hoverShadow {
 
   .thumbnails img {
     height: 8vh;
-    width: 4em;
+    width: 80px;
   }
 
   .iconsHeader svg {
-    width: 32px; 
-    font-size: 32px;
+    /* width: 32px; 
+    font-size: 32px; */
   }
 
 }
@@ -439,8 +442,9 @@ img.hoverShadow {
   .thumbnailsOuterContainer {
     margin-top: 0.1em;
     padding-top: 0.3em;
+    margin-left: 4.4vw;
     height: 5vh;
-    bottom: 12%;
+    bottom: 11%;
   }
 
   .thumbnails img {
@@ -463,8 +467,8 @@ img.hoverShadow {
   }
 
   .iconsHeader svg {
-    width: 37px;
-    font-size: 34px;
+    /* width: 37px;
+    font-size: 34px; */
   }
 
 }  
@@ -549,7 +553,7 @@ img.hoverShadow {
   }
 
   .iconsHeader {
-    font-size: 28px;
+    /* font-size: 28px; */
   }
 }
 
@@ -557,9 +561,9 @@ img.hoverShadow {
   object-fit: cover;
 }
 
-/* .thumbnails {
-  overflow-x: scroll;
-}  */
+.thumbnails {
+  white-space: nowrap;
+} 
 
 .react-transform-component {
   margin-left: auto;
@@ -567,6 +571,7 @@ img.hoverShadow {
 }
 
 #img {
+
   cursor: zoom-in;
   margin-left: auto;
   margin-right: auto;
