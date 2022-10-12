@@ -1,4 +1,4 @@
-* {
+.lightboxjs {
   margin: 0;
   padding: 0;
 }
@@ -167,9 +167,9 @@ img.hoverShadow {
 
 .slideshowInnerContainer img {
   /* width: 80vw; */
-  height: 68vh; 
+  /* height: 68vh; 
   max-width: 100%;
-  max-height: 100%;
+  max-height: 100%; */
 }
 
 .fullScreenContainer img {
@@ -352,9 +352,9 @@ img.hoverShadow {
   }
 
   .slideshowInnerContainer img {
-    width: 80vw; 
+    /* width: 80vw; 
     margin-top: 10vh;
-    height: 48vh; 
+    height: 48vh;  */
     max-width: 100%;
     max-height: 100%;
   }
@@ -375,10 +375,10 @@ img.hoverShadow {
   } 
 
   .slideshowInnerContainer img {
-    height: 70vh;
+    /* height: 70vh;
     max-width: 100%;
     max-height: 100%;
-    margin-top: 0vh;
+    margin-top: 0vh; */
   }
 
   .fullScreenContainer {
@@ -571,11 +571,13 @@ img.hoverShadow {
 }
 
 #img {
-
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
   cursor: zoom-in;
   margin-left: auto;
   margin-right: auto;
-  object-fit: contain;
+  
 }
 
 .magnifier-image {
@@ -616,4 +618,25 @@ img.hoverShadow {
 .night_loader {
   border: 5px solid #FFF;
   border-bottom-color: transparent;
+}
+
+.test_img {
+  max-width: 100%;
+  max-height: 100%; 
+  margin-left:auto;
+  margin-right: auto;
+}
+
+.div_img {
+    display:grid;
+    width: 100vw;
+    height: 70vh;
+}
+
+.controls svg {
+  box-sizing: border-box;
+}
+
+.closeIcon svg {
+  box-sizing: border-box;
 }

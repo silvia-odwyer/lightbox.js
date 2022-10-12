@@ -135,8 +135,8 @@ export const SlideshowLightbox = (props) => {
   const [slideshowInterval, setSlideshowInterval] = useState(
     props.slideshowInterval ? props.slideshowInterval : 1100
   )
-  const [roundedImages, setRoundedImages] = useState(
-    props.roundedImages ? props.roundedImages : true
+  const [isRounded, setIsRounded] = useState(
+    props.roundedImages ? props.roundedImages : false
   )
   const [showControls, setShowControls] = useState(
     props.showControls ? props.showControls : true
@@ -169,7 +169,7 @@ export const SlideshowLightbox = (props) => {
   const [imagesLoaded, setImagesLoaded] = useState(false)
   const [refIndex, setRefIndex] = useState(0)
 
-  const [zoomIdx, setZoomIdx] = useState(0);
+  const [zoomIdx, setZoomIdx] = useState(0)
 
   const [imgContainHeight, setImgContainHeight] = useState(500)
   const [imgContainWidth, setImgContainWidth] = useState(426)
@@ -189,7 +189,7 @@ export const SlideshowLightbox = (props) => {
   const zoomRef = useRef(null)
   const [zoomBtnRef, setZoomBtnRef] = useState(null)
   const [zoomRefs, setZoomRefs] = useState([])
-  const zoomReferences = useRef([]);
+  const zoomReferences = useRef([])
 
   const initZoomRef = (ref) => {
     if (ref) setZoomBtnRef(ref)
@@ -350,7 +350,7 @@ export const SlideshowLightbox = (props) => {
 
   const closeModal = () => {
     //reset zoom ref
-    setZoomIdx(0);
+    setZoomIdx(0)
 
     if (isBrowserFullScreen) {
       exitFullScreen()
@@ -369,7 +369,6 @@ export const SlideshowLightbox = (props) => {
   const openModal = (num) => {
     setImgSlideIndex([num, 1])
     setShowModal(true)
-    console.log("img slide index set to ", num)
   }
 
   const openModalAndSetSlide = (num) => {
@@ -383,7 +382,7 @@ export const SlideshowLightbox = (props) => {
     setMagnifyingGlass(false)
     setAnimTransition(slideshowAnimTransition)
     updateImageSlideshow(1)
-    setIsSlideshowPlaying(true);
+    setIsSlideshowPlaying(true)
   }
 
   const stopSlideshow = () => {
@@ -486,7 +485,7 @@ export const SlideshowLightbox = (props) => {
     if (props.fullScreen) {
       if (props.fullScreen == true) {
         setImgAnimation('fade')
-        setRoundedImages(false)
+        setIsRounded(false)
       }
     }
   }
@@ -509,7 +508,7 @@ export const SlideshowLightbox = (props) => {
         ) : 1 == 1 ? (
           <div>
             <TransformWrapper
-              ref={el => zoomReferences.current[index] = el}
+              ref={(el) => (zoomReferences.current[index] = el)}
               onWheel={{ wheelEvent }}
               key={index}
               onZoom={zoomEvent}
@@ -517,7 +516,11 @@ export const SlideshowLightbox = (props) => {
               initialScale={1}
             >
               <TransformComponent
-                wrapperStyle={{ marginLeft: 'auto', marginRight: 'auto' }}
+                wrapperStyle={{
+                  width: '100vw',
+                  height: '100vh',
+                  margin: 'auto'
+                }}
                 contentStyle={
                   fullScreen
                     ? {
@@ -529,27 +532,28 @@ export const SlideshowLightbox = (props) => {
                     : {
                         width: '100vw',
                         height: '100vh',
-                        marginLeft: 'auto',
-                        marginRight: 'auto'
+                        margin: 'auto',
+                        display: 'grid'
                       }
                 }
                 key={index}
               >
-                <img
-                  className={`mx-auto ${
-                    imageFullScreen ? '' : 'object-contain'
-                  } imageModal ${roundedImages ? 'rounded-lg' : ''}`}
-                  loading='lazy'
-                  src={
-                    images[index].original
-                      ? images[index].original
-                      : images[index].src
-                  }
-                  onLoad={() => {
-                    images[index]['loaded'] = true
-                  }}
-                  id='img'
-                />
+                <div class='div_img'>
+                  <img
+                    className='test_img'
+                    loading='lazy'
+                    style={isRounded ? {borderRadius: "20px"} : {}}
+                    src={
+                      images[index].original
+                        ? images[index].original
+                        : images[index].src
+                    }
+                    onLoad={() => {
+                      images[index]['loaded'] = true
+                    }}
+                    // id='img'
+                  />
+                </div>
               </TransformComponent>
             </TransformWrapper>
           </div>
@@ -726,13 +730,13 @@ export const SlideshowLightbox = (props) => {
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
     () => {
-      updateImageSlideshow(1);
+      updateImageSlideshow(1)
     },
     isSlideshowPlaying ? slideshowInterval : null
   )
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
     if (isMounted) initProps()
 
     // setImgElem(imgElemRef.current)
@@ -745,7 +749,7 @@ export const SlideshowLightbox = (props) => {
         let img_gallery = document.querySelectorAll('[data-lightboxjs]')
         let img_elements = []
 
-        let usesAttr = false;
+        let usesAttr = false
         if (img_gallery.length > 0) {
           for (let i = 0; i <= img_gallery.length - 1; i++) {
             let img = img_gallery[i]
@@ -798,7 +802,7 @@ export const SlideshowLightbox = (props) => {
 
     if (isMounted) initStyling()
     return () => {
-      isMounted = false;
+      isMounted = false
       // zoomRef.current = false;
       // for (let i = 0; i < zoomRefs.length; i++) {
       //   let zoomRef1 = zoomRefs[i];
@@ -854,7 +858,7 @@ export const SlideshowLightbox = (props) => {
                 <img
                   className={`mx-auto ${
                     imageFullScreen ? '' : 'object-contain'
-                  } imageModal ${roundedImages ? 'rounded-lg' : ''}`}
+                  } imageModal ${isRounded ? 'rounded-lg' : ''}`}
                   src={
                     images[index].original
                       ? images[index].original
@@ -881,8 +885,8 @@ export const SlideshowLightbox = (props) => {
               onClick={() => {
                 let reactSwipeOptionConfig = reactSwipeOptions
                 reactSwipeOptionConfig.startSlide = index
-                setReactSwipeOptions(reactSwipeOptionConfig);
-                setZoomIdx(index);
+                setReactSwipeOptions(reactSwipeOptionConfig)
+                setZoomIdx(index)
                 openModal(index)
               }}
               key={index}
@@ -903,8 +907,8 @@ export const SlideshowLightbox = (props) => {
                 onClick={() => {
                   let reactSwipeOptionConfig = reactSwipeOptions
                   reactSwipeOptionConfig.startSlide = index
-                  setReactSwipeOptions(reactSwipeOptionConfig);
-                  setZoomIdx(index);
+                  setReactSwipeOptions(reactSwipeOptionConfig)
+                  setZoomIdx(index)
                   openModal(index)
                 }}
                 key={index}
@@ -953,27 +957,26 @@ export const SlideshowLightbox = (props) => {
                       <div className='controls'>
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomIn
-                          size={24}
+                            size={24}
                             onClick={() => {
-                              zoomReferences.current[zoomIdx].zoomIn();
+                              zoomReferences.current[zoomIdx].zoomIn()
                             }}
                           />
                         </motion.div>
 
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <ZoomOut
-                          size={24}
+                            size={24}
                             onClick={() => {
-                              zoomReferences.current[zoomIdx].zoomOut();
-
+                              zoomReferences.current[zoomIdx].zoomOut()
                             }}
                           />
-                        </motion.div> 
+                        </motion.div>
 
                         {isBrowserFullScreen ? (
                           <motion.div whileTap={{ scale: 0.95 }}>
                             <FullscreenExit
-                            size={24}
+                              size={24}
                               onClick={() => {
                                 isBrowserFullScreen
                                   ? exitFullScreen()
@@ -984,7 +987,7 @@ export const SlideshowLightbox = (props) => {
                         ) : (
                           <motion.div whileTap={{ scale: 0.95 }}>
                             <Fullscreen
-                            size={24}
+                              size={24}
                               onClick={() => {
                                 isBrowserFullScreen
                                   ? exitFullScreen()
@@ -996,7 +999,7 @@ export const SlideshowLightbox = (props) => {
 
                         <motion.div whileTap={{ scale: 0.95 }}>
                           <GridFill
-                          size={24}
+                            size={24}
                             onClick={() => {
                               setShowThumbnails(!showThumbnails)
                             }}
@@ -1005,9 +1008,10 @@ export const SlideshowLightbox = (props) => {
 
                         {isMobile ? null : (
                           <motion.div whileTap={{ scale: 0.95 }}>
-                            <Search 
-                            size={24}
-                            onClick={() => initMagnifyingGlass()} />
+                            <Search
+                              size={24}
+                              onClick={() => initMagnifyingGlass()}
+                            />
                           </motion.div>
                         )}
 
@@ -1017,9 +1021,8 @@ export const SlideshowLightbox = (props) => {
                         >
                           {isSlideshowPlaying ? (
                             <PauseCircleFill
-                            size={24}
-                            onClick={() => {
-
+                              size={24}
+                              onClick={() => {
                                 isSlideshowPlaying
                                   ? stopSlideshow()
                                   : playSlideshow()
@@ -1027,8 +1030,8 @@ export const SlideshowLightbox = (props) => {
                             />
                           ) : (
                             <PlayCircleFill
-                            size={24}  
-                            onClick={() => {
+                              size={24}
+                              onClick={() => {
                                 isSlideshowPlaying
                                   ? stopSlideshow()
                                   : playSlideshow()
@@ -1044,7 +1047,7 @@ export const SlideshowLightbox = (props) => {
                       className='closeIcon'
                     >
                       <XLg
-                      size={24}
+                        size={24}
                         onClick={() => {
                           closeModal()
                         }}
@@ -1055,13 +1058,11 @@ export const SlideshowLightbox = (props) => {
                   <div
                     className={'next1 ' + arrowStyle + '_icon imageModal'}
                     onClick={() => {
-                      zoomReferences.current[zoomIdx].resetTransform();
+                      zoomReferences.current[zoomIdx].resetTransform()
                       setRefIndex(refIndex + 1)
                       reactSwipeEl.next()
                       setImgSlideIndex([imgSlideIndex + 1, 1])
-                      setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1);
-                      console.log("Image index ", imgSlideIndex);
-
+                      setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
                     }}
                   >
                     <span>&#10095;</span>
@@ -1070,10 +1071,11 @@ export const SlideshowLightbox = (props) => {
                     className={'prev1 ' + arrowStyle + '_icon imageModal'}
                     onClick={() => {
                       setRefIndex(refIndex - 1)
-                      reactSwipeEl.prev();
-                      setZoomIdx(zoomIdx - 1 < 0 ? images.length -1 : zoomIdx - 1);
+                      reactSwipeEl.prev()
+                      setZoomIdx(
+                        zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1
+                      )
                       setImgSlideIndex([imgSlideIndex - 1, 1])
-
                     }}
                   >
                     <span>&#10094;</span>
@@ -1094,7 +1096,10 @@ export const SlideshowLightbox = (props) => {
                     </ReactSwipe>
 
                     {shouldDisplayLoader() ? null : (
-                      <span key="loader" class={`loader ${getLoaderThemeClass()}`}></span>
+                      <span
+                        key='loader'
+                        class={`loader ${getLoaderThemeClass()}`}
+                      ></span>
                     )}
                   </AnimatePresence>
 
@@ -1102,26 +1107,25 @@ export const SlideshowLightbox = (props) => {
                     className='thumbnailsOuterContainer imageModal'
                     style={imagesLoaded ? {} : { display: 'displayHidden' }}
                   >
-
-                      <AnimatePresence initial={animatedThumbnails}>
-                        {showThumbnails !== false && (
-                          <motion.div
-                            initial={'hidden'}
-                            exit={'hidden'}
-                            animate={'visible'}
-                            transition={{
-                              type: 'spring',
-                              duration: 0.75
-                            }}
-                            variants={thumbnailVariants}
-                            className='thumbnails  rounded-sm mx-auto'
+                    <AnimatePresence initial={animatedThumbnails}>
+                      {showThumbnails !== false && (
+                        <motion.div
+                          initial={'hidden'}
+                          exit={'hidden'}
+                          animate={'visible'}
+                          transition={{
+                            type: 'spring',
+                            duration: 0.75
+                          }}
+                          variants={thumbnailVariants}
+                          className='thumbnails  rounded-sm mx-auto'
+                        >
+                          <ScrollContainer
+                            className='scroll-container'
+                            vertical={false}
+                            horizontal={true}
+                            hideScrollbars={false}
                           >
-                            <ScrollContainer
-                              className='scroll-container'
-                              vertical={false}
-                              horizontal={true}
-                              hideScrollbars={false}
-                            >
                             {images.map((img, index) => (
                               <img
                                 className={
@@ -1143,11 +1147,10 @@ export const SlideshowLightbox = (props) => {
                               />
                               // <span style={{color: "white"}}>{index}</span>
                             ))}
-                            </ScrollContainer>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                   
+                          </ScrollContainer>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
                 {/* </React.Fragment> */}
