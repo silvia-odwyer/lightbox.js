@@ -141,6 +141,9 @@ export const SlideshowLightbox = (props) => {
   const [showControls, setShowControls] = useState(
     props.showControls ? props.showControls : true
   )
+  const [frameworkID, setFrameworkID] = useState(
+    props.framework ? props.framework : ""
+  )
   const [lightboxIdentifier, setLightboxIdentifier] = useState(
     props.lightboxIdentifier ? props.lightboxIdentifier : false
   )
@@ -371,6 +374,16 @@ export const SlideshowLightbox = (props) => {
     setShowModal(true)
   }
 
+  const openModalWithSlideNum = (index) => {
+    let reactSwipeOptionConfig = reactSwipeOptions
+    reactSwipeOptionConfig.startSlide = index
+    setReactSwipeOptions(reactSwipeOptionConfig);
+    setZoomIdx(index)
+    openModal(index)
+  }
+
+
+
   const openModalAndSetSlide = (num) => {
     reactSwipeEl.slide(num, 0)
 
@@ -490,7 +503,51 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const paneNodes = Array.apply(null, Array(images.length)).map((_, index) => {
+  const imageSlideElement = (index) => {
+    let imageElem;
+    if (!props.images) {
+        imageElem = <img
+        className='test_img'
+        loading='lazy'
+        style={isRounded ? {borderRadius: "20px"} : {}}
+        src={
+          images[index].original
+            ? images[index].original
+            : images[index].src
+        }
+        onLoad={() => {
+          images[index]['loaded'] = true
+        }}
+        // id='img'
+      />
+    }
+    else if (props.images && props.render) {
+      imageElem = props.render.imgSlide(imagesMetadata[index]);
+    }
+
+    else {
+      imageElem = <img
+      className='test_img'
+      loading='lazy'
+      style={isRounded ? {borderRadius: "20px"} : {}}
+      src={
+        imagesMetadata[index].original
+          ? imagesMetadata[index].original
+          : imagesMetadata[index].src
+      }
+      onLoad={() => {
+        images[index]['loaded'] = true
+      }}
+      // id='img'
+    />
+    }
+
+    return imageElem;
+      
+}
+  
+
+  const regularImgPaneNodes = Array.apply(null, Array(images.length)).map((_, index) => {
     return (
       <div key={index}>
         {enableMagnifyingGlass == true ? (
@@ -560,7 +617,71 @@ export const SlideshowLightbox = (props) => {
         ) : null}
       </div>
     )
-  })
+  });
+
+  const insertContentNodes = Array.apply(null, Array(images.length)).map((_, index) => {
+    return (
+      <div key={index}>
+        {enableMagnifyingGlass == true ? (
+          <Magnifier
+            src={images[index].src}
+            className='imageModal mx-auto mt-0 magnifyWrapper'
+            height={imgContainHeight}
+            width={imgContainWidth}
+            mgShowOverflow={false}
+            style={{
+              width: imgContainWidth,
+              height: imgContainHeight
+            }}
+          />
+        ) : 1 == 1 ? (
+          <div>
+            <TransformWrapper
+              ref={(el) => (zoomReferences.current[index] = el)}
+              onWheel={{ wheelEvent }}
+              key={index}
+              onZoom={zoomEvent}
+              centerZoomedOut={true}
+              initialScale={1}
+            >
+              <TransformComponent
+                wrapperStyle={{
+                  width: '100vw',
+                  height: '100vh',
+                  margin: 'auto'
+                }}
+                contentStyle={
+                  fullScreen
+                    ? {
+                        width: '100vw',
+                        height: '100vh',
+                        marginLeft: 'auto',
+                        marginRight: 'auto'
+                      }
+                    : {
+                        width: '100vw',
+                        height: '100vh',
+                        margin: 'auto',
+                        display: 'grid'
+                      }
+                }
+                key={index}
+              >
+
+                <div class='div_img'>
+                  {imageSlideElement(index)}
+                  </div>
+
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
+        ) : null}
+      </div>
+    )
+  });
+
+  
+
 
   const initMagnifyingGlass = () => {
     if (!enableMagnifyingGlass) {
@@ -736,6 +857,14 @@ export const SlideshowLightbox = (props) => {
   )
 
   useEffect(() => {
+
+    // Error check
+    if (props.render) {
+      if (!props.images) {
+        console.error("Array of images must be passed to `SlideshowLightbox` (with the `images` prop) if using custom render method. ")
+      }
+    }
+    
     let isMounted = true
     if (isMounted) initProps()
 
@@ -746,10 +875,12 @@ export const SlideshowLightbox = (props) => {
 
     if (!isInit) {
       if (lightboxIdentifier) {
-        let img_gallery = document.querySelectorAll('[data-lightboxjs]')
+
+        let img_gallery = document.querySelectorAll(`[data-lightboxjs=${lightboxIdentifier}]`)
         let img_elements = []
 
         let usesAttr = false
+
         if (img_gallery.length > 0) {
           for (let i = 0; i <= img_gallery.length - 1; i++) {
             let img = img_gallery[i]
@@ -761,14 +892,15 @@ export const SlideshowLightbox = (props) => {
                 () => {
                   let reactSwipeOptionConfig = reactSwipeOptions
                   reactSwipeOptionConfig.startSlide = i
-                  if (isMounted) setReactSwipeOptions(reactSwipeOptionConfig)
+                  if (isMounted) setReactSwipeOptions(reactSwipeOptionConfig);
+                  setZoomIdx(i)
                   openModal(i)
                 },
                 false
               )
               img.classList.add('cursor-pointer')
               usesAttr = true
-              img_elements.push({ src: img.src, alt: img.alt, loaded: 'false' })
+              img_elements.push({ src: img.src, alt: img.alt, loaded: 'false' });
             }
           }
 
@@ -778,7 +910,10 @@ export const SlideshowLightbox = (props) => {
 
           if (isMounted) setImages(img_elements)
         }
-      } else {
+      } 
+      
+      // otherwise, if no lightbox identifier or custom render method
+      else if (!props.render) {
         if (props.children) {
           let imgs = []
           for (let k = 0; k < props.children.length; k++) {
@@ -791,7 +926,7 @@ export const SlideshowLightbox = (props) => {
             imgs.push(img_obj)
           }
           if (isMounted) setImages(imgs)
-          if (isMounted) setPreviewImageElems(props.children)
+          setPreviewImageElems(props.children)
         } else {
           if (isMounted) setImages(props.images)
         }
@@ -803,11 +938,6 @@ export const SlideshowLightbox = (props) => {
     if (isMounted) initStyling()
     return () => {
       isMounted = false
-      // zoomRef.current = false;
-      // for (let i = 0; i < zoomRefs.length; i++) {
-      //   let zoomRef1 = zoomRefs[i];
-      //   zoomRef1.current = false;
-      // }
       removeKeyboardEventListeners()
       reducedMotionMediaQuery.removeEventListener(
         'change',
@@ -816,105 +946,48 @@ export const SlideshowLightbox = (props) => {
     }
   }, [keyPressHandler])
 
-  let rows = []
-  for (let index = 0; index < images.length; index++) {
-    rows.push(
-      <div key={index}>
-        <div>
-          <h1>{index}</h1>
-          {enableMagnifyingGlass == true ? (
-            <Magnifier
-              src={images[index].src}
-              className='imageModal mt-0 magnifyWrapper'
-              height={imgContainHeight}
-              width={imgContainWidth}
-              mgShowOverflow={false}
-              style={{
-                width: imgContainWidth,
-                height: imgContainHeight
-              }}
-            />
-          ) : (
-            <div>
-              <TransformComponent
-                wrapperStyle={{ marginLeft: 'auto', marginRight: 'auto' }}
-                contentStyle={
-                  fullScreen
-                    ? {
-                        width: '100vw',
-                        height: '100vh',
-                        marginLeft: 'auto',
-                        marginRight: 'auto'
-                      }
-                    : {
-                        width: '30vw',
-                        height: '100vh',
-                        marginLeft: 'auto',
-                        marginRight: 'auto'
-                      }
-                }
-                key={index}
-              >
-                <img
-                  className={`mx-auto ${
-                    imageFullScreen ? '' : 'object-contain'
-                  } imageModal ${isRounded ? 'rounded-lg' : ''}`}
-                  src={
-                    images[index].original
-                      ? images[index].original
-                      : images[index].src
-                  }
-                  id='img'
-                />
-              </TransformComponent>
-            </div>
-          )}
-        </div>
-        ;
-      </div>
-    )
-  }
   let reactSwipeEl
   return (
     <div class={`${props.className} lightboxjs`}>
-      {props.images
+
+      {props.images && props.children && lightboxIdentifier == false ? props.children : null}
+
+      {props.images && lightboxIdentifier == false 
         ? props.images.map((elem, index) => (
             <img
               class={' cursor-pointer'}
               src={elem.src}
               onClick={() => {
-                let reactSwipeOptionConfig = reactSwipeOptions
-                reactSwipeOptionConfig.startSlide = index
-                setReactSwipeOptions(reactSwipeOptionConfig)
-                setZoomIdx(index)
-                openModal(index)
+                openModalWithSlideNum(index)
               }}
               key={index}
               whileTap={{ scale: 0.97 }}
             />
           ))
         : null}
-      {lightboxIdentifier != false ? previewImageElems : null}
-      {/* Gallery images */}
-      {lightboxIdentifier != false
-        ? null
-        : previewImageElems
-            .filter((elem) => elem.type == 'img')
-            .map((elem, index) => (
-              <img
-                {...elem.props}
-                class={elem.props.className + ' cursor-pointer'}
-                onClick={() => {
-                  let reactSwipeOptionConfig = reactSwipeOptions
-                  reactSwipeOptionConfig.startSlide = index
-                  setReactSwipeOptions(reactSwipeOptionConfig)
-                  setZoomIdx(index)
-                  openModal(index)
-                }}
-                key={index}
-                whileTap={{ scale: 0.97 }}
-              />
-            ))}
+      
+      {/* IF Lightbox identifier provided or props.images provided */}
+      {lightboxIdentifier != false ? props.children : null}
+
+    {lightboxIdentifier == false && props.images ? null 
+      : // No lightbox identifier provided
+      previewImageElems
+      .filter((elem) => elem.type == 'img')
+      .map((elem, index) => (
+        <img
+          {...elem.props}
+          class={elem.props.className + ' cursor-pointer'}
+          onClick={() => {
+            openModalWithSlideNum(index)
+          }}
+          key={index}
+          whileTap={{ scale: 0.97 }}
+        />
+      ))}
+
+
+
+
       <AnimateSharedLayout type='crossfade'>
         <AnimatePresence initial={false}>
           {showModal !== false && (
@@ -1092,7 +1165,7 @@ export const SlideshowLightbox = (props) => {
                       ref={(el) => (reactSwipeEl = el)}
                       childCount={images.length}
                     >
-                      {paneNodes}
+                      {((props.render && props.images) || frameworkID == "next") ? insertContentNodes : regularImgPaneNodes} 
                     </ReactSwipe>
 
                     {shouldDisplayLoader() ? null : (
@@ -1126,27 +1199,53 @@ export const SlideshowLightbox = (props) => {
                             horizontal={true}
                             hideScrollbars={false}
                           >
-                            {images.map((img, index) => (
-                              <img
-                                className={
-                                  'thumbnail ' +
-                                  (imageIndex === index ? 'active' : '')
-                                }
-                                src={img.src}
-                                style={
-                                  imageIndex === index
-                                    ? { border: activeThumbnailBorder }
-                                    : { border: thumbnailBorder }
-                                }
-                                key={index}
-                                onClick={() => {
-                                  setCurrentSlide(index)
-                                }}
-                                alt={img.caption}
-                                onLoad={() => setImagesLoaded(true)}
-                              />
-                              // <span style={{color: "white"}}>{index}</span>
-                            ))}
+                            {frameworkID == "next" && imagesMetadata && props.images ? 
+                                       imagesMetadata.map((img, index) => (
+                                        <img
+                                          className={
+                                            'thumbnail ' +
+                                            (imageIndex === index ? 'active' : '')
+                                          }
+                                          src={img.src}
+                                          style={
+                                            imageIndex === index
+                                              ? { border: activeThumbnailBorder }
+                                              : { border: thumbnailBorder }
+                                          }
+                                          key={index}
+                                          onClick={() => {
+                                            setCurrentSlide(index)
+                                          }}
+                                          alt={img.caption}
+                                          onLoad={() => setImagesLoaded(true)}
+                                        />
+                                        // <span style={{color: "white"}}>{index}</span>
+                                      ))
+                                      
+                                      :
+                                      images.map((img, index) => (
+                                        <img
+                                          className={
+                                            'thumbnail ' +
+                                            (imageIndex === index ? 'active' : '')
+                                          }
+                                          src={img.src}
+                                          style={
+                                            imageIndex === index
+                                              ? { border: activeThumbnailBorder }
+                                              : { border: thumbnailBorder }
+                                          }
+                                          key={index}
+                                          onClick={() => {
+                                            setCurrentSlide(index)
+                                          }}
+                                          alt={img.caption}
+                                          onLoad={() => setImagesLoaded(true)}
+                                        />
+                                        // <span style={{color: "white"}}>{index}</span>
+                                      ))
+                                      }
+                 
                           </ScrollContainer>
                         </motion.div>
                       )}

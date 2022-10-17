@@ -3,6 +3,10 @@
   padding: 0;
 }
 
+.lightboxjs * {
+  box-sizing: border-box;
+}
+
 .lightboxjs img,
 .lightboxjs svg,
 .lightboxjs video {
@@ -66,6 +70,11 @@
 
 img.hoverShadow {
   transition: 0.3s;
+}
+
+.center_content {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hoverShadow:hover {
@@ -631,6 +640,7 @@ img.hoverShadow {
     display:grid;
     width: 100vw;
     height: 70vh;
+    place-items: center;
 }
 
 .controls svg {
