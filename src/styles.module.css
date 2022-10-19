@@ -89,7 +89,7 @@ img.hoverShadow {
 }
 
 .prev1 {
-  left: 1%;
+  left: 1.8%;
   padding-right: 2vw;
 }
 
@@ -364,7 +364,7 @@ img.hoverShadow {
     /* width: 80vw; 
     margin-top: 10vh;
     height: 48vh;  */
-    max-width: 100%;
+    max-width: 80%;
     max-height: 100%;
   }
 
@@ -378,7 +378,7 @@ img.hoverShadow {
   }
 
   .slideshowInnerContainer {
-    width: 95vw;
+    width: 100vw;
     height: 95vh; 
     position: absolute;
   } 
@@ -411,6 +411,12 @@ img.hoverShadow {
   .iconsHeader svg {
     /* width: 32px; 
     font-size: 32px; */
+  }
+
+  
+  .prev1 {
+    left: 1.8%;
+    padding-right: 2vw;
   }
 
 }
@@ -451,7 +457,6 @@ img.hoverShadow {
   .thumbnailsOuterContainer {
     margin-top: 0.1em;
     padding-top: 0.3em;
-    margin-left: 4.4vw;
     height: 5vh;
     bottom: 11%;
   }
@@ -466,7 +471,7 @@ img.hoverShadow {
   }
 
   .slideshowInnerContainer {
-    width: 95vw;
+    width: 100vw;
     height: 95vh; 
   }
 
@@ -478,6 +483,12 @@ img.hoverShadow {
   .iconsHeader svg {
     /* width: 37px;
     font-size: 34px; */
+  }
+
+  
+  .prev1 {
+    left: 1.8%;
+    padding-right: 2vw;
   }
 
 }  

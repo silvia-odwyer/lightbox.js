@@ -201,9 +201,13 @@ export const SlideshowLightbox = (props) => {
 
   const shouldDisplayLoader = () => {
     if (imgSlideIndex) {
-      if (images[imgSlideIndex % images.length]['loaded'] == true) {
-        return true
+      console.log("img slide index ", imgSlideIndex)
+      if (imgSlideIndex > -1) {
+        if (images[imgSlideIndex % images.length]['loaded'] == true) {
+          return true
+        }
       }
+
     }
     if (!showLoader) {
       return true
