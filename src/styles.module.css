@@ -89,7 +89,7 @@ img.hoverShadow {
 }
 
 .prev1 {
-  left: 1.8%;
+  left: 2.9%;
   padding-right: 2vw;
 }
 
@@ -126,11 +126,11 @@ img.hoverShadow {
   }
 
   .next1 {
-    right: 1%;
+    right: 0.9%;
   }
 
   .prev1 {
-    left: 0.8%;
+    left: 1.5%;
   }
   
 } 
@@ -348,7 +348,7 @@ img.hoverShadow {
 
   .next1 {
     top: calc(48% - 20px);
-    right: 1%;
+    right: 0.4%;
   }
 
   .prev1 {
@@ -390,6 +390,10 @@ img.hoverShadow {
     margin-top: 0vh; */
   }
 
+  .next1 {
+    right: 0.7%;
+  }
+
   .fullScreenContainer {
     width: 100vw;
     height: 100vh;
@@ -415,7 +419,7 @@ img.hoverShadow {
 
   
   .prev1 {
-    left: 1.8%;
+    left: 2.7%;
     padding-right: 2vw;
   }
 
@@ -487,8 +491,12 @@ img.hoverShadow {
 
   
   .prev1 {
-    left: 1.8%;
+    left: 2.9%;
     padding-right: 2vw;
+  }
+
+  .next1 {
+    right: 0.4%;
   }
 
 }  

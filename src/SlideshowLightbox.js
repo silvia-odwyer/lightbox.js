@@ -135,6 +135,15 @@ export const SlideshowLightbox = (props) => {
   const [slideshowInterval, setSlideshowInterval] = useState(
     props.slideshowInterval ? props.slideshowInterval : 1100
   )
+
+  const [rightArrowStyle, setRightArrowStyle] = useState(
+    props.rightArrowStyle ? props.rightArrowStyle : {}
+  );
+
+  const [leftArrowStyle, setLeftArrowStyle] = useState(
+    props.leftArrowStyle ? props.leftArrowStyle : {}
+  );
+
   const [isRounded, setIsRounded] = useState(
     props.roundedImages ? props.roundedImages : false
   )
@@ -1133,7 +1142,8 @@ export const SlideshowLightbox = (props) => {
                   </section>
 
                   <div
-                    className={'next1 ' + arrowStyle + '_icon imageModal'}
+                    className={rightArrowStyle ? 'next1 ' + arrowStyle + '_icon imageModal' : "imageModal"}
+                    style={rightArrowStyle}
                     onClick={() => {
                       zoomReferences.current[zoomIdx].resetTransform()
                       setRefIndex(refIndex + 1)
@@ -1145,7 +1155,8 @@ export const SlideshowLightbox = (props) => {
                     <span>&#10095;</span>
                   </div>
                   <div
-                    className={'prev1 ' + arrowStyle + '_icon imageModal'}
+                    className={leftArrowStyle ?  'prev1 ' + arrowStyle + '_icon imageModal' : "imageModal"}
+                    style={leftArrowStyle}
                     onClick={() => {
                       setRefIndex(refIndex - 1)
                       reactSwipeEl.prev()
