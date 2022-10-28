@@ -48,20 +48,6 @@ export default function Home({
         <title>{siteTitle}</title>
       </Head>
 
-      {/* <SlideshowLightbox lightboxIdentifier="lbx1" className="container grid grid-cols-3 gap-2 mx-auto">
-      
-      <Image
-             src="https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=2250&q=80"
-              layout={"fill"}
-              data-lightboxjs="lbx1"
-              alt={"alt text"}
-            />
-    <img data-lightboxjs="lbx1" className="w-full rounded" src="https://source.unsplash.com/pAKCx4y2H6Q/1400x1200" />
-    <img  data-lightboxjs="lbx1"  className="w-full rounded" src="https://source.unsplash.com/AYS2sSAMyhc/1400x1200" />  
-    <img data-lightboxjs="lbx1"  className="w-full rounded" src="https://source.unsplash.com/Kk8mEQAoIpI/1600x1200" />
-    <img  data-lightboxjs="lbx1" className="w-full rounded" src="https://source.unsplash.com/HF3X2TWv1-w/1600x1200" />
-</SlideshowLightbox>   */}
-
       <SlideshowLightbox lightboxIdentifier="l2" framework="next" images={images} showThumbnails={true} theme="day">
         {images.map((image) => (
           <Box
@@ -82,63 +68,7 @@ export default function Home({
         ))}
 
       </SlideshowLightbox>
-
-      {/* <SlideshowLightbox lightboxIdentifier="l1" theme="day" showThumbnails={true}
-                              className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8"
-                              render={{
-                                slide: (image, offset, rect) => {
-                                  const width = Math.round(Math.min(rect.width, (rect.height / image.height) * image.width));
-                                  const height = Math.round(Math.min(rect.height, (rect.width / image.width) * image.height));
-                            
-                                  return (
-                                    <div style={{ position: "relative", width, height }}>
-                                      <Image
-                                        src={image}
-                                        layout="fill"
-                                        loading="eager"
-                                        placeholder="blur"
-                                        objectFit="contain"
-                                        alt={"alt" in image ? image.alt : ""}
-                                        sizes={
-                                          typeof window !== "undefined"
-                                            ? `${Math.ceil((width / window.innerWidth) * 100)}vw`
-                                            : `${width}px`
-                                        }
-                                      />
-                                    </div>
-                                  );
-                                }
-                              }}>
-                                <div key={"1"} className="group">
-                                  <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden xl:aspect-w-7 xl:aspect-h-8">
-                                    <img
-                                      src={"/images/profile.jpg"}
-                                      data-lightboxjs="l1"
-                                      className="w-full h-full object-center object-cover group-hover:opacity-75"
-                                    />
-                                  </div>
-                                  <h3 className="mt-4 text-sm text-gray-700">Macarons</h3>
-                                  <p className="mt-1 text-lg font-medium text-gray-900">$4.70</p>
-                                </div>
-                                <div key={"1"} className="group">
-                                  <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden xl:aspect-w-7 xl:aspect-h-8">
-
-                                          <Image
-                                            src="/images/profile.jpg"
-                                            alt="Keyboards"
-                                            data-lightboxjs="l1"
-
-                                            width={500}
-                                            height={500}
-                                          />
-                                  </div>
-                                  <h3 className="mt-4 text-sm text-gray-700">Macarons</h3>
-                                  <p className="mt-1 text-lg font-medium text-gray-900">$4.70</p>
-                                </div>
-                              </SlideshowLightbox> */}
-
-
-
+    
       <section className={utilStyles.headingMd}>
         <p>[Your Self Introduction]</p>
         <p>
