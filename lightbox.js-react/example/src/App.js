@@ -6,8 +6,7 @@ import { Image, SlideshowLightbox, initLightboxJS } from 'lightbox.js-react'
 const App = () => {
 
   useEffect(() => {
-    console.log("init")
-    initLightboxJS("License key", "individual");
+    initLightboxJS("Insert license key", "individual");
   });
 
   const images = [

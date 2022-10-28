@@ -8,14 +8,14 @@ import { GetStaticProps } from 'next'
 import { initLightboxJS } from 'lightbox.js-react'
 import { SlideshowLightbox } from 'lightbox.js-react'
 import Image from "next/image";
-import 'lightbox.js-react/dist/index.css'
+//import 'lightbox.js-react/dist/index.css'
 import { Flex, Box } from 'reflexbox';
 import React, { forwardRef } from 'react'
-
+// import image1 from "../public/images/image1.png"
 
 const images = [
   {
-    src: 'https://source.unsplash.com/sQZ_A17cufs/549x711',
+    src: "https://source.unsplash.com/rsAeSMzOX9Y/768x512",
     alt: 'Mechanical keyboard with white keycaps.',
   },
   {
@@ -33,7 +33,9 @@ const images = [
 
 ]
 
-export default function Home({
+export default function Home(
+  {
+  
   allPostsData
 }: {
   allPostsData: {
@@ -41,29 +43,27 @@ export default function Home({
     title: string
     id: string
   }[]
-}) {
+}
+) {
   return (
     <Layout home>
       <Head>
         <title>{siteTitle}</title>
       </Head>
 
-      <SlideshowLightbox lightboxIdentifier="l2" framework="next" images={images} showThumbnails={true} theme="day">
-        {images.map((image) => (
-          <Box
-            height="100%"
-            width="100%"
-          >
+      <SlideshowLightbox lightboxIdentifier="l2" framework="next" images={images}>
+        {images.slice(0, 2).map((image, j) => (
+
 
             <Image
               src={image.src}
+              key={j}
               alt={image.alt}
               height={500}
               width={500}
               data-lightboxjs="l2"
               quality={80}
             />
-          </Box>
 
         ))}
 

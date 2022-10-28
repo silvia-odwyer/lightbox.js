@@ -7,7 +7,6 @@ import {SlideshowLightbox} from "./SlideshowLightbox";
 import axios from "axios";
 
 const initLightboxJS = (licenseKey, plan_type) => {
-  console.log("init lightboxjs")
   var body = {
     license_key: licenseKey,
     plan_type: plan_type,

@@ -210,7 +210,6 @@ export const SlideshowLightbox = (props) => {
 
   const shouldDisplayLoader = () => {
     if (imgSlideIndex) {
-      console.log("img slide index ", imgSlideIndex)
       if (imgSlideIndex > -1) {
         if (images[imgSlideIndex % images.length]['loaded'] == true) {
           return true
@@ -458,6 +457,17 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
+  const getThumbnailImgSrc = (img_src) => {
+    if (typeof img_src === 'object' &&
+      !Array.isArray(img_src) &&
+      img_src !== null) {
+        return img_src.src;
+      }
+      else {
+        return img_src;
+      }
+  }
+
   const reinitZoomSettings = (value) => {
     // if user zoomed in
     if (value.scale > mapInteractionValue.scale) {
@@ -539,6 +549,17 @@ export const SlideshowLightbox = (props) => {
     }
 
     else {
+      let img_link;
+
+      // check if object (Next.js local image imports are passed as objects with a src attribute)
+      if (typeof imagesMetadata[index].src === 'object' &&
+      !Array.isArray(imagesMetadata[index].src) &&
+      imagesMetadata[index].src !== null) {
+        img_link = imagesMetadata[index].src.src;
+      }
+      else {
+        img_link = imagesMetadata[index].src;
+      }
       imageElem = <img
       className='test_img'
       loading='lazy'
@@ -546,7 +567,7 @@ export const SlideshowLightbox = (props) => {
       src={
         imagesMetadata[index].original
           ? imagesMetadata[index].original
-          : imagesMetadata[index].src
+          : img_link
       }
       onLoad={() => {
         images[index]['loaded'] = true
@@ -608,7 +629,7 @@ export const SlideshowLightbox = (props) => {
                 }
                 key={index}
               >
-                <div class='div_img'>
+                <div className='div_img'>
                   <img
                     className='test_img'
                     loading='lazy'
@@ -681,7 +702,7 @@ export const SlideshowLightbox = (props) => {
                 key={index}
               >
 
-                <div class='div_img'>
+                <div className='div_img'>
                   {imageSlideElement(index)}
                   </div>
 
@@ -870,7 +891,6 @@ export const SlideshowLightbox = (props) => {
   )
 
   useEffect(() => {
-
     // Error check
     if (props.render) {
       if (!props.images) {
@@ -961,20 +981,20 @@ export const SlideshowLightbox = (props) => {
 
   let reactSwipeEl
   return (
-    <div class={`${props.className} lightboxjs`}>
+    <div className={`${props.className} lightboxjs`}>
 
       {props.images && props.children && lightboxIdentifier == false ? props.children : null}
 
       {props.images && lightboxIdentifier == false 
         ? props.images.map((elem, index) => (
             <img
-              class={' cursor-pointer'}
+              className={' cursor-pointer'}
               src={elem.src}
               onClick={() => {
                 openModalWithSlideNum(index)
               }}
               key={index}
-              whileTap={{ scale: 0.97 }}
+              // whileTap={{ scale: 0.97 }}
             />
           ))
         : null}
@@ -989,12 +1009,12 @@ export const SlideshowLightbox = (props) => {
       .map((elem, index) => (
         <img
           {...elem.props}
-          class={elem.props.className + ' cursor-pointer'}
+          className={elem.props.className + ' cursor-pointer'}
           onClick={() => {
             openModalWithSlideNum(index)
           }}
           key={index}
-          whileTap={{ scale: 0.97 }}
+          // whileTap={{ scale: 0.97 }}
         />
       ))}
 
@@ -1041,7 +1061,9 @@ export const SlideshowLightbox = (props) => {
                   >
                     {showControls && (
                       <div className='controls'>
-                        <motion.div whileTap={{ scale: 0.95 }}>
+                        <motion.div 
+                        // whileTap={{ scale: 0.95 }}
+                        >
                           <ZoomIn
                             size={24}
                             onClick={() => {
@@ -1050,7 +1072,9 @@ export const SlideshowLightbox = (props) => {
                           />
                         </motion.div>
 
-                        <motion.div whileTap={{ scale: 0.95 }}>
+                        <motion.div 
+                        //whileTap={{ scale: 0.95 }}
+                        >
                           <ZoomOut
                             size={24}
                             onClick={() => {
@@ -1060,7 +1084,9 @@ export const SlideshowLightbox = (props) => {
                         </motion.div>
 
                         {isBrowserFullScreen ? (
-                          <motion.div whileTap={{ scale: 0.95 }}>
+                          <motion.div 
+                          // whileTap={{ scale: 0.95 }}
+                          >
                             <FullscreenExit
                               size={24}
                               onClick={() => {
@@ -1071,7 +1097,9 @@ export const SlideshowLightbox = (props) => {
                             />
                           </motion.div>
                         ) : (
-                          <motion.div whileTap={{ scale: 0.95 }}>
+                          <motion.div 
+                          // whileTap={{ scale: 0.95 }}
+                          >
                             <Fullscreen
                               size={24}
                               onClick={() => {
@@ -1083,7 +1111,9 @@ export const SlideshowLightbox = (props) => {
                           </motion.div>
                         )}
 
-                        <motion.div whileTap={{ scale: 0.95 }}>
+                        <motion.div 
+                        //whileTap={{ scale: 0.95 }}
+                        >
                           <GridFill
                             size={24}
                             onClick={() => {
@@ -1093,7 +1123,9 @@ export const SlideshowLightbox = (props) => {
                         </motion.div>
 
                         {isMobile ? null : (
-                          <motion.div whileTap={{ scale: 0.95 }}>
+                          <motion.div 
+                          // whileTap={{ scale: 0.95 }}
+                          >
                             <Search
                               size={24}
                               onClick={() => initMagnifyingGlass()}
@@ -1102,7 +1134,7 @@ export const SlideshowLightbox = (props) => {
                         )}
 
                         <motion.div
-                          whileTap={{ scale: 0.95 }}
+                          // whileTap={{ scale: 0.95 }}
                           className='slideshowPlayBtn'
                         >
                           {isSlideshowPlaying ? (
@@ -1129,7 +1161,7 @@ export const SlideshowLightbox = (props) => {
                     )}
 
                     <motion.div
-                      whileTap={{ scale: 0.95 }}
+                      // whileTap={{ scale: 0.95 }}
                       className='closeIcon'
                     >
                       <XLg
@@ -1186,7 +1218,7 @@ export const SlideshowLightbox = (props) => {
                     {shouldDisplayLoader() ? null : (
                       <span
                         key='loader'
-                        class={`loader ${getLoaderThemeClass()}`}
+                        className={`loader ${getLoaderThemeClass()}`}
                       ></span>
                     )}
                   </AnimatePresence>
@@ -1221,7 +1253,7 @@ export const SlideshowLightbox = (props) => {
                                             'thumbnail ' +
                                             (imageIndex === index ? 'active' : '')
                                           }
-                                          src={img.src}
+                                          src={getThumbnailImgSrc(img.src)}
                                           style={
                                             imageIndex === index
                                               ? { border: activeThumbnailBorder }
