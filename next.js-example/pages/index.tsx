@@ -8,14 +8,14 @@ import { GetStaticProps } from 'next'
 import { initLightboxJS } from 'lightbox.js-react'
 import { SlideshowLightbox } from 'lightbox.js-react'
 import Image from "next/image";
-//import 'lightbox.js-react/dist/index.css'
+import 'lightbox.js-react/dist/index.css'
 import { Flex, Box } from 'reflexbox';
 import React, { forwardRef } from 'react'
-// import image1 from "../public/images/image1.png"
+import image1 from "../public/images/image1.png"
 
 const images = [
   {
-    src: "https://source.unsplash.com/rsAeSMzOX9Y/768x512",
+    src: image1,
     alt: 'Mechanical keyboard with white keycaps.',
   },
   {

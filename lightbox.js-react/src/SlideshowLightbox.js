@@ -337,6 +337,9 @@ export const SlideshowLightbox = (props) => {
 
     resetMapInteraction()
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection])
+    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
+    setRefIndex(refIndex + 1)
+    console.log("zoom idx now ", zoomIdx)
   }
 
   const resetSlideAnim = () => {

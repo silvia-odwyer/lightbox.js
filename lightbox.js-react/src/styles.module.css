@@ -149,6 +149,7 @@ img.hoverShadow {
   height: 5vh;
   z-index: 10000000;
   margin-top: 10px;
+  /* width: 90vw; */
   /* width: 100%; */
 }
 
@@ -463,6 +464,7 @@ img.hoverShadow {
     padding-top: 0.3em;
     height: 5vh;
     bottom: 11%;
+    /* width: 90vw; */
   }
 
   .thumbnails img {
