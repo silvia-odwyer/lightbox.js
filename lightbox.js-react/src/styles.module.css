@@ -68,6 +68,9 @@
   position: relative;
 }
 
+
+
+
 img.hoverShadow {
   transition: 0.3s;
 }
@@ -97,6 +100,10 @@ img.hoverShadow {
   display: inline;
 }
 
+.thumbnailsWithCaption {
+  width: 85%;
+}
+
 /* Mobile screens */
 @media screen and (min-width: 20em) {
   .imageSlide {
@@ -107,7 +114,13 @@ img.hoverShadow {
   .thumbnailsOuterContainer {
     position: fixed;
     bottom: 5%;
+    width: 100vw;
     /* width: 100%; */
+  }
+
+  .imgTitleContainer {
+    padding-bottom: 16px;
+    width: 100vw;
   }
   
   /* .slideshowInnerContainer img {
@@ -147,10 +160,28 @@ img.hoverShadow {
   position: absolute; 
   bottom: 10%;
   height: 5vh;
+  width: 100vw;
   z-index: 10000000;
   margin-top: 10px;
-  /* width: 90vw; */
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  /* width: 90vw;  */
   /* width: 100%; */
+}
+
+.thumbnailsAndCaption {
+  height: 20vh;
+}
+
+.caption {
+  position: absolute; 
+  bottom: 14%;
+  width: 100vw;
+  z-index: 10000000;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .galleryImg {
@@ -163,6 +194,7 @@ img.hoverShadow {
   height: 100vh;
   max-height: 100%;
   overflow: hidden;
+  touch-action: none;
   padding: 0;
   overflow-y: auto;
   margin: 0;
@@ -296,6 +328,29 @@ img.hoverShadow {
 
 }
 
+.lightbox .iconsHeader svg {
+  transition: 0.3s all;
+}
+  
+.iconsHeader svg:active {
+  transform: scale(0.97);
+}
+
+.slidePane {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.imgTitle {
+  text-align: center;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+
+}
+
+
 .iconsHeader svg {
   margin-left: 0.6em;
   padding: 0.2em;
@@ -383,6 +438,10 @@ img.hoverShadow {
     height: 95vh; 
     position: absolute;
   } 
+
+  .imgTitleContainer {
+    padding-bottom: 0px;
+  }
 
   .slideshowInnerContainer img {
     /* height: 70vh;
@@ -564,10 +623,18 @@ img.hoverShadow {
   border: solid rgb(107, 133, 206) 4px; 
 }
 
+.thumbnails {
+  width: 95%;
+}
+
 @media screen and (max-width: 29em) {
   .fullScreenContainer img {
     object-fit: cover;
   }
+
+  .thumbnails {
+    width: 85%;
+  }  
 
   .next1, .prev1 {
     padding-bottom: 2vh;
@@ -592,6 +659,7 @@ img.hoverShadow {
 }
 
 .thumbnails {
+  text-align: center;
   white-space: nowrap;
 } 
 
@@ -671,3 +739,15 @@ img.hoverShadow {
 .closeIcon svg {
   box-sizing: border-box;
 }
+
+.thumbnailsAndCaption {
+  bottom: 0%;
+  height: 17vh;
+
+  width: 100vw;
+}
+
+.slideImageAndCaption {
+  top: 9%;
+}
+
