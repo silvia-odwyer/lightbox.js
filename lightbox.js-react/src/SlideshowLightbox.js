@@ -8,7 +8,7 @@ import {
   closeFullScreen,
   swipePower
 } from './utility'
-import { MapInteractionCSS } from '@silvia-odwyer/react-map-interaction-fork'
+// import { MapInteractionCSS } from '@silvia-odwyer/react-map-interaction-fork'
 import {
   ZoomIn,
   ZoomOut,
@@ -295,9 +295,9 @@ export const SlideshowLightbox = (props) => {
 
   const isImageCaption = () => {
     if (props.images && props.images[imageIndex].caption) {
-      return true;
+      return true
     }
-    return false;
+    return false
   }
 
   function handleWindowResize() {
@@ -548,7 +548,7 @@ export const SlideshowLightbox = (props) => {
     if (!props.images) {
       imageElem = (
         <img
-          className='test_img'
+          className='lightbox_img'
           loading='lazy'
           style={isRounded ? { borderRadius: '20px' } : {}}
           src={
@@ -577,7 +577,7 @@ export const SlideshowLightbox = (props) => {
       }
       imageElem = (
         <img
-          className='test_img'
+          className='lightbox_img'
           loading='lazy'
           style={isRounded ? { borderRadius: '20px' } : {}}
           src={
@@ -647,7 +647,7 @@ export const SlideshowLightbox = (props) => {
                 >
                   <div className='div_img'>
                     <img
-                      className='test_img'
+                      className='lightbox_img'
                       loading='lazy'
                       style={isRounded ? { borderRadius: '20px' } : {}}
                       src={
@@ -950,7 +950,23 @@ export const SlideshowLightbox = (props) => {
               )
               img.classList.add('cursor-pointer')
               usesAttr = true
-              img_elements.push({ src: img.src, alt: img.alt, loaded: 'false' })
+
+              if (img.src) {
+                img_elements.push({
+                  src: img.src,
+                  alt: img.alt,
+                  loaded: 'false'
+                })
+              } else if (img.tagName == 'DIV') {
+                let corresponding_img_item = props.images[i]
+                let img_src = corresponding_img_item.src
+                let img_alt = corresponding_img_item.alt
+                img_elements.push({
+                  src: img_src,
+                  alt: img_alt,
+                  loaded: 'false'
+                })
+              }
             }
           }
 
@@ -1028,7 +1044,9 @@ export const SlideshowLightbox = (props) => {
             .map((elem, index) => (
               <img
                 {...elem.props}
-                className={elem.props.className + ' cursor-pointer'}
+                className={`${
+                  elem.props.className ? elem.props.className : ''
+                } cursor-pointer`}
                 onClick={() => {
                   openModalWithSlideNum(index)
                 }}
@@ -1231,11 +1249,7 @@ export const SlideshowLightbox = (props) => {
                         showThumbnails
                           ? 'slideshowInnerContainerThumbnails'
                           : ''
-                      } ${
-                        isImageCaption()
-                          ? 'slideImageAndCaption'
-                          : ''
-                      } `}
+                      } ${isImageCaption() ? 'slideImageAndCaption' : ''} `}
                       swipeOptions={reactSwipeOptions}
                       ref={(el) => (reactSwipeEl = el)}
                       childCount={images.length}
@@ -1253,103 +1267,109 @@ export const SlideshowLightbox = (props) => {
                     )}
                   </AnimatePresence>
 
-                  <div className={`thumbnailsOuterContainer imageModal ${
+                  <div
+                    className={`thumbnailsOuterContainer imageModal ${
+                      isImageCaption() ? 'thumbnailsAndCaption' : ''
+                    }`}
+                    style={
                       isImageCaption()
-                        ? 'thumbnailsAndCaption'
-                        : ''
-                    }`}  style={ isImageCaption() ? {
-                    backgroundColor: backgroundColor
-                  } : {}}>
-                    {isImageCaption() &&
-                      !zoomedIn ? (
-                        <div className='imgTitleContainer'>
-        
-                              <p
-                                className='imgTitle'
-                                key={'imgCaption' + imageIndex}
-                                style={
-                                  props.captionStyle
-                                    ? props.captionStyle
-                                    : { color: textColor }
-                                }
-                              >
-                                {props.images[imageIndex].caption}
-                              </p>
-                        </div>
-                      ) : null}
-                    
-                      <AnimatePresence initial={animatedThumbnails}>
-                        {showThumbnails !== false && (
-                          <motion.div
-                            initial={'hidden'}
-                            exit={'hidden'}
-                            animate={'visible'}
-                            style={imagesLoaded ? {} : { display: 'displayHidden' }}
-                            transition={{
-                              type: 'spring',
-                              duration: 0.75
-                            }}
-                            variants={thumbnailVariants}
-                            className={`thumbnails rounded-sm mx-auto ${isImageCaption() ? 'thumbnailsWithCaption' : ''}`}>
-                            <ScrollContainer
-                              className='scroll-container'
-                              vertical={false}
-                              horizontal={true}
-                              hideScrollbars={false}
-                            >
-                              {frameworkID == 'next' &&
-                              imagesMetadata &&
-                              props.images
-                                ? imagesMetadata.map((img, index) => (
-                                    <img
-                                      className={
-                                        'thumbnail ' +
-                                        (imageIndex === index ? 'active' : '')
-                                      }
-                                      src={getThumbnailImgSrc(img.src)}
-                                      style={
-                                        imageIndex === index
-                                          ? { border: activeThumbnailBorder }
-                                          : { border: thumbnailBorder }
-                                      }
-                                      key={index}
-                                      onClick={() => {
-                                        setCurrentSlide(index)
-                                      }}
-                                      alt={img.caption}
-                                      onLoad={() => setImagesLoaded(true)}
-                                    />
-                                    // <span style={{color: "white"}}>{index}</span>
-                                  ))
-                                : // Not Next.js
-                                  images.map((img, index) => (
-                                    <img
-                                      className={
-                                        'thumbnail ' +
-                                        (imageIndex === index ? 'active' : '')
-                                      }
-                                      src={img.src}
-                                      style={
-                                        imageIndex === index
-                                          ? { border: activeThumbnailBorder }
-                                          : { border: thumbnailBorder }
-                                      }
-                                      key={index}
-                                      onClick={() => {
-                                        setCurrentSlide(index)
-                                      }}
-                                      alt={img.caption}
-                                      onLoad={() => setImagesLoaded(true)}
-                                    />
-                                    // <span style={{color: "white"}}>{index}</span>
-                                  ))}
-                            </ScrollContainer>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    
+                        ? {
+                            backgroundColor: backgroundColor
+                          }
+                        : {}
+                    }
+                  >
+                    {isImageCaption() && !zoomedIn ? (
+                      <div className='imgTitleContainer'>
+                        <p
+                          className='imgTitle'
+                          key={'imgCaption' + imageIndex}
+                          style={
+                            props.captionStyle
+                              ? props.captionStyle
+                              : { color: textColor }
+                          }
+                        >
+                          {props.images[imageIndex].caption}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <AnimatePresence initial={animatedThumbnails}>
+                      {showThumbnails !== false && (
+                        <motion.div
+                          initial={'hidden'}
+                          exit={'hidden'}
+                          animate={'visible'}
+                          style={
+                            imagesLoaded ? {} : { display: 'displayHidden' }
+                          }
+                          transition={{
+                            type: 'spring',
+                            duration: 0.75
+                          }}
+                          variants={thumbnailVariants}
+                          className={`thumbnails rounded-sm mx-auto ${
+                            isImageCaption() ? 'thumbnailsWithCaption' : ''
+                          }`}
+                        >
+                          <ScrollContainer
+                            className='scroll-container'
+                            vertical={false}
+                            horizontal={true}
+                            hideScrollbars={false}
+                          >
+                            {frameworkID == 'next' &&
+                            imagesMetadata &&
+                            props.images
+                              ? imagesMetadata.map((img, index) => (
+                                  <img
+                                    className={
+                                      'thumbnail ' +
+                                      (imageIndex === index ? 'active' : '')
+                                    }
+                                    src={getThumbnailImgSrc(img.src)}
+                                    style={
+                                      imageIndex === index
+                                        ? { border: activeThumbnailBorder }
+                                        : { border: thumbnailBorder }
+                                    }
+                                    key={index}
+                                    onClick={() => {
+                                      setCurrentSlide(index)
+                                    }}
+                                    alt={img.alt}
+                                    onLoad={() => setImagesLoaded(true)}
+                                  />
+                                  // <span style={{color: "white"}}>{index}</span>
+                                ))
+                              : // Not Next.js
+                                images.map((img, index) => (
+                                  <img
+                                    className={
+                                      'thumbnail ' +
+                                      (imageIndex === index ? 'active' : '')
+                                    }
+                                    src={img.src}
+                                    style={
+                                      imageIndex === index
+                                        ? { border: activeThumbnailBorder }
+                                        : { border: thumbnailBorder }
+                                    }
+                                    key={index}
+                                    onClick={() => {
+                                      setCurrentSlide(index)
+                                    }}
+                                    alt={img.alt}
+                                    onLoad={() => setImagesLoaded(true)}
+                                  />
+                                  // <span style={{color: "white"}}>{index}</span>
+                                ))}
+                          </ScrollContainer>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-               
                 </div>
                 {/* </React.Fragment> */}
                 {/* )} */}

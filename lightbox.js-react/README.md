@@ -51,7 +51,7 @@ npm install lightbox.js-react
 ```
 
 ### Usage
-Once the library has been installed, import the CSS file for Lightbox.js within your React app's `index.js` file. You'll also need to import the function to initialize the lightbox with your license key. See the [details here](https://github.com/silvia-odwyer/lightbox.js#getting-a-license-key) on how to get a license key.
+Once the library has been installed, import the CSS file for Lightbox.js within your React app's `index.js` file. You'll also need to import the function to initialize the lightbox with your license key. See the [details here](https://github.com/silvia-odwyer/lightbox.js#-getting-a-license-key) on how to get a license key.
 
 ```jsx
 import {initLightboxJS} from 'lightbox.js-react'
@@ -62,7 +62,7 @@ Then, just initialize the license key within your React app's `index.js` file li
 
 ```js
   useEffect(() => {
-    initLightboxJS("Insert License key", "Insert plan type here");
+    initLightboxJS("Insert your License Key here", "Insert plan type here");
   }, []);
 ```
 
