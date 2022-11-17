@@ -6,6 +6,12 @@ To get started:
 
 ```bash
 git clone https://github.com/silvia-odwyer/lightbox.js
+cd lightbox.js
+```
+
+Then move into the React and Tailwind app directory:
+
+```bash
 cd react-tailwind-example
 ```
 
