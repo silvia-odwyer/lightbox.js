@@ -2,7 +2,9 @@
 
 body {
     background: white;
-    width: 100vw;
+    width: 80vw;
+    margin: 0px;
+    overflow-y: scroll;
 }
 
 h1, h2 {

@@ -548,7 +548,7 @@ export const SlideshowLightbox = (props) => {
     if (!props.images) {
       imageElem = (
         <img
-          className='lightbox_img'
+          className={`${props.fullScreen ? "fullScreenLightboxImg" : "lightbox_img"}`}
           loading='lazy'
           style={isRounded ? { borderRadius: '20px' } : {}}
           src={
@@ -577,8 +577,8 @@ export const SlideshowLightbox = (props) => {
       }
       imageElem = (
         <img
-          className='lightbox_img'
-          loading='lazy'
+        className={`${props.fullScreen ? "fullScreenLightboxImg" : "lightbox_img"}`}
+        loading='lazy'
           style={isRounded ? { borderRadius: '20px' } : {}}
           src={
             imagesMetadata[index].original
@@ -645,9 +645,10 @@ export const SlideshowLightbox = (props) => {
                   }
                   key={index}
                 >
-                  <div className='div_img'>
+                  <div className={`${props.fullScreen ? "slideshow_img_fullscreen" : "slideshow_img"}`}
+                  >
                     <img
-                      className='lightbox_img'
+                      className={`${props.fullScreen ? "fullScreenLightboxImg" : "lightbox_img"}`}
                       loading='lazy'
                       style={isRounded ? { borderRadius: '20px' } : {}}
                       src={
@@ -719,7 +720,7 @@ export const SlideshowLightbox = (props) => {
                   }
                   key={index}
                 >
-                  <div className='div_img'>{imageSlideElement(index)}</div>
+                  <div className={`${props.fullScreen ? "slideshow_img_fullscreen" : "slideshow_img"}`}>{imageSlideElement(index)}</div>
                 </TransformComponent>
               </TransformWrapper>
             </div>
@@ -1245,11 +1246,12 @@ export const SlideshowLightbox = (props) => {
 
                   <AnimatePresence initial={false} custom={direction}>
                     <ReactSwipe
-                      className={`slideshowInnerContainer  ${
+                      className={`${
                         showThumbnails
                           ? 'slideshowInnerContainerThumbnails'
                           : ''
-                      } ${isImageCaption() ? 'slideImageAndCaption' : ''} `}
+                      } ${isImageCaption() ? 'slideImageAndCaption' : ''} 
+                      ${props.fullScreen ? 'slideshowInnerContainerFullScreen' : 'slideshowInnerContainer' }  `}
                       swipeOptions={reactSwipeOptions}
                       ref={(el) => (reactSwipeEl = el)}
                       childCount={images.length}
