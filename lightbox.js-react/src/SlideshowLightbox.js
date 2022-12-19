@@ -15,6 +15,7 @@ import {
   Fullscreen,
   PlayCircleFill,
   Search,
+  Download,
   PauseCircleFill,
   FullscreenExit,
   XLg,
@@ -27,6 +28,7 @@ import { isBrowser } from './utility'
 import { Portal } from 'react-portal'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import ReactSwipe from 'react-swipe'
+import { saveAs } from 'file-saver'
 
 const variants = {
   imgDrag: {
@@ -154,6 +156,11 @@ export const SlideshowLightbox = (props) => {
   const [showControls, setShowControls] = useState(
     props.showControls ? props.showControls : true
   )
+
+  const [showDownloadBtn, setShowDownloadBtn] = useState(
+    props.downloadImages ? props.downloadImages : true
+  )
+
   const [frameworkID, setFrameworkID] = useState(
     props.framework ? props.framework : ''
   )
@@ -409,6 +416,11 @@ export const SlideshowLightbox = (props) => {
     setReactSwipeOptions(reactSwipeOptionConfig)
     setZoomIdx(index)
     openModal(index)
+  }
+
+  const saveImage = () => {
+    // let img_elem = document.getElementById("img");
+    saveAs(images[imageIndex].src, 'image.jpg') 
   }
 
   const openModalAndSetSlide = (num) => {
@@ -1117,6 +1129,9 @@ export const SlideshowLightbox = (props) => {
                             }}
                           />
                         </motion.div>
+
+                        {showDownloadBtn ? 
+                        <Download size={24} onClick={() => {saveImage()}} /> : null}
 
                         {isBrowserFullScreen ? (
                           <motion.div

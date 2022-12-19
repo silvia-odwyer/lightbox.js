@@ -1,6 +1,6 @@
 {
   "name": "lightbox.js-react",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
@@ -64,6 +64,7 @@
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "autoprefixer": "^9.8.8",
     "axios": "^0.27.2",
+    "file-saver": "^2.0.5",
     "framer-motion": "^4.1.17",
     "intrinsic-scale": "^3.0.4",
     "postcss": "^7.0.39",
@@ -71,6 +72,7 @@
     "react-indiana-drag-scroll": "^2.1.0",
     "react-magnifier": "^3.0.4",
     "react-portal": "^4.2.2",
+    "react-quick-pinch-zoom": "^4.6.0",
     "react-swipe": "^6.0.4",
     "react-swipeable": "^6.1.0",
     "react-zoom-pan-pinch": "^2.1.3",
