@@ -420,7 +420,12 @@ export const SlideshowLightbox = (props) => {
 
   const saveImage = () => {
     // let img_elem = document.getElementById("img");
-    saveAs(images[imageIndex].src, 'image.jpg') 
+    if (imagesMetadata[imageIndex].original) {
+      saveAs(imagesMetadata[imageIndex].original, 'image.jpg') 
+    }
+    else {
+      saveAs(images[imageIndex].src, 'image.jpg') 
+    }
   }
 
   const openModalAndSetSlide = (num) => {
@@ -664,8 +669,8 @@ export const SlideshowLightbox = (props) => {
                       loading='lazy'
                       style={isRounded ? { borderRadius: '20px' } : {}}
                       src={
-                        images[index].original
-                          ? images[index].original
+                        props.images && props.images[index].original
+                          ? props.images[index].original
                           : images[index].src
                       }
                       onLoad={() => {
@@ -802,6 +807,17 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
+  const isSrcStr = (img_src) => {
+    if (
+      typeof img_src === 'object' &&
+      !Array.isArray(img_src) &&
+      img_src !== null
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   const wheelEvent = (ref, e) => {
     setImgAnimation('fade')
 
@@ -918,6 +934,7 @@ export const SlideshowLightbox = (props) => {
   )
 
   useEffect(() => {
+
     // Error check
     if (props.render) {
       if (!props.images) {
@@ -1037,6 +1054,7 @@ export const SlideshowLightbox = (props) => {
             <img
               className={' cursor-pointer'}
               src={elem.src}
+              // src={isSrcStr(elem.src) ? elem.src : elem.src.src}
               onClick={() => {
                 openModalWithSlideNum(index)
               }}
