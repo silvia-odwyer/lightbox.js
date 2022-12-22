@@ -158,7 +158,7 @@ export const SlideshowLightbox = (props) => {
   )
 
   const [showDownloadBtn, setShowDownloadBtn] = useState(
-    props.downloadImages ? props.downloadImages : true
+    props.downloadImages ? props.downloadImages : false
   )
 
   const [frameworkID, setFrameworkID] = useState(
@@ -419,12 +419,11 @@ export const SlideshowLightbox = (props) => {
   }
 
   const saveImage = () => {
-    // let img_elem = document.getElementById("img");
     if (imagesMetadata[imageIndex].original) {
       saveAs(imagesMetadata[imageIndex].original, 'image.jpg') 
     }
     else {
-      saveAs(images[imageIndex].src, 'image.jpg') 
+      saveAs(imagesMetadata[imageIndex].src, 'image.jpg') 
     }
   }
 
@@ -948,7 +947,9 @@ export const SlideshowLightbox = (props) => {
     if (isMounted) initProps()
 
     // setImgElem(imgElemRef.current)
-    if (isMounted) initKeyboardEventListeners()
+    if (isMounted) {
+      initKeyboardEventListeners();
+    }
 
     let reducedMotionMediaQuery = checkAndInitReducedMotion()
 
