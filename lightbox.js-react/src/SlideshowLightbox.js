@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion'
 import {
   useInterval,
@@ -29,46 +29,8 @@ import { Portal } from 'react-portal'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import ReactSwipe from 'react-swipe'
 import { saveAs } from 'file-saver'
-
-const variants = {
-  imgDrag: {
-    enterImg: (direction) => {
-      return {
-        x: direction > 0 ? 1000 : -1000,
-        opacity: 0
-      }
-    },
-    centerImg: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1
-    },
-    exitImg: (direction) => {
-      return {
-        zIndex: 0,
-        x: direction < 0 ? 1000 : -1000,
-        opacity: 0
-      }
-    }
-  },
-  fade: {
-    enterImg: (direction) => {
-      return {
-        opacity: 0
-      }
-    },
-    centerImg: {
-      zIndex: 1,
-      opacity: 1
-    },
-    exitImg: (direction) => {
-      return {
-        zIndex: 0,
-        opacity: 0
-      }
-    }
-  }
-}
+import Div100vh from 'react-div-100vh'
+import KeyboardEventHandler from 'react-keyboard-event-handler'
 
 let thumbnailVariants = {
   visible: { opacity: 1, y: 0 },
@@ -76,6 +38,7 @@ let thumbnailVariants = {
 }
 
 const defaultMapInteractionValue = { scale: 1, translation: { x: 0, y: 0 } }
+
 const themes = {
   day: {
     background: 'white',
@@ -86,17 +49,19 @@ const themes = {
   night: {
     background: '#151515',
     iconColor: 'silver',
-    thumbnailBorder: 'solid rgb(138, 138, 138) 2px',
+    thumbnailBorder: 'solid rgb(107, 133, 206)  2px',
     textColor: 'silver'
   },
   lightbox: {
     background: 'rgba(12, 12, 12, 0.93)',
     iconColor: 'silver',
-    thumbnailBorder: 'solid rgb(138, 138, 138) 2px',
+    thumbnailBorder: 'solid rgb(107, 133, 206) 2px',
     textColor: 'silver'
   }
 }
+
 const activeThumbnailBorder = 'solid rgba(107, 133, 206, 0.6) 2px'
+const inactiveThumbnailBorder = 'solid transparent 2px'
 const arrowStyles = {
   light: { background: 'white', color: 'black' },
   dark: { background: '#151515', color: 'silver' }
@@ -104,8 +69,6 @@ const arrowStyles = {
 
 const swipeConfidenceThreshold = 10000
 const opacityDuration = 0.2
-const maxScale = 2.6
-const minScale = 1
 const imgSwipeDirection = 'x'
 const defaultTheme = 'night'
 const mobileWidth = 768
@@ -121,7 +84,6 @@ export const SlideshowLightbox = (props) => {
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0])
   const [showModal, setShowModal] = useState(false)
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false)
-  // const [reactSwipeEl, setReactSwipeEl] = useState(false);
 
   const [images, setImages] = useState([])
 
@@ -129,12 +91,21 @@ export const SlideshowLightbox = (props) => {
     props.images ? props.images : []
   )
 
+  const [magnifyingGlassFeature, setMagnifyingGlassFeature] = useState(
+    props.magnifyingGlass ? props.magnifyingGlass : false
+  )
+
+  const [disableZoom, setDisableZoom] = useState(
+    props.disableImageZoom ? props.disableImageZoom : false
+  )
+
   const [previewImageElems, setPreviewImageElems] = useState([])
 
   const imageIndex = wrapNums(0, images.length, imgSlideIndex)
   const [reactSwipeOptions, setReactSwipeOptions] = useState({
     continuous: true,
-    startSlide: 0
+    startSlide: 0,
+    stopPropagation: true
   })
 
   const [slideshowInterval, setSlideshowInterval] = useState(
@@ -150,16 +121,44 @@ export const SlideshowLightbox = (props) => {
   )
 
   const [zoomedIn, setZoomedIn] = useState(false)
+
   const [isRounded, setIsRounded] = useState(
     props.roundedImages ? props.roundedImages : false
   )
+
   const [showControls, setShowControls] = useState(
     props.showControls ? props.showControls : true
   )
 
+  const [displayFullScreenIcon, setDisplayFullScreenIcon] = useState(
+    props.showFullScreenIcon ? props.showFullScreenIcon : true
+  )
+
+  const [displayThumbnailIcon, setDisplayThumbnailIcon] = useState(
+    props.showThumbnailIcon ? props.showThumbnailIcon : true
+  )
+
+  const [displaySlideshowIcon, setDisplaySlideshowIcon] = useState(
+    props.showSlideshowIcon ? props.showSlideshowIcon : true
+  )
+
+  const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState(
+    props.showMagnificationIcons ? props.showMagnificationIcons : true
+  )
+
+  // const [nextArrow, setNextArrow] = useState(
+  //   props.rightArrow ? props.rightArrow : <span>&#10095;</span>
+  // )
+
+  // const [prevArrow, setPrevArrow] = useState(
+  //   props.leftArrow ? props.leftArrow : <span>&#10094;</span>
+  // )
+
   const [showDownloadBtn, setShowDownloadBtn] = useState(
     props.downloadImages ? props.downloadImages : false
   )
+
+  const [isRTL, setIsRTL] = useState(props.rtl ? props.rtl : false)
 
   const [frameworkID, setFrameworkID] = useState(
     props.framework ? props.framework : ''
@@ -186,11 +185,12 @@ export const SlideshowLightbox = (props) => {
     defaultMapInteractionValue
   )
   const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection)
-  const [isAnimating, setIsAnimating] = useState(false)
   const [isBrowserFullScreen, setIsBrowserFullScreen] = useState(false)
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false)
   const [imagesLoaded, setImagesLoaded] = useState(false)
   const [refIndex, setRefIndex] = useState(0)
+
+  const imageRef = useRef()
 
   const [zoomIdx, setZoomIdx] = useState(0)
 
@@ -202,13 +202,9 @@ export const SlideshowLightbox = (props) => {
   const [usesDataAttr, setUsesDataAttr] = useState(false)
 
   // Thumbnails slider
-  const [mouseDown, setMouseDown] = useState(false)
-  const [startX, setStartX] = useState(false)
   const [scrollLeft, setScrollLeft] = useState(false)
 
   // Refs
-  // const imgElemRef = useRef(null);
-  // const [imgElem, setImgElem] = useState(null);
   const zoomRef = useRef(null)
   const [zoomBtnRef, setZoomBtnRef] = useState(null)
   const [zoomRefs, setZoomRefs] = useState([])
@@ -254,6 +250,12 @@ export const SlideshowLightbox = (props) => {
     // else setZoomBtnRef2(null)
   }
 
+  const createCustomThumbnailBorder = () => {
+    if (props.thumbnailBorder) {
+      return `solid ${props.thumbnailBorder} 2px`
+    }
+  }
+
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(
     props.backgroundColor
@@ -261,14 +263,19 @@ export const SlideshowLightbox = (props) => {
       : themes[defaultTheme].background
   )
   const [iconColor, setIconColor] = useState(
-    props.iconColor ? props.iconColor : themes[defaultTheme].iconColor
+    props.iconColor ? props.iconColor : null
   )
   const [textColor, setTextColor] = useState(
     props.textColor ? props.textColor : themes[defaultTheme].textColor
   )
+
+  const [coverMode, setCoverMode] = useState(
+    props.useCoverMode ? props.useCoverMode : false
+  )
+
   const [thumbnailBorder, setThumbnailBorder] = useState(
     props.thumbnailBorder
-      ? props.thumbnailBorder
+      ? createCustomThumbnailBorder()
       : themes[defaultTheme].thumbnailBorder
   )
 
@@ -288,14 +295,14 @@ export const SlideshowLightbox = (props) => {
 
   const isMobile = width <= mobileWidth
 
-  const keyPressHandler = (event) => {
-    let key = event.key
+  const [coverImageElem, setCoverImageElem] = useState(null)
 
-    if (key == 'ArrowLeft') {
-      updateCurrentSlide(-1)
-    } else if (key == 'ArrowRight') {
-      updateCurrentSlide(1)
-    } else if (key == 'Escape' && !isBrowserFullScreen) {
+  const handleKeyPress = (key, event) => {
+    if (key == 'right') {
+      nextImage()
+    } else if (key == 'left') {
+      prevImage()
+    } else if (key == 'esc' && !isBrowserFullScreen) {
       closeModal()
     }
   }
@@ -309,6 +316,20 @@ export const SlideshowLightbox = (props) => {
 
   function handleWindowResize() {
     setWidth(window.innerWidth)
+  }
+
+  const shouldDisplayMagnifyingGlassIcon = () => {
+    if (isMobile == true) {
+      return false
+    }
+    if (imageFullScreen == true) {
+      return false
+    }
+
+    if (magnifyingGlassFeature == true) {
+      return true
+    }
+    return false
   }
 
   const checkModalClick = (e) => {
@@ -327,6 +348,18 @@ export const SlideshowLightbox = (props) => {
     setShowModal(false)
   }
 
+  const getRTLIndex = (img_gallery_length, i) => {
+    let index
+    if (i == 0) {
+      index = img_gallery_length - 1
+    } else if (i == img_gallery_length - 1) {
+      index = 0
+    } else {
+      index = img_gallery_length - i - 1
+    }
+    return index
+  }
+
   const fullScreen = () => {
     let lightbox = document.getElementById('slideshowAnim')
     openFullScreen(lightbox)
@@ -342,27 +375,23 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const updateCurrentSlide = (newDirection) => {
-    resetSlideAnim()
-    setMagnifyingGlass(false)
-    resetMapInteraction()
-    setImgSlideIndex([imgSlideIndex + newDirection, newDirection])
-    if (isMobile) {
-      setZoomBtnRef(zoomRef)
-    }
-  }
-
   const updateImageSlideshow = (newDirection) => {
-    reactSwipeEl.next()
+    if (isRTL) {
+      reactSwipeEl.prev()
+    } else {
+      reactSwipeEl.next()
+    }
 
     resetMapInteraction()
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection])
-    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
-    setRefIndex(refIndex + 1)
-  }
+    if (isRTL) {
+      setRefIndex(refIndex - 1)
 
-  const resetSlideAnim = () => {
-    setAnimTransition(animTransitionDefault)
+      setZoomIdx(zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1)
+    } else {
+      setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
+      setRefIndex(refIndex + 1)
+    }
   }
 
   const resetMapInteraction = () => {
@@ -410,6 +439,22 @@ export const SlideshowLightbox = (props) => {
     setShowModal(true)
   }
 
+  const nextImage = () => {
+    resetImage()
+    reactSwipeEl.next()
+    setRefIndex(refIndex + 1)
+    setImgSlideIndex([imgSlideIndex + 1, 1])
+    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
+  }
+
+  const prevImage = () => {
+    resetImage()
+    reactSwipeEl.prev()
+    setRefIndex(refIndex - 1)
+    setZoomIdx(zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1)
+    setImgSlideIndex([imgSlideIndex - 1, 1])
+  }
+
   const openModalWithSlideNum = (index) => {
     let reactSwipeOptionConfig = reactSwipeOptions
     reactSwipeOptionConfig.startSlide = index
@@ -419,25 +464,25 @@ export const SlideshowLightbox = (props) => {
   }
 
   const saveImage = () => {
-    if (imagesMetadata[imageIndex].original) {
-      saveAs(imagesMetadata[imageIndex].original, 'image.jpg') 
+    if (imagesMetadata.length > 0) {
+      if (imagesMetadata[imageIndex].original) {
+        saveAs(imagesMetadata[imageIndex].original, 'image.jpg')
+      } else {
+        saveAs(imagesMetadata[imageIndex].src, 'image.jpg')
+      }
+    } else {
+      saveAs(images[imageIndex].src, 'image.jpeg')
     }
-    else {
-      saveAs(imagesMetadata[imageIndex].src, 'image.jpg') 
-    }
-  }
-
-  const openModalAndSetSlide = (num) => {
-    reactSwipeEl.slide(num, 0)
-
-    setImgSlideIndex([num, 1])
-    setShowModal(true)
   }
 
   const playSlideshow = () => {
     setMagnifyingGlass(false)
     setAnimTransition(slideshowAnimTransition)
-    updateImageSlideshow(1)
+    if (isRTL) {
+      updateImageSlideshow(-1)
+    } else {
+      updateImageSlideshow(1)
+    }
     setIsSlideshowPlaying(true)
   }
 
@@ -446,45 +491,13 @@ export const SlideshowLightbox = (props) => {
     setIsSlideshowPlaying(false)
   }
 
-  const zoomIntoImg = () => {
-    if (!isMobile) {
-      // changeCursor('all-scroll')
-      setIsZoomed(true)
-    }
-    if (zoomBtnRef) {
-      zoomBtnRef.zoomIn()
-    }
-  }
-
-  const zoomOutFromImg = () => {
-    if (!isMobile) {
-      changeCursor('zoom-in')
-      setIsZoomed(false)
-      setZoomImg(zoomImg - 1)
-
-      if (zoomImg == 1) {
-        resetMapInteraction()
-      }
-    }
-
-    if (zoomBtnRef) {
-      zoomBtnRef.zoomOut()
-    }
-  }
-
-  const checkAndUpdateSlide = (offset, velocity) => {
-    const swipe = swipePower(offset.x, velocity.x)
-
-    if (swipe < -swipeConfidenceThreshold || swipe > swipeConfidenceThreshold) {
-      setMapInteractionValue({ scale: 1, translation: { x: 0, y: 0 } })
-      setPanImage(true)
-      if (swipe < -swipeConfidenceThreshold) {
-        updateCurrentSlide(1)
-      } else if (swipe > swipeConfidenceThreshold) {
-        updateCurrentSlide(-1)
-      }
+  const resetImage = () => {
+    if (enableMagnifyingGlass) {
+      initMagnifyingGlass()
     } else {
-      removeSmoothZoom()
+      if (zoomReferences.current[zoomIdx]) {
+        zoomReferences.current[zoomIdx].resetTransform()
+      }
     }
   }
 
@@ -518,25 +531,6 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const mapInteractionChange = (value) => {
-    setPanImage(false)
-    updateImgSwipeMotion(false)
-
-    reinitZoomSettings(value)
-
-    setMapInteractionValue(value)
-
-    if (value.scale == defaultMapInteractionValue.scale) {
-      setPanImage(true)
-      setMapInteractionValue({ scale: 1, translation: { x: 0, y: 0 } })
-
-      updateImgSwipeMotion(imgSwipeDirection)
-      smoothZoomTimeout()
-    } else if (value.scale > defaultMapInteractionValue.scale && !isAnimating) {
-      changeCursor('all-scroll')
-    }
-  }
-
   const updateImgSwipeMotion = (swipeDirection) => {
     setImgSwipeMotion(swipeDirection)
   }
@@ -545,8 +539,8 @@ export const SlideshowLightbox = (props) => {
     if (props.theme) {
       if (themes[props.theme]) {
         setBackgroundColor(themes[props.theme].background)
-        setIconColor(themes[props.theme].iconColor)
-        setThumbnailBorder(themes[props.theme].thumbnailBorder)
+        // setIconColor(themes[props.theme].iconColor)
+        // setThumbnailBorder(themes[props.theme].thumbnailBorder)
         setTextColor(themes[props.theme].textColor)
       }
     }
@@ -564,16 +558,24 @@ export const SlideshowLightbox = (props) => {
     if (!props.images) {
       imageElem = (
         <img
-          className={`${props.fullScreen ? "fullScreenLightboxImg" : "lightbox_img"}`}
+          className={`${
+            props.fullScreen ? 'fullScreenLightboxImg' : 'lightbox_img'
+          } 
+          ${
+            enableMagnifyingGlass
+              ? ' maxWidthFull'
+              : ' maxWidthWithoutMagnifier'
+          }`}
+          ref={imageRef}
           loading='lazy'
-          style={isRounded ? { borderRadius: '20px' } : {}}
+          // style = {{borderRadius: `${isRounded ? "20px" : ""}`, maxWidth : `${enableMagnifyingGlass ? "100%" : "80%"}`}}
           src={
             images[index].original ? images[index].original : images[index].src
           }
           onLoad={() => {
             images[index]['loaded'] = true
           }}
-          // id='img'
+          id='img'
         />
       )
     } else if (props.images && props.render) {
@@ -588,13 +590,23 @@ export const SlideshowLightbox = (props) => {
         imagesMetadata[index].src !== null
       ) {
         img_link = imagesMetadata[index].src.src
+      } else if (props.coverImageInLightbox == true) {
+        img_link = images[index].src
       } else {
         img_link = imagesMetadata[index].src
       }
       imageElem = (
         <img
-        className={`${props.fullScreen ? "fullScreenLightboxImg" : "lightbox_img"}`}
-        loading='lazy'
+          className={`${
+            props.fullScreen ? 'fullScreenLightboxImg' : 'lightbox_img'
+          } 
+          ${
+            enableMagnifyingGlass
+              ? ' maxWidthFull'
+              : ' maxWidthWithoutMagnifier'
+          }`}
+          ref={imageRef}
+          loading='lazy'
           style={isRounded ? { borderRadius: '20px' } : {}}
           src={
             imagesMetadata[index].original
@@ -604,7 +616,7 @@ export const SlideshowLightbox = (props) => {
           onLoad={() => {
             images[index]['loaded'] = true
           }}
-          // id='img'
+          id='img'
         />
       )
     }
@@ -619,7 +631,7 @@ export const SlideshowLightbox = (props) => {
           {enableMagnifyingGlass == true ? (
             <Magnifier
               src={images[index].src}
-              className='imageModal mx-auto mt-0 magnifyWrapper'
+              className='imageModal mx-auto mt-0 magnifyWrapper lightbox_img'
               height={imgContainHeight}
               width={imgContainWidth}
               mgShowOverflow={false}
@@ -633,6 +645,7 @@ export const SlideshowLightbox = (props) => {
               <TransformWrapper
                 ref={(el) => (zoomReferences.current[index] = el)}
                 onWheel={{ wheelEvent }}
+                disabled={disableZoom}
                 key={index}
                 onZoom={zoomEvent}
                 centerZoomedOut={true}
@@ -661,21 +674,36 @@ export const SlideshowLightbox = (props) => {
                   }
                   key={index}
                 >
-                  <div className={`${props.fullScreen ? "slideshow_img_fullscreen" : "slideshow_img"}`}
+                  <div
+                    className={`${
+                      props.fullScreen
+                        ? 'slideshow_img_fullscreen'
+                        : 'slideshow_img'
+                    }`}
                   >
                     <img
-                      className={`${props.fullScreen ? "fullScreenLightboxImg" : "lightbox_img"}`}
+                      className={`${
+                        props.fullScreen
+                          ? 'fullScreenLightboxImg'
+                          : 'lightbox_img'
+                      } 
+                      ${
+                        enableMagnifyingGlass
+                          ? ' maxWidthFull'
+                          : ' maxWidthWithoutMagnifier'
+                      }`}
+                      ref={imageRef}
                       loading='lazy'
                       style={isRounded ? { borderRadius: '20px' } : {}}
                       src={
                         props.images && props.images[index].original
-                          ? props.images[index].original
+                          ? imagesMetadata[index].original
                           : images[index].src
                       }
                       onLoad={() => {
                         images[index]['loaded'] = true
                       }}
-                      // id='img'
+                      id='img'
                     />
                   </div>
                 </TransformComponent>
@@ -736,7 +764,15 @@ export const SlideshowLightbox = (props) => {
                   }
                   key={index}
                 >
-                  <div className={`${props.fullScreen ? "slideshow_img_fullscreen" : "slideshow_img"}`}>{imageSlideElement(index)}</div>
+                  <div
+                    className={`${
+                      props.fullScreen
+                        ? 'slideshow_img_fullscreen'
+                        : 'slideshow_img'
+                    }`}
+                  >
+                    {imageSlideElement(index)}
+                  </div>
                 </TransformComponent>
               </TransformWrapper>
             </div>
@@ -756,32 +792,46 @@ export const SlideshowLightbox = (props) => {
   }
 
   const initImageDimensions = () => {
-    let img = document.getElementById('img')
-    let imageContainerH, imageContainerW
-    if (isMobile) {
-      imageContainerW = 0.92
-
-      // horizontal image
-      if (img.naturalWidth > img.naturalHeight) {
-        imageContainerH = 0.65
-      }
-      //vertical image
-      else {
-        imageContainerH = 0.57
-      }
-
-      // remove dragging motion
+    let img
+    if (imgSlideIndex == 0 || imgSlideIndex % images.length == 0) {
+      img = document.getElementById('img')
     } else {
-      imageContainerW = 0.92
-      imageContainerH = 0.71
+      img = imageRef.current
     }
 
-    let { width, height, x, y } = contain(
-      screen.width * imageContainerW,
-      screen.height * imageContainerH,
-      img.naturalWidth,
-      img.naturalHeight
-    )
+    var ratio = img.naturalWidth / img.naturalHeight
+    var width = img.height * ratio
+    var height = img.height
+    if (width > img.width) {
+      width = img.width
+      height = img.width / ratio
+    }
+
+    // let imageContainerH, imageContainerW;
+    // if (isMobile) {
+    //   imageContainerW = 0.92
+
+    //   // horizontal image
+    //   if (img.naturalWidth > img.naturalHeight) {
+    //     imageContainerH = 0.65
+    //   }
+    //   //vertical image
+    //   else {
+    //     imageContainerH = 0.57
+    //   }
+
+    //   // remove dragging motion
+    // } else {
+    //   imageContainerW = 0.92
+    //   imageContainerH = 0.71
+    // }
+
+    // let { width, height, x, y } = contain(
+    //   screen.width * imageContainerW,
+    //   screen.height * imageContainerH,
+    //   img.naturalWidth,
+    //   img.naturalHeight
+    // )
 
     setImgContainHeight(height)
     setImgContainWidth(width)
@@ -812,9 +862,9 @@ export const SlideshowLightbox = (props) => {
       !Array.isArray(img_src) &&
       img_src !== null
     ) {
-      return false;
+      return false
     }
-    return true;
+    return true
   }
 
   const wheelEvent = (ref, e) => {
@@ -860,7 +910,8 @@ export const SlideshowLightbox = (props) => {
   }
 
   const initKeyboardEventListeners = () => {
-    document.addEventListener('keydown', keyPressHandler)
+    // document.addEventListener('keydown', keyPressHandler, false)
+    // document.addEventListener('keyup', keyUpHandler, false)
 
     if (isBrowser) {
       window.addEventListener('resize', handleWindowResize)
@@ -870,7 +921,8 @@ export const SlideshowLightbox = (props) => {
   const removeKeyboardEventListeners = () => {
     if (isBrowser) {
       window.removeEventListener('resize', handleWindowResize)
-      document.removeEventListener('keydown', keyPressHandler)
+      // document.removeEventListener('keydown', keyPressHandler, false)
+      // document.removeEventListener('keyup', keyUpHandler, false)
     }
   }
 
@@ -910,9 +962,32 @@ export const SlideshowLightbox = (props) => {
     return reducedMotionMediaQuery
   }
 
+  const initPropsForControlIcons = () => {
+    if (props.showFullScreenIcon != undefined) {
+      setDisplayFullScreenIcon(props.showFullScreenIcon)
+    }
+    if (props.showThumbnailIcon != undefined) {
+      setDisplayThumbnailIcon(props.showThumbnailIcon)
+    }
+
+    if (props.showSlideshowIcon != undefined) {
+      setDisplaySlideshowIcon(props.showSlideshowIcon)
+    }
+
+    if (props.showMagnificationIcons != undefined) {
+      setDisplayMagnificationIcons(props.showMagnificationIcons)
+    }
+  }
+
   const initProps = () => {
     if (props.showControls != undefined) {
       setShowControls(props.showControls)
+    }
+
+    initPropsForControlIcons()
+
+    if (props.disableImageZoom) {
+      setDisableZoom(props.disableImageZoom)
     }
 
     if (isBrowser) {
@@ -927,13 +1002,16 @@ export const SlideshowLightbox = (props) => {
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
   useInterval(
     () => {
-      updateImageSlideshow(1)
+      if (isRTL) {
+        updateImageSlideshow(-1)
+      } else {
+        updateImageSlideshow(1)
+      }
     },
     isSlideshowPlaying ? slideshowInterval : null
   )
 
   useEffect(() => {
-
     // Error check
     if (props.render) {
       if (!props.images) {
@@ -946,9 +1024,18 @@ export const SlideshowLightbox = (props) => {
     let isMounted = true
     if (isMounted) initProps()
 
-    // setImgElem(imgElemRef.current)
+    if (coverMode && imagesMetadata) {
+      if (props.coverImageInLightbox == false) {
+        let filterImages = imagesMetadata.filter((img) => img.cover != true)
+        setImages(filterImages)
+      } else {
+        setImages(imagesMetadata)
+
+      }
+    }
+
     if (isMounted) {
-      initKeyboardEventListeners();
+      initKeyboardEventListeners()
     }
 
     let reducedMotionMediaQuery = checkAndInitReducedMotion()
@@ -971,11 +1058,20 @@ export const SlideshowLightbox = (props) => {
               img.addEventListener(
                 'click',
                 () => {
+                  let index
+
+                  if (isRTL) {
+                    index = getRTLIndex(img_gallery.length, i)
+                  } else {
+                    index = i
+                  }
+
                   let reactSwipeOptionConfig = reactSwipeOptions
-                  reactSwipeOptionConfig.startSlide = i
+                  reactSwipeOptionConfig.startSlide = index
+
                   if (isMounted) setReactSwipeOptions(reactSwipeOptionConfig)
-                  setZoomIdx(i)
-                  openModal(i)
+                  setZoomIdx(index)
+                  openModal(index)
                 },
                 false
               )
@@ -1005,7 +1101,7 @@ export const SlideshowLightbox = (props) => {
             if (isMounted) setUsesDataAttr(true)
           }
 
-          if (isMounted) setImages(img_elements)
+          if (isMounted && !coverMode) setImages(img_elements)
         }
       }
 
@@ -1022,6 +1118,9 @@ export const SlideshowLightbox = (props) => {
             }
             imgs.push(img_obj)
           }
+          if (isRTL) {
+            imgs.reverse()
+          }
           if (isMounted) setImages(imgs)
           setPreviewImageElems(props.children)
         } else {
@@ -1030,6 +1129,22 @@ export const SlideshowLightbox = (props) => {
       }
 
       if (isMounted) setIsInit(true)
+    }
+
+    if (!isInit) {
+      if (props.images && isRTL == true) {
+        // flip images array
+        let imagesMetadataCopy = imagesMetadata
+        imagesMetadataCopy.reverse()
+
+        setImagesMetadata(imagesMetadataCopy)
+
+        if (images.length > 0) {
+          let imagesRTLCopy = images
+          imagesRTLCopy.reverse()
+          setImages(imagesRTLCopy)
+        }
+      }
     }
 
     if (isMounted) initStyling()
@@ -1041,9 +1156,10 @@ export const SlideshowLightbox = (props) => {
         reducedMotionMediaQuery
       )
     }
-  }, [keyPressHandler])
+  }, [])
 
   let reactSwipeEl
+
   return (
     <div className={`${props.className} lightboxjs`}>
       {props.images && props.children && lightboxIdentifier == false
@@ -1057,7 +1173,15 @@ export const SlideshowLightbox = (props) => {
               src={elem.src}
               // src={isSrcStr(elem.src) ? elem.src : elem.src.src}
               onClick={() => {
-                openModalWithSlideNum(index)
+                let img_index
+
+                if (isRTL) {
+                  img_index = getRTLIndex(props.images.length, index)
+                } else {
+                  img_index = index
+                }
+
+                openModalWithSlideNum(img_index)
               }}
               key={index}
               // whileTap={{ scale: 0.97 }}
@@ -1066,11 +1190,13 @@ export const SlideshowLightbox = (props) => {
         : null}
 
       {/* IF Lightbox identifier provided or props.images provided */}
-      {lightboxIdentifier != false ? props.children : null}
+      {lightboxIdentifier != false && coverMode == false
+        ? props.children
+        : null}
 
-      {lightboxIdentifier == false && props.images
+      {(lightboxIdentifier == false && props.images) || coverMode == true
         ? null
-        : // No lightbox identifier provided
+        : // No lightbox identifier provided or no cover mode
           previewImageElems
             .filter((elem) => elem.type == 'img')
             .map((elem, index) => (
@@ -1080,338 +1206,363 @@ export const SlideshowLightbox = (props) => {
                   elem.props.className ? elem.props.className : ''
                 } cursor-pointer`}
                 onClick={() => {
-                  openModalWithSlideNum(index)
+                  let img_index
+
+                  if (isRTL) {
+                    img_index = getRTLIndex(previewImageElems.length, index)
+                  } else {
+                    img_index = index
+                  }
+
+                  openModalWithSlideNum(img_index)
                 }}
                 key={index}
                 // whileTap={{ scale: 0.97 }}
               />
             ))}
 
+      {coverMode ? props.children : false}
+
       <AnimateSharedLayout type='crossfade'>
         <AnimatePresence initial={false}>
           {showModal !== false && (
             <Portal>
-              <motion.div
-                className='slideshowAnimContainer'
-                key='slideshowAnimContainer'
-                id='slideshowAnim'
-                initial={{ opacity: 0, scale: 0.98 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  duration: 0.2
-                }}
-              >
-                {/* <TransformWrapper
-                          ref={initZoomRef}
-                          onWheel={{ wheelEvent }}
-                          onZoom={zoomEvent}
-                          centerZoomedOut={true}
-                          initialScale={1}
-
-                        >
-                          {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-          <React.Fragment> */}
-
-                <div
-                  className={`lightboxContainer`}
+              <Div100vh>
+                <motion.div
+                  className='slideshowAnimContainer'
+                  key='slideshowAnimContainer'
+                  id='slideshowAnim'
                   style={{
                     backgroundColor: backgroundColor
                   }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    duration: 0.2
+                  }}
                 >
-                  <section
-                    className={
-                      'iconsHeader imageModal ' + arrowStyle + '_header_icon'
-                    }
-                    style={{ color: iconColor }}
-                  >
-                    {showControls && (
-                      <div className='controls'>
-                        <motion.div
-                        // whileTap={{ scale: 0.95 }}
-                        >
-                          <ZoomIn
-                            size={24}
-                            onClick={() => {
-                              zoomReferences.current[zoomIdx].zoomIn()
-                            }}
-                          />
-                        </motion.div>
 
-                        <motion.div
-                        //whileTap={{ scale: 0.95 }}
-                        >
-                          <ZoomOut
-                            size={24}
-                            onClick={() => {
-                              zoomReferences.current[zoomIdx].zoomOut()
-                            }}
-                          />
-                        </motion.div>
-
-                        {showDownloadBtn ? 
-                        <Download size={24} onClick={() => {saveImage()}} /> : null}
-
-                        {isBrowserFullScreen ? (
-                          <motion.div
-                          // whileTap={{ scale: 0.95 }}
-                          >
-                            <FullscreenExit
-                              size={24}
-                              onClick={() => {
-                                isBrowserFullScreen
-                                  ? exitFullScreen()
-                                  : fullScreen()
-                              }}
-                            />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                          // whileTap={{ scale: 0.95 }}
-                          >
-                            <Fullscreen
-                              size={24}
-                              onClick={() => {
-                                isBrowserFullScreen
-                                  ? exitFullScreen()
-                                  : fullScreen()
-                              }}
-                            />
-                          </motion.div>
-                        )}
-
-                        <motion.div
-                        //whileTap={{ scale: 0.95 }}
-                        >
-                          <GridFill
-                            size={24}
-                            onClick={() => {
-                              setShowThumbnails(!showThumbnails)
-                            }}
-                          />
-                        </motion.div>
-
-                        {/* {isMobile ? null : (
-                          <motion.div 
-                          // whileTap={{ scale: 0.95 }}
-                          >
-                            <Search
-                              size={24}
-                              onClick={() => initMagnifyingGlass()}
-                            />
-                          </motion.div>
-                        )} */}
-
-                        <motion.div
-                          // whileTap={{ scale: 0.95 }}
-                          className='slideshowPlayBtn'
-                        >
-                          {isSlideshowPlaying ? (
-                            <PauseCircleFill
-                              size={24}
-                              onClick={() => {
-                                isSlideshowPlaying
-                                  ? stopSlideshow()
-                                  : playSlideshow()
-                              }}
-                            />
-                          ) : (
-                            <PlayCircleFill
-                              size={24}
-                              onClick={() => {
-                                isSlideshowPlaying
-                                  ? stopSlideshow()
-                                  : playSlideshow()
-                              }}
-                            />
-                          )}
-                        </motion.div>
-                      </div>
-                    )}
-
-                    <motion.div
-                      // whileTap={{ scale: 0.95 }}
-                      className='closeIcon'
+                  <div className={`lightboxContainer`}>
+                    <section
+                      className={`iconsHeader imageModal ${
+                        iconColor ? '' : arrowStyle + '_header_icon'
+                      }`}
+                      style={{ color: iconColor }}
                     >
-                      <XLg
-                        size={24}
-                        onClick={() => {
-                          closeModal()
+                      <KeyboardEventHandler
+                        handleKeys={['right', 'left', 'esc']}
+                        onKeyEvent={(key, e) => {
+                          handleKeyPress(key, e)
                         }}
                       />
-                    </motion.div>
-                  </section>
 
-                  <div
-                    className={
-                      rightArrowStyle
-                        ? 'next1 ' + arrowStyle + '_icon imageModal'
-                        : 'imageModal'
-                    }
-                    style={rightArrowStyle}
-                    onClick={() => {
-                      zoomReferences.current[zoomIdx].resetTransform()
-                      setRefIndex(refIndex + 1)
-                      reactSwipeEl.next()
-                      setImgSlideIndex([imgSlideIndex + 1, 1])
-                      setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
-                    }}
-                  >
-                    <span>&#10095;</span>
-                  </div>
-                  <div
-                    className={
-                      leftArrowStyle
-                        ? 'prev1 ' + arrowStyle + '_icon imageModal'
-                        : 'imageModal'
-                    }
-                    style={leftArrowStyle}
-                    onClick={() => {
-                      setRefIndex(refIndex - 1)
-                      reactSwipeEl.prev()
-                      setZoomIdx(
-                        zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1
-                      )
-                      setImgSlideIndex([imgSlideIndex - 1, 1])
-                    }}
-                  >
-                    <span>&#10094;</span>
-                  </div>
+                      {showControls && (
+                        <div className='controls'>
+                          {disableZoom || displayMagnificationIcons == false ? null : (
+                            <motion.div
+                            // whileTap={{ scale: 0.95 }}
+                            >
+                              <ZoomIn
+                                size={24}
+                                onClick={() => {
+                                  if (enableMagnifyingGlass) {
+                                    initMagnifyingGlass()
+                                  }
+                                  if (zoomReferences.current[zoomIdx] != null) {
+                                    zoomReferences.current[zoomIdx].zoomIn()
+                                  }
+                                }}
+                              />
+                            </motion.div>
+                          )}
 
-                  <AnimatePresence initial={false} custom={direction}>
-                    <ReactSwipe
-                      className={`${
-                        showThumbnails
-                          ? 'slideshowInnerContainerThumbnails'
-                          : ''
-                      } ${isImageCaption() ? 'slideImageAndCaption' : ''} 
-                      ${props.fullScreen ? 'slideshowInnerContainerFullScreen' : 'slideshowInnerContainer' }  `}
-                      swipeOptions={reactSwipeOptions}
-                      ref={(el) => (reactSwipeEl = el)}
-                      childCount={images.length}
-                    >
-                      {(props.render && props.images) || frameworkID == 'next'
-                        ? insertContentNodes
-                        : regularImgPaneNodes}
-                    </ReactSwipe>
+                          {disableZoom || displayMagnificationIcons == false ? null : (
+                            <motion.div
+                            //whileTap={{ scale: 0.95 }}
+                            >
+                              <ZoomOut
+                                size={24}
+                                onClick={() => {
+                                  zoomReferences.current[zoomIdx].zoomOut()
+                                }}
+                              />
+                            </motion.div>
+                          )}
 
-                    {shouldDisplayLoader() ? null : (
-                      <span
-                        key='loader'
-                        className={`loader ${getLoaderThemeClass()}`}
-                      ></span>
-                    )}
-                  </AnimatePresence>
+                          {showDownloadBtn ? (
+                            <Download
+                              size={24}
+                              onClick={() => {
+                                saveImage()
+                              }}
+                            />
+                          ) : null}
 
-                  <div
-                    className={`thumbnailsOuterContainer imageModal ${
-                      isImageCaption() ? 'thumbnailsAndCaption' : ''
-                    }`}
-                    style={
-                      isImageCaption()
-                        ? {
-                            backgroundColor: backgroundColor
-                          }
-                        : {}
-                    }
-                  >
-                    {isImageCaption() && !zoomedIn ? (
-                      <div className='imgTitleContainer'>
-                        <p
-                          className='imgTitle'
-                          key={'imgCaption' + imageIndex}
-                          style={
-                            props.captionStyle
-                              ? props.captionStyle
-                              : { color: textColor }
-                          }
-                        >
-                          {props.images[imageIndex].caption}
-                        </p>
-                      </div>
-                    ) : null}
+                          {displayFullScreenIcon ? (
+                            isBrowserFullScreen ? (
+                              <motion.div
+                              // whileTap={{ scale: 0.95 }}
+                              >
+                                <FullscreenExit
+                                  size={24}
+                                  onClick={() => {
+                                    isBrowserFullScreen
+                                      ? exitFullScreen()
+                                      : fullScreen()
+                                  }}
+                                />
+                              </motion.div>
+                            ) : (
+                              <motion.div
+                              // whileTap={{ scale: 0.95 }}
+                              >
+                                <Fullscreen
+                                  size={24}
+                                  onClick={() => {
+                                    isBrowserFullScreen
+                                      ? exitFullScreen()
+                                      : fullScreen()
+                                  }}
+                                />
+                              </motion.div>
+                            )
+                          ) : null}
 
-                    <AnimatePresence initial={animatedThumbnails}>
-                      {showThumbnails !== false && (
-                        <motion.div
-                          initial={'hidden'}
-                          exit={'hidden'}
-                          animate={'visible'}
-                          style={
-                            imagesLoaded ? {} : { display: 'displayHidden' }
-                          }
-                          transition={{
-                            type: 'spring',
-                            duration: 0.75
+                          {displayThumbnailIcon ? (
+                            <motion.div
+                            //whileTap={{ scale: 0.95 }}
+                            >
+                              <GridFill
+                                size={24}
+                                onClick={() => {
+                                  setShowThumbnails(!showThumbnails)
+                                }}
+                              />
+                            </motion.div>
+                          ) : null}
+
+                          {shouldDisplayMagnifyingGlassIcon() ? (
+                            <motion.div
+                            // whileTap={{ scale: 0.95 }}
+                            >
+                              <Search
+                                size={24}
+                                onClick={() => initMagnifyingGlass()}
+                              />
+                            </motion.div>
+                          ) : null}
+
+                          {displaySlideshowIcon ? (
+                            <motion.div
+                              // whileTap={{ scale: 0.95 }}
+                              className='slideshowPlayBtn'
+                            >
+                              {isSlideshowPlaying ? (
+                                <PauseCircleFill
+                                  size={24}
+                                  onClick={() => {
+                                    isSlideshowPlaying
+                                      ? stopSlideshow()
+                                      : playSlideshow()
+                                  }}
+                                />
+                              ) : (
+                                <PlayCircleFill
+                                  size={24}
+                                  onClick={() => {
+                                    isSlideshowPlaying
+                                      ? stopSlideshow()
+                                      : playSlideshow()
+                                  }}
+                                />
+                              )}
+                            </motion.div>
+                          ) : null}
+                        </div>
+                      )}
+
+                      <motion.div
+                        // whileTap={{ scale: 0.95 }}
+                        className='closeIcon'
+                      >
+                        <XLg
+                          size={24}
+                          onClick={() => {
+                            closeModal()
                           }}
-                          variants={thumbnailVariants}
-                          className={`thumbnails rounded-sm mx-auto ${
-                            isImageCaption() ? 'thumbnailsWithCaption' : ''
-                          }`}
-                        >
-                          <ScrollContainer
-                            className='scroll-container'
-                            vertical={false}
-                            horizontal={true}
-                            hideScrollbars={false}
-                          >
-                            {frameworkID == 'next' &&
-                            imagesMetadata &&
-                            props.images
-                              ? imagesMetadata.map((img, index) => (
-                                  <img
-                                    className={
-                                      'thumbnail ' +
-                                      (imageIndex === index ? 'active' : '')
-                                    }
-                                    src={getThumbnailImgSrc(img.src)}
-                                    style={
-                                      imageIndex === index
-                                        ? { border: activeThumbnailBorder }
-                                        : { border: thumbnailBorder }
-                                    }
-                                    key={index}
-                                    onClick={() => {
-                                      setCurrentSlide(index)
-                                    }}
-                                    alt={img.alt}
-                                    onLoad={() => setImagesLoaded(true)}
-                                  />
-                                  // <span style={{color: "white"}}>{index}</span>
-                                ))
-                              : // Not Next.js
-                                images.map((img, index) => (
-                                  <img
-                                    className={
-                                      'thumbnail ' +
-                                      (imageIndex === index ? 'active' : '')
-                                    }
-                                    src={img.src}
-                                    style={
-                                      imageIndex === index
-                                        ? { border: activeThumbnailBorder }
-                                        : { border: thumbnailBorder }
-                                    }
-                                    key={index}
-                                    onClick={() => {
-                                      setCurrentSlide(index)
-                                    }}
-                                    alt={img.alt}
-                                    onLoad={() => setImagesLoaded(true)}
-                                  />
-                                  // <span style={{color: "white"}}>{index}</span>
-                                ))}
-                          </ScrollContainer>
-                        </motion.div>
+                        />
+                      </motion.div>
+                    </section>
+
+                    <div
+                      className={
+                        rightArrowStyle
+                          ? 'next1 ' + arrowStyle + '_icon imageModal'
+                          : 'imageModal'
+                      }
+                      style={rightArrowStyle}
+                      onClick={() => {
+                        nextImage()
+                      }}
+                    >
+                       <span>&#10095;</span>
+                    </div>
+                    <div
+                      className={
+                        leftArrowStyle
+                          ? 'prev1 ' + arrowStyle + '_icon imageModal'
+                          : 'imageModal'
+                      }
+                      style={leftArrowStyle}
+                      onClick={() => {
+                        prevImage()
+                      }}
+                    >
+                      {/* {prevArrow} */}
+                      <span>&#10094;</span>
+                    </div>
+
+                    <AnimatePresence initial={false} custom={direction}>
+                      <ReactSwipe
+                        className={`${
+                          showThumbnails
+                            ? 'slideshowInnerContainerThumbnails'
+                            : ''
+                        } ${isImageCaption() ? 'slideImageAndCaption' : ''} 
+                      ${
+                        props.fullScreen
+                          ? 'slideshowInnerContainerFullScreen'
+                          : 'slideshowInnerContainer'
+                      }  `}
+                        swipeOptions={reactSwipeOptions}
+                        ref={(el) => (reactSwipeEl = el)}
+                        childCount={images.length}
+                      >
+                        {(props.render && props.images) || frameworkID == 'next'
+                          ? insertContentNodes
+                          : regularImgPaneNodes}
+                      </ReactSwipe>
+
+                      {shouldDisplayLoader() ? null : (
+                        <span
+                          key='loader'
+                          className={`loader ${getLoaderThemeClass()}`}
+                        ></span>
                       )}
                     </AnimatePresence>
-                  </div>
-                </div>
-                {/* </React.Fragment> */}
-                {/* )} */}
 
-                {/* </TransformWrapper>      */}
-              </motion.div>
+                    <div
+                      className={`thumbnailsOuterContainer imageModal ${
+                        isImageCaption() ? 'thumbnailsAndCaption' : ''
+                      }`}
+                      style={
+                        isImageCaption()
+                          ? {
+                              backgroundColor: backgroundColor
+                            }
+                          : {}
+                      }
+                    >
+                      {isImageCaption() && !zoomedIn ? (
+                        <div className='imgTitleContainer'>
+                          <p
+                            className='imgTitle'
+                            key={'imgCaption' + imageIndex}
+                            style={
+                              props.captionStyle
+                                ? props.captionStyle
+                                : { color: textColor }
+                            }
+                          >
+                            {imagesMetadata[imageIndex].caption}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      <AnimatePresence initial={animatedThumbnails}>
+                        {showThumbnails !== false && (
+                          <motion.div
+                            initial={'hidden'}
+                            exit={'hidden'}
+                            animate={'visible'}
+                            style={
+                              imagesLoaded ? {} : { display: 'displayHidden' }
+                            }
+                            transition={{
+                              type: 'spring',
+                              duration: 0.75
+                            }}
+                            variants={thumbnailVariants}
+                            className={`thumbnails rounded-sm mx-auto ${
+                              isImageCaption() ? 'thumbnailsWithCaption' : ''
+                            }`}
+                          >
+                            <ScrollContainer
+                              className='scroll-container'
+                              vertical={false}
+                              horizontal={true}
+                              hideScrollbars={false}
+                            >
+                              {frameworkID == 'next' &&
+                              imagesMetadata &&
+                              props.images
+                                ? imagesMetadata.map((img, index) => (
+                                    <img
+                                      className={`thumbnail`}
+                                      src={getThumbnailImgSrc(img.src)}
+                                      style={
+                                        imageIndex === index
+                                          ? { border: thumbnailBorder }
+                                          : { border: inactiveThumbnailBorder }
+                                      }
+                                      key={index}
+                                      onClick={() => {
+                                        resetImage()
+                                        let slideIndex
+                                        if (isRTL) {
+                                          slideIndex = getRTLIndex(
+                                            imagesMetadata.length,
+                                            index
+                                          )
+                                        } else {
+                                          slideIndex = index
+                                        }
+                                        setCurrentSlide(index)
+                                      }}
+                                      alt={img.alt}
+                                      onLoad={() => setImagesLoaded(true)}
+                                    />
+                                  ))
+                                : // Not Next.js
+                                  images.map((img, index) => (
+                                    <img
+                                      src={img.src}
+                                      style={
+                                        imageIndex === index
+                                          ? { border: thumbnailBorder }
+                                          : { border: inactiveThumbnailBorder }
+                                      }
+                                      className={'thumbnail '}
+                                      key={index}
+                                      onClick={() => {
+                                        resetImage()
+                                        setCurrentSlide(index)
+                                      }}
+                                      alt={img.alt}
+                                      onLoad={() => setImagesLoaded(true)}
+                                    />
+                                    // <span style={{color: "white"}}>{index}</span>
+                                  ))}
+                            </ScrollContainer>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+
+                </motion.div>
+              </Div100vh>
             </Portal>
           )}
         </AnimatePresence>

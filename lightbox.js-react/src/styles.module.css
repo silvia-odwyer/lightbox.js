@@ -34,7 +34,7 @@
 .prev1 span:hover, .next1:hover, .icon:hover {
   text-decoration: none;
   cursor: pointer;
-  color: rgb(230, 230, 230);
+  /* color: rgb(230, 230, 230); */
 }
 
 /* On hover, add a black background color with a little bit see-through */
@@ -96,6 +96,10 @@ img.hoverShadow {
   padding-right: 2vw;
 }
 
+.thumbnails {
+  transition: border 0.3s;
+}
+
 .thumbnails img {
   display: inline;
 }
@@ -110,13 +114,17 @@ img.hoverShadow {
     height: 67vw;
     width: 60%;
   }
-  
 
+  
   .thumbnailsOuterContainer {
     position: fixed;
     bottom: 5%;
     width: 100vw;
     /* width: 100%; */
+  }
+
+  .videoThumbnailsOuterContainer {
+    bottom: 2%;
   }
 
   .imgTitleContainer {
@@ -171,6 +179,10 @@ img.hoverShadow {
   /* width: 100%; */
 }
 
+.videoThumbnailsOuterContainer {
+  bottom: 5%;
+}
+
 .thumbnailsAndCaption {
   height: 20vh;
 }
@@ -192,8 +204,9 @@ img.hoverShadow {
 
 .slideshowAnimContainer {
   width: 99vw;
-  height: 100vh;
+  height: 100%;
   max-height: 100%;
+  direction: ltr;
   overflow: hidden;
   touch-action: none;
   padding: 0;
@@ -262,6 +275,10 @@ img.hoverShadow {
   z-index: 1000000;
 } 
 
+.slideshowInnerVideoContainer {
+  top: 6%;
+}
+
 .slideshowInnerContainerThumbnails {
   top: 12%;
 }
@@ -272,7 +289,7 @@ img.hoverShadow {
 
 .lightboxContainer {
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   position: relative;
   display: flex;
   justify-content: center;
@@ -319,14 +336,39 @@ img.hoverShadow {
   position: absolute;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  /* align-items: center;
+  justify-content: center; */
   cursor: pointer;
   top: 10px;
-  right: 45px;
+  
+  right: 45px; 
   z-index: 999999999;
-  padding: 0.14vw;
+  /* padding: 0.14vw; */
 
+}
+
+.ytVideo {
+  aspect-ratio: 16 / 9;
+  height: 65vh;
+  width: 100%;
+}
+
+.videoOuterContainer {
+  width: 65%;
+  margin-left: auto; 
+  margin-right: auto;
+}
+
+.htmlVideoOuterContainer {
+  width: 80%;
+  margin-left: auto; 
+  margin-right: auto;
+}
+
+.videoIconsHeader {
+  position: fixed;
+  top: 4%;
+  right: 3%; 
 }
 
 .lightbox .iconsHeader svg {
@@ -366,21 +408,10 @@ img.hoverShadow {
   /* width: 32px;  */
 }
 
-.btnControls {
-  position: fixed; 
-  display: flex; 
-  flex-direction: row; 
-  top: 0; 
-  right: 0
-}
-
 @media screen and (min-width: 6em) {
   .iconsHeader {
     top: 3%;
-    right: 5%;
   }
-
-
 
   .slideshowAnimContainer {
     width: 100vw;
@@ -423,7 +454,6 @@ img.hoverShadow {
     /* width: 80vw; 
     margin-top: 10vh;
     height: 48vh;  */
-    max-width: 80%;
     max-height: 100%;
   }
 
@@ -666,22 +696,57 @@ img.hoverShadow {
 }
 
 .thumbnails .active {
-  border: solid rgb(107, 133, 206) 4px; 
+  border: solid rgb(107, 133, 206) 2px; 
+}
+
+.inactiveThumbnailBorder {
+  border: solid transparent 2px;
 }
 
 .thumbnails {
   width: 95%;
 }
 
+
 @media screen and (max-width: 29em) {
   .fullScreenContainer img {
     object-fit: cover;
+  }
+
+  .htmlVideo {
+    margin-top: 9vh;
   }
 
   .thumbnails {
     width: 85%;
   }  
 
+  .videoIconsHeader {
+    position: fixed;
+    top: 2%;
+    right: 15px; 
+  }
+
+  .videoOuterContainer {
+    width: 88%;
+    margin-left: auto; 
+    margin-right: auto;
+  }
+  
+  .htmlVideoOuterContainer {
+    width: 94%;
+    margin-left: auto; 
+    margin-right: auto;
+  }
+
+  .iconsHeader {
+    position: fixed;
+    left: 115px;
+  }
+
+  .slideshowInnerVideoContainer {
+    top: 3%;
+  }
 
 
   .next1, .prev1 {
@@ -760,7 +825,7 @@ img.hoverShadow {
   margin-right: auto;
 }
 
-#img {
+/* #img {
   max-width: 100%;
   max-height: 100%;
   margin: auto;
@@ -768,7 +833,7 @@ img.hoverShadow {
   margin-left: auto;
   margin-right: auto;
   
-}
+} */
 
 .magnifier-image {
   margin-left: auto;
@@ -811,7 +876,7 @@ img.hoverShadow {
 }
 
 .lightbox_img {
-  max-width: 100%;
+  /* max-width: 100%; */
   max-height: 100%; 
   margin-left:auto;
   margin-right: auto;
@@ -844,9 +909,89 @@ img.hoverShadow {
 
 .slideshowAnimContainer {
   -ms-overflow-style: none; 
-  scrollbar-width: none;  
+  /* scrollbar-width: none;   */
 }
 .thumbnails::-webkit-scrollbar { 
   display: none;  
 }
 
+.roundedBorder {
+  border-radius: 20px;
+}
+
+.maxWidthFull {
+  max-width: 100%;
+}
+
+.maxWidthWithoutMagnifier {
+  max-width: 80%;
+}
+
+@media screen and (max-width: 880px) {
+  .iconsHeader {
+    position: fixed;
+    right: 5%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .iconsHeader {
+    position: fixed;
+    left: 180px;
+  }
+}
+
+@media screen and (max-width: 440px) {
+  .iconsHeader {
+    position: fixed;
+    left: 160px;
+  }
+}
+
+@media screen and (max-width: 410px) {
+  .iconsHeader {
+    position: fixed;
+    left: 140px;
+  }
+}
+
+@media screen and (max-width: 385px) {
+  .iconsHeader {
+    position: fixed;
+    left: 120px;
+  }
+}
+
+
+@media screen and (max-width: 365px) {
+  .iconsHeader {
+    position: fixed;
+    left: 90px;
+  }
+}
+
+@media screen and (max-width: 345px) {
+  .iconsHeader {
+    position: fixed;
+    left: 70px;
+  }
+}
+
+@media screen and (max-width: 325px) {
+  .iconsHeader {
+    position: fixed;
+    left: 50px;
+  }
+}
+
+@media screen and (max-width: 300px) {
+  .iconsHeader {
+    position: fixed;
+    left: 30px;
+  }
+}
+
+.lightboxVideo {
+  margin-left: auto;
+  margin-right: auto;
+}
