@@ -30,7 +30,9 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import ReactSwipe from 'react-swipe'
 import { saveAs } from 'file-saver'
 import Div100vh from 'react-div-100vh'
-import KeyboardEventHandler from 'react-keyboard-event-handler'
+// import KeyboardEventHandler from 'react-keyboard-event-handler'
+import KeyHandler, { KEYPRESS, NORMALIZED_KEYS } from 'react-key-handler';
+import useKey from 'use-key-hook';
 
 let thumbnailVariants = {
   visible: { opacity: 1, y: 0 },
@@ -214,6 +216,8 @@ export const SlideshowLightbox = (props) => {
     if (ref) setZoomBtnRef(ref)
     else setZoomBtnRef(null)
   }
+
+
 
   const shouldDisplayLoader = () => {
     if (imgSlideIndex) {
@@ -1158,7 +1162,7 @@ export const SlideshowLightbox = (props) => {
     }
   }, [])
 
-  let reactSwipeEl
+  var reactSwipeEl
 
   return (
     <div className={`${props.className} lightboxjs`}>
@@ -1250,12 +1254,15 @@ export const SlideshowLightbox = (props) => {
                       }`}
                       style={{ color: iconColor }}
                     >
-                      <KeyboardEventHandler
-                        handleKeys={['right', 'left', 'esc']}
-                        onKeyEvent={(key, e) => {
-                          handleKeyPress(key, e)
-                        }}
-                      />
+                    
+                      <KeyHandler keyValue={"ArrowLeft"} code={"37"} onKeyHandle={() => {prevImage()}} />
+                      <KeyHandler keyValue={"ArrowRight"} code={"39"} onKeyHandle={() => {nextImage()}} />
+                      <KeyHandler keyValue={"Escape"} code={"27"} onKeyHandle={() => {if (!isBrowserFullScreen) {closeModal()}}} />
+
+                      {/* Support for Internet Explorer and Edge key values  */}
+                      <KeyHandler keyValue={"Left"} code={"37"} onKeyHandle={() => {prevImage()}} />
+                      <KeyHandler keyValue={"Right"} code={"39"} onKeyHandle={() => {nextImage()}} />
+                      <KeyHandler keyValue={"Esc"} code={"27"} onKeyHandle={() => {if (!isBrowserFullScreen) {closeModal()}}} />
 
                       {showControls && (
                         <div className='controls'>
