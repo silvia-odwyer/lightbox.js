@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion'
 import {
   useInterval,
@@ -8,7 +8,6 @@ import {
   closeFullScreen,
   swipePower
 } from './utility'
-// import { MapInteractionCSS } from '@silvia-odwyer/react-map-interaction-fork'
 import {
   ZoomIn,
   ZoomOut,
@@ -30,16 +29,12 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import ReactSwipe from 'react-swipe'
 import { saveAs } from 'file-saver'
 import Div100vh from 'react-div-100vh'
-// import KeyboardEventHandler from 'react-keyboard-event-handler'
-import KeyHandler, { KEYPRESS, NORMALIZED_KEYS } from 'react-key-handler';
-import useKey from 'use-key-hook';
+import KeyHandler, { KEYPRESS } from 'react-key-handler'
 
 let thumbnailVariants = {
   visible: { opacity: 1, y: 0 },
   hidden: { opacity: 0, y: 100 }
 }
-
-const defaultMapInteractionValue = { scale: 1, translation: { x: 0, y: 0 } }
 
 const themes = {
   day: {
@@ -69,18 +64,10 @@ const arrowStyles = {
   dark: { background: '#151515', color: 'silver' }
 }
 
-const swipeConfidenceThreshold = 10000
 const opacityDuration = 0.2
 const imgSwipeDirection = 'x'
 const defaultTheme = 'night'
 const mobileWidth = 768
-const animTransitionDefault = {
-  x: { type: 'spring', stiffness: 300, damping: 30 },
-  opacity: { duration: opacityDuration }
-}
-const slideshowAnimTransition = {
-  opacity: { duration: opacityDuration }
-}
 
 export const SlideshowLightbox = (props) => {
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0])
@@ -174,19 +161,14 @@ export const SlideshowLightbox = (props) => {
   const [licenseKey, setLicenseKey] = useState(
     props.licenseKey ? props.licenseKey : ''
   )
-  const [lockAxisY, setLockAxisY] = useState(false)
   const [showLoader, setShowLoader] = useState(
     props.showLoader ? props.showLoader : false
   )
-  const [isZoomed, setIsZoomed] = useState(false)
-  const [animTransition, setAnimTransition] = useState(animTransitionDefault)
-  const [panImage, setPanImage] = useState(true)
-  const [zoomImg, setZoomImg] = useState(0)
+  const [videoCurrentlyPlaying, setVideoCurrentlyPlaying] = useState(false)
+  const [isYtVideo, setIsYtVideo] = useState(false)
+
   const [width, setWidth] = useState(0)
-  const [mapInteractionValue, setMapInteractionValue] = useState(
-    defaultMapInteractionValue
-  )
-  const [imgSwipeMotion, setImgSwipeMotion] = useState(imgSwipeDirection)
+
   const [isBrowserFullScreen, setIsBrowserFullScreen] = useState(false)
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false)
   const [imagesLoaded, setImagesLoaded] = useState(false)
@@ -199,12 +181,6 @@ export const SlideshowLightbox = (props) => {
   const [imgContainHeight, setImgContainHeight] = useState(500)
   const [imgContainWidth, setImgContainWidth] = useState(426)
   const [isInit, setIsInit] = useState(false)
-  const [imgElems, setImgElems] = useState(false)
-
-  const [usesDataAttr, setUsesDataAttr] = useState(false)
-
-  // Thumbnails slider
-  const [scrollLeft, setScrollLeft] = useState(false)
 
   // Refs
   const zoomRef = useRef(null)
@@ -212,12 +188,12 @@ export const SlideshowLightbox = (props) => {
   const [zoomRefs, setZoomRefs] = useState([])
   const zoomReferences = useRef([])
 
+  const videoReferences = useRef({})
+
   const initZoomRef = (ref) => {
     if (ref) setZoomBtnRef(ref)
     else setZoomBtnRef(null)
   }
-
-
 
   const shouldDisplayLoader = () => {
     if (imgSlideIndex) {
@@ -299,18 +275,6 @@ export const SlideshowLightbox = (props) => {
 
   const isMobile = width <= mobileWidth
 
-  const [coverImageElem, setCoverImageElem] = useState(null)
-
-  const handleKeyPress = (key, event) => {
-    if (key == 'right') {
-      nextImage()
-    } else if (key == 'left') {
-      prevImage()
-    } else if (key == 'esc' && !isBrowserFullScreen) {
-      closeModal()
-    }
-  }
-
   const isImageCaption = () => {
     if (props.images && props.images[imageIndex].caption) {
       return true
@@ -365,18 +329,33 @@ export const SlideshowLightbox = (props) => {
   }
 
   const fullScreen = () => {
+
     let lightbox = document.getElementById('slideshowAnim')
     openFullScreen(lightbox)
     setIsBrowserFullScreen(true)
     initFullScreenChangeEventListeners()
   }
 
-  const exitFullScreen = () => {
-    if (isBrowserFullScreen) {
-      closeFullScreen(document)
-      setIsBrowserFullScreen(false)
-      removeFullScreenChangeEventListeners()
+  const exitFullScreenHandler = () => {
+    //in full screen mode
+    if (document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement) {
+      setIsBrowserFullScreen(true)
     }
+    else {
+      if (isBrowserFullScreen) {
+        closeFullScreen(document)
+
+      }
+      removeFullScreenChangeEventListeners()
+      setIsBrowserFullScreen(false);
+    }
+
+  }
+
+  const exitFullScreen = () => {
+    closeFullScreen(document)
+    removeFullScreenChangeEventListeners()
+    setIsBrowserFullScreen(false);
   }
 
   const updateImageSlideshow = (newDirection) => {
@@ -386,7 +365,6 @@ export const SlideshowLightbox = (props) => {
       reactSwipeEl.next()
     }
 
-    resetMapInteraction()
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection])
     if (isRTL) {
       setRefIndex(refIndex - 1)
@@ -398,12 +376,6 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const resetMapInteraction = () => {
-    setPanImage(true)
-    setMapInteractionValue({ scale: 1, translation: { x: 0, y: 0 } })
-    setIsZoomed(false)
-  }
-
   const setCurrentSlide = (newIndex) => {
     let newDirection
     if (newIndex > imgSlideIndex) {
@@ -412,8 +384,6 @@ export const SlideshowLightbox = (props) => {
       newDirection = -1
     }
 
-    setAnimTransition(slideshowAnimTransition)
-    resetMapInteraction()
     setZoomIdx(newIndex)
 
     setImgSlideIndex([newIndex, newDirection])
@@ -433,8 +403,6 @@ export const SlideshowLightbox = (props) => {
       setIsSlideshowPlaying(false)
     }
 
-    resetMapInteraction()
-    setIsZoomed(false)
     setShowModal(false)
   }
 
@@ -443,20 +411,32 @@ export const SlideshowLightbox = (props) => {
     setShowModal(true)
   }
 
-  const nextImage = () => {
+  const nextSlide = () => {
+    resetVideo();
     resetImage()
     reactSwipeEl.next()
     setRefIndex(refIndex + 1)
     setImgSlideIndex([imgSlideIndex + 1, 1])
-    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
+    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1);
   }
 
-  const prevImage = () => {
+  const prevSlide = () => {
+    resetVideo();
     resetImage()
     reactSwipeEl.prev()
     setRefIndex(refIndex - 1)
     setZoomIdx(zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1)
     setImgSlideIndex([imgSlideIndex - 1, 1])
+  }
+
+  const pauseVideo = () => {
+    if (videoCurrentlyPlaying) {
+      videoReferences.current[imageIndex].pause()
+    }
+    if (isYtVideo) {
+
+    }
+    setVideoCurrentlyPlaying(false)
   }
 
   const openModalWithSlideNum = (index) => {
@@ -481,7 +461,6 @@ export const SlideshowLightbox = (props) => {
 
   const playSlideshow = () => {
     setMagnifyingGlass(false)
-    setAnimTransition(slideshowAnimTransition)
     if (isRTL) {
       updateImageSlideshow(-1)
     } else {
@@ -491,8 +470,20 @@ export const SlideshowLightbox = (props) => {
   }
 
   const stopSlideshow = () => {
-    setAnimTransition(animTransitionDefault)
     setIsSlideshowPlaying(false)
+  }
+
+  const resetVideo =() => {
+    if (videoCurrentlyPlaying) {
+      pauseVideo();
+    }
+    if (props.images) {
+      if (props.images[imageIndex].type == "yt") {
+        let elem = props.images[imageIndex];
+        videoReferences.current[imageIndex].src = `https://www.youtube.com/embed/${elem.videoID}?${shouldAutoplay(elem) ? "autoplay=1" : ""}`
+      }
+      
+    }
   }
 
   const resetImage = () => {
@@ -515,28 +506,6 @@ export const SlideshowLightbox = (props) => {
     } else {
       return img_src
     }
-  }
-
-  const reinitZoomSettings = (value) => {
-    // if user zoomed in
-    if (value.scale > mapInteractionValue.scale) {
-      setIsZoomed(true)
-      initSmoothZoom()
-    }
-    // if user zoomed out
-    else if (value.scale < mapInteractionValue.scale) {
-      setIsZoomed(false)
-      initSmoothZoom()
-    }
-
-    // user panned image, did not zoom
-    else {
-      removeSmoothZoom()
-    }
-  }
-
-  const updateImgSwipeMotion = (swipeDirection) => {
-    setImgSwipeMotion(swipeDirection)
   }
 
   const initStyling = () => {
@@ -628,6 +597,85 @@ export const SlideshowLightbox = (props) => {
     return imageElem
   }
 
+  const isVideo = (elem) => {
+    if (elem.type == 'yt' || elem.type == 'htmlVideo') {
+      return true
+    }
+    return false
+  }
+
+  const shouldAutoplay = (elem) => {
+    // Autoplay for HTML5 Video elems set to true by default
+    // Autoplay is off by default for YouTube embeds 
+
+    if (elem.type == "yt" && (elem.autoPlay != true && elem.autoPlay != "true")) {
+        return false;
+    }
+    else if (elem.autoPlay == false || elem.autoPlay == "false") {
+      return false;
+    }
+    return true;
+
+  }
+
+  const getVideoHeight = (elem) => {
+    if (elem.videoHeight) {
+      return elem.videoHeight
+    }
+    return 500;
+  }
+
+  const getVideoWidth = (elem) => {
+    if (elem.videoWidth) {
+      return elem.videoWidth
+    }
+    return 900;
+  }
+
+  const videoSlideElement = (elem, index) => {
+
+    let videoElem
+    if (elem.type == 'yt') {
+
+      videoElem = (
+        <div className='videoOuterContainer'>
+          <iframe
+            className='ytVideo'
+            width={getVideoWidth(elem)}
+            height={getVideoHeight(elem)}
+            ref={(el) => (videoReferences.current[index] = el)}
+            src={`https://www.youtube.com/embed/${elem.videoID}?${shouldAutoplay(elem) ? "autoplay=1" : ""}`}
+            title='YouTube video player'
+            frameBorder='0'
+            allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+            allowFullScreen
+            
+          ></iframe>
+        </div>
+      )
+    } else if (elem.type == 'htmlVideo') {
+
+      videoElem = (
+        <div className='htmlVideo htmlVideoOuterContainer'>
+          <video
+            className={`cursor-pointer lightboxVideo`}
+            // key={props.id}
+            width={getVideoWidth(elem)}
+            ref={(el) => (videoReferences.current[index] = el)}
+            onPlay={() => {setVideoCurrentlyPlaying(true)}}
+            height={getVideoHeight(elem)}
+            autoPlay={index == imgSlideIndex ? shouldAutoplay(elem) : ""}
+            controls
+          >
+            <source src={elem.videoSrc} type='video/mp4' />
+          </video>
+        </div>
+      )
+    }
+
+    return videoElem
+  }
+
   const regularImgPaneNodes = Array.apply(null, Array(images.length)).map(
     (_, index) => {
       return (
@@ -644,7 +692,7 @@ export const SlideshowLightbox = (props) => {
                 height: imgContainHeight
               }}
             />
-          ) : 1 == 1 ? (
+          ) : (
             <div className='slidePane'>
               <TransformWrapper
                 ref={(el) => (zoomReferences.current[index] = el)}
@@ -685,102 +733,42 @@ export const SlideshowLightbox = (props) => {
                         : 'slideshow_img'
                     }`}
                   >
-                    <img
-                      className={`${
-                        props.fullScreen
-                          ? 'fullScreenLightboxImg'
-                          : 'lightbox_img'
-                      } 
+                    {isVideo(props.images[index]) ? (
+                      videoSlideElement(props.images[index], index)
+                    ) : (props.images && props.render) ||
+                      frameworkID == 'next' ? (
+                      imageSlideElement(index)
+                    ) : (
+                      <img
+                        className={`${
+                          props.fullScreen
+                            ? 'fullScreenLightboxImg'
+                            : 'lightbox_img'
+                        } 
                       ${
                         enableMagnifyingGlass
                           ? ' maxWidthFull'
                           : ' maxWidthWithoutMagnifier'
                       }`}
-                      ref={imageRef}
-                      loading='lazy'
-                      style={isRounded ? { borderRadius: '20px' } : {}}
-                      src={
-                        props.images && props.images[index].original
-                          ? imagesMetadata[index].original
-                          : images[index].src
-                      }
-                      onLoad={() => {
-                        images[index]['loaded'] = true
-                      }}
-                      id='img'
-                    />
+                        ref={imageRef}
+                        loading='lazy'
+                        style={isRounded ? { borderRadius: '20px' } : {}}
+                        src={
+                          props.images && props.images[index].original
+                            ? imagesMetadata[index].original
+                            : images[index].src
+                        }
+                        onLoad={() => {
+                          images[index]['loaded'] = true
+                        }}
+                        id='img'
+                      />
+                    )}
                   </div>
                 </TransformComponent>
               </TransformWrapper>
             </div>
-          ) : null}
-        </div>
-      )
-    }
-  )
-
-  const insertContentNodes = Array.apply(null, Array(images.length)).map(
-    (_, index) => {
-      return (
-        <div key={index}>
-          {enableMagnifyingGlass == true ? (
-            <Magnifier
-              src={images[index].src}
-              className='imageModal mx-auto mt-0 magnifyWrapper'
-              height={imgContainHeight}
-              width={imgContainWidth}
-              mgShowOverflow={false}
-              style={{
-                width: imgContainWidth,
-                height: imgContainHeight
-              }}
-            />
-          ) : 1 == 1 ? (
-            <div>
-              <TransformWrapper
-                ref={(el) => (zoomReferences.current[index] = el)}
-                onWheel={{ wheelEvent }}
-                key={index}
-                onZoom={zoomEvent}
-                centerZoomedOut={true}
-                initialScale={1}
-              >
-                <TransformComponent
-                  wrapperStyle={{
-                    width: '100vw',
-                    height: '100vh',
-                    margin: 'auto'
-                  }}
-                  contentStyle={
-                    fullScreen
-                      ? {
-                          width: '100vw',
-                          height: '100vh',
-                          marginLeft: 'auto',
-                          marginRight: 'auto'
-                        }
-                      : {
-                          width: '100vw',
-                          height: '100vh',
-                          margin: 'auto',
-                          display: 'grid'
-                        }
-                  }
-                  key={index}
-                >
-                  <div
-                    className={`${
-                      props.fullScreen
-                        ? 'slideshow_img_fullscreen'
-                        : 'slideshow_img'
-                    }`}
-                  >
-                    {imageSlideElement(index)}
-                  </div>
-                </TransformComponent>
-              </TransformWrapper>
-            </div>
-          ) : null}
+          )}
         </div>
       )
     }
@@ -810,32 +798,6 @@ export const SlideshowLightbox = (props) => {
       width = img.width
       height = img.width / ratio
     }
-
-    // let imageContainerH, imageContainerW;
-    // if (isMobile) {
-    //   imageContainerW = 0.92
-
-    //   // horizontal image
-    //   if (img.naturalWidth > img.naturalHeight) {
-    //     imageContainerH = 0.65
-    //   }
-    //   //vertical image
-    //   else {
-    //     imageContainerH = 0.57
-    //   }
-
-    //   // remove dragging motion
-    // } else {
-    //   imageContainerW = 0.92
-    //   imageContainerH = 0.71
-    // }
-
-    // let { width, height, x, y } = contain(
-    //   screen.width * imageContainerW,
-    //   screen.height * imageContainerH,
-    //   img.naturalWidth,
-    //   img.naturalHeight
-    // )
 
     setImgContainHeight(height)
     setImgContainWidth(width)
@@ -890,30 +852,21 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const removeSmoothZoom = () => {
-    if (!enableMagnifyingGlass) {
-      let imgElem = document.getElementById('img')
-
-      let container = imgElem.parentElement
-      container.style.transition = ''
-    }
-  }
-
   const initFullScreenChangeEventListeners = () => {
-    document.addEventListener('fullscreenchange', exitFullScreen)
-    document.addEventListener('webkitfullscreenchange', exitFullScreen)
-    document.addEventListener('MSFullscreenChange', exitFullScreen)
-    document.addEventListener('mozfullscreenchange', exitFullScreen)
+    document.addEventListener('fullscreenchange', exitFullScreenHandler)
+    document.addEventListener('webkitfullscreenchange', exitFullScreenHandler)
+    document.addEventListener('MSFullscreenChange', exitFullScreenHandler)
+    document.addEventListener('mozfullscreenchange', exitFullScreenHandler)
   }
 
   const removeFullScreenChangeEventListeners = () => {
-    document.removeEventListener('fullscreenchange', exitFullScreen)
-    document.removeEventListener('webkitfullscreenchange', exitFullScreen)
-    document.removeEventListener('MSFullscreenChange', exitFullScreen)
-    document.removeEventListener('mozfullscreenchange', exitFullScreen)
+    document.removeEventListener('fullscreenchange', exitFullScreenHandler)
+    document.removeEventListener('webkitfullscreenchange', exitFullScreenHandler)
+    document.removeEventListener('MSFullscreenChange', exitFullScreenHandler)
+    document.removeEventListener('mozfullscreenchange', exitFullScreenHandler)
   }
 
-  const initKeyboardEventListeners = () => {
+  const initEventListeners = () => {
     // document.addEventListener('keydown', keyPressHandler, false)
     // document.addEventListener('keyup', keyUpHandler, false)
 
@@ -922,7 +875,7 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const removeKeyboardEventListeners = () => {
+  const removeEventListeners = () => {
     if (isBrowser) {
       window.removeEventListener('resize', handleWindowResize)
       // document.removeEventListener('keydown', keyPressHandler, false)
@@ -1034,12 +987,11 @@ export const SlideshowLightbox = (props) => {
         setImages(filterImages)
       } else {
         setImages(imagesMetadata)
-
       }
     }
 
     if (isMounted) {
-      initKeyboardEventListeners()
+      initEventListeners()
     }
 
     let reducedMotionMediaQuery = checkAndInitReducedMotion()
@@ -1050,8 +1002,6 @@ export const SlideshowLightbox = (props) => {
           `[data-lightboxjs=${lightboxIdentifier}]`
         )
         let img_elements = []
-
-        let usesAttr = false
 
         if (img_gallery.length > 0) {
           for (let i = 0; i <= img_gallery.length - 1; i++) {
@@ -1080,7 +1030,6 @@ export const SlideshowLightbox = (props) => {
                 false
               )
               img.classList.add('cursor-pointer')
-              usesAttr = true
 
               if (img.src) {
                 img_elements.push({
@@ -1099,10 +1048,6 @@ export const SlideshowLightbox = (props) => {
                 })
               }
             }
-          }
-
-          if (usesAttr) {
-            if (isMounted) setUsesDataAttr(true)
           }
 
           if (isMounted && !coverMode) setImages(img_elements)
@@ -1154,7 +1099,7 @@ export const SlideshowLightbox = (props) => {
     if (isMounted) initStyling()
     return () => {
       isMounted = false
-      removeKeyboardEventListeners()
+      removeEventListeners()
       reducedMotionMediaQuery.removeEventListener(
         'change',
         reducedMotionMediaQuery
@@ -1246,7 +1191,6 @@ export const SlideshowLightbox = (props) => {
                     duration: 0.2
                   }}
                 >
-
                   <div className={`lightboxContainer`}>
                     <section
                       className={`iconsHeader imageModal ${
@@ -1254,19 +1198,59 @@ export const SlideshowLightbox = (props) => {
                       }`}
                       style={{ color: iconColor }}
                     >
-                    
-                      <KeyHandler keyValue={"ArrowLeft"} code={"37"} onKeyHandle={() => {prevImage()}} />
-                      <KeyHandler keyValue={"ArrowRight"} code={"39"} onKeyHandle={() => {nextImage()}} />
-                      <KeyHandler keyValue={"Escape"} code={"27"} onKeyHandle={() => {if (!isBrowserFullScreen) {closeModal()}}} />
+                      <KeyHandler
+                        keyValue={'ArrowLeft'}
+                        code={'37'}
+                        onKeyHandle={() => {
+                          prevSlide()
+                        }}
+                      />
+                      <KeyHandler
+                        keyValue={'ArrowRight'}
+                        code={'39'}
+                        onKeyHandle={() => {
+                          nextSlide()
+                        }}
+                      />
+                      <KeyHandler
+                        keyValue={'Escape'}
+                        code={'27'}
+                        onKeyHandle={() => {
+                          if (!isBrowserFullScreen) {
+                            closeModal()
+                          }
+                        }}
+                      />
 
                       {/* Support for Internet Explorer and Edge key values  */}
-                      <KeyHandler keyValue={"Left"} code={"37"} onKeyHandle={() => {prevImage()}} />
-                      <KeyHandler keyValue={"Right"} code={"39"} onKeyHandle={() => {nextImage()}} />
-                      <KeyHandler keyValue={"Esc"} code={"27"} onKeyHandle={() => {if (!isBrowserFullScreen) {closeModal()}}} />
+                      <KeyHandler
+                        keyValue={'Left'}
+                        code={'37'}
+                        onKeyHandle={() => {
+                          prevSlide()
+                        }}
+                      />
+                      <KeyHandler
+                        keyValue={'Right'}
+                        code={'39'}
+                        onKeyHandle={() => {
+                          nextSlide()
+                        }}
+                      />
+                      <KeyHandler
+                        keyValue={'Esc'}
+                        code={'27'}
+                        onKeyHandle={() => {
+                          if (!isBrowserFullScreen) {
+                            closeModal()
+                          }
+                        }}
+                      />
 
                       {showControls && (
                         <div className='controls'>
-                          {disableZoom || displayMagnificationIcons == false ? null : (
+                          {disableZoom ||
+                          displayMagnificationIcons == false ? null : (
                             <motion.div
                             // whileTap={{ scale: 0.95 }}
                             >
@@ -1284,7 +1268,8 @@ export const SlideshowLightbox = (props) => {
                             </motion.div>
                           )}
 
-                          {disableZoom || displayMagnificationIcons == false ? null : (
+                          {disableZoom ||
+                          displayMagnificationIcons == false ? null : (
                             <motion.div
                             //whileTap={{ scale: 0.95 }}
                             >
@@ -1410,10 +1395,10 @@ export const SlideshowLightbox = (props) => {
                       }
                       style={rightArrowStyle}
                       onClick={() => {
-                        nextImage()
+                        nextSlide()
                       }}
                     >
-                       <span>&#10095;</span>
+                      <span>&#10095;</span>
                     </div>
                     <div
                       className={
@@ -1423,7 +1408,7 @@ export const SlideshowLightbox = (props) => {
                       }
                       style={leftArrowStyle}
                       onClick={() => {
-                        prevImage()
+                        prevSlide()
                       }}
                     >
                       {/* {prevArrow} */}
@@ -1446,9 +1431,7 @@ export const SlideshowLightbox = (props) => {
                         ref={(el) => (reactSwipeEl = el)}
                         childCount={images.length}
                       >
-                        {(props.render && props.images) || frameworkID == 'next'
-                          ? insertContentNodes
-                          : regularImgPaneNodes}
+                        {regularImgPaneNodes}
                       </ReactSwipe>
 
                       {shouldDisplayLoader() ? null : (
@@ -1525,17 +1508,9 @@ export const SlideshowLightbox = (props) => {
                                       }
                                       key={index}
                                       onClick={() => {
-                                        resetImage()
-                                        let slideIndex
-                                        if (isRTL) {
-                                          slideIndex = getRTLIndex(
-                                            imagesMetadata.length,
-                                            index
-                                          )
-                                        } else {
-                                          slideIndex = index
-                                        }
-                                        setCurrentSlide(index)
+                                        resetVideo();
+                                        resetImage();
+                                        setCurrentSlide(index);
                                       }}
                                       alt={img.alt}
                                       onLoad={() => setImagesLoaded(true)}
@@ -1550,16 +1525,16 @@ export const SlideshowLightbox = (props) => {
                                           ? { border: thumbnailBorder }
                                           : { border: inactiveThumbnailBorder }
                                       }
-                                      className={'thumbnail '}
+                                      className={'thumbnail'}
                                       key={index}
                                       onClick={() => {
-                                        resetImage()
-                                        setCurrentSlide(index)
+                                        resetVideo();
+                                        resetImage();
+                                        setCurrentSlide(index);
                                       }}
                                       alt={img.alt}
                                       onLoad={() => setImagesLoaded(true)}
                                     />
-                                    // <span style={{color: "white"}}>{index}</span>
                                   ))}
                             </ScrollContainer>
                           </motion.div>
@@ -1567,7 +1542,6 @@ export const SlideshowLightbox = (props) => {
                       </AnimatePresence>
                     </div>
                   </div>
-
                 </motion.div>
               </Div100vh>
             </Portal>
