@@ -1,6 +1,6 @@
 {
   "name": "lightbox.js-react",
-  "version": "0.3.8",
+  "version": "0.4.1",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
@@ -67,7 +67,9 @@
     "file-saver": "^2.0.5",
     "framer-motion": "^4.1.17",
     "intrinsic-scale": "^3.0.4",
+    "keen-slider": "^6.8.5",
     "postcss": "^7.0.39",
+    "react-animated-slider": "^2.0.0",
     "react-bootstrap-icons": "^1.8.1",
     "react-div-100vh": "^0.7.0",
     "react-indiana-drag-scroll": "^2.1.0",

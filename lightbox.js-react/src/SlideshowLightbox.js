@@ -135,13 +135,13 @@ export const SlideshowLightbox = (props) => {
     props.showMagnificationIcons ? props.showMagnificationIcons : true
   )
 
-  // const [nextArrow, setNextArrow] = useState(
-  //   props.rightArrow ? props.rightArrow : <span>&#10095;</span>
-  // )
+  const [nextArrowElem, setNextArrowElem] = useState(
+    props.nextArrow ? props.nextArrow : <span>&#10095;</span>
+  )
 
-  // const [prevArrow, setPrevArrow] = useState(
-  //   props.leftArrow ? props.leftArrow : <span>&#10094;</span>
-  // )
+  const [prevArrowElem, setPrevArrowElem] = useState(
+    props.prevArrow ? props.prevArrow : <span>&#10094;</span>
+  )
 
   const [showDownloadBtn, setShowDownloadBtn] = useState(
     props.downloadImages ? props.downloadImages : false
@@ -164,7 +164,10 @@ export const SlideshowLightbox = (props) => {
   const [showLoader, setShowLoader] = useState(
     props.showLoader ? props.showLoader : false
   )
+
   const [videoCurrentlyPlaying, setVideoCurrentlyPlaying] = useState(false)
+  const [isLoaderDisplayed, setIsLoaderDisplayed] = useState({})
+
   const [isYtVideo, setIsYtVideo] = useState(false)
 
   const [width, setWidth] = useState(0)
@@ -195,19 +198,40 @@ export const SlideshowLightbox = (props) => {
     else setZoomBtnRef(null)
   }
 
-  const shouldDisplayLoader = () => {
-    if (imgSlideIndex) {
-      if (imgSlideIndex > -1) {
-        if (images[imgSlideIndex % images.length]['loaded'] == true) {
-          return true
-        }
+  const shouldLoaderDisplay = () => {
+    if (props.images) {
+      if (props.images[imageIndex].type == 'htmlVideo') {
+        return false
       }
     }
-    if (!showLoader) {
-      return true
-    } else {
+    if (
+      isLoaderDisplayed[imageIndex] &&
+      isLoaderDisplayed[imageIndex]['loaded'] == true
+    ) {
       return false
+    } else {
+      return true
     }
+  }
+
+  const shouldDisplayLoader = () => {
+    if (showLoader) {
+      if (props.images) {
+        if (imagesMetadata[imageIndex].type == 'htmlVideo') {
+          return false
+        }
+
+        if (imagesMetadata[imageIndex]['loaded'] == true) {
+          return false
+        }
+      }
+      if (images[imageIndex]['loaded'] == true) {
+        return false
+      }
+
+      return true
+    }
+    return false
   }
 
   const getLoaderThemeClass = () => {
@@ -282,6 +306,14 @@ export const SlideshowLightbox = (props) => {
     return false
   }
 
+  const displayDownloadBtn = () => {
+    if (isVideo(imageIndex)) {
+      return false
+    } else {
+      return showDownloadBtn
+    }
+  }
+
   function handleWindowResize() {
     setWidth(window.innerWidth)
   }
@@ -329,7 +361,6 @@ export const SlideshowLightbox = (props) => {
   }
 
   const fullScreen = () => {
-
     let lightbox = document.getElementById('slideshowAnim')
     openFullScreen(lightbox)
     setIsBrowserFullScreen(true)
@@ -338,24 +369,25 @@ export const SlideshowLightbox = (props) => {
 
   const exitFullScreenHandler = () => {
     //in full screen mode
-    if (document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement) {
+    if (
+      document.webkitIsFullScreen ||
+      document.mozFullScreen ||
+      document.msFullscreenElement
+    ) {
       setIsBrowserFullScreen(true)
-    }
-    else {
+    } else {
       if (isBrowserFullScreen) {
         closeFullScreen(document)
-
       }
       removeFullScreenChangeEventListeners()
-      setIsBrowserFullScreen(false);
+      setIsBrowserFullScreen(false)
     }
-
   }
 
   const exitFullScreen = () => {
     closeFullScreen(document)
     removeFullScreenChangeEventListeners()
-    setIsBrowserFullScreen(false);
+    setIsBrowserFullScreen(false)
   }
 
   const updateImageSlideshow = (newDirection) => {
@@ -411,17 +443,31 @@ export const SlideshowLightbox = (props) => {
     setShowModal(true)
   }
 
+  const setItemLoaded = (index) => {
+    if (props.images) {
+      let imgs = imagesMetadata
+      imgs[index]['loaded'] = true
+      setImagesMetadata(imgs)
+    }
+  }
+
+  const setImagesItemLoaded = (index) => {
+    let imgs = images
+    imgs[index]['loaded'] = true
+    setImages(imgs)
+  }
+
   const nextSlide = () => {
-    resetVideo();
+    resetVideo()
     resetImage()
     reactSwipeEl.next()
     setRefIndex(refIndex + 1)
     setImgSlideIndex([imgSlideIndex + 1, 1])
-    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1);
+    setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
   }
 
   const prevSlide = () => {
-    resetVideo();
+    resetVideo()
     resetImage()
     reactSwipeEl.prev()
     setRefIndex(refIndex - 1)
@@ -432,9 +478,6 @@ export const SlideshowLightbox = (props) => {
   const pauseVideo = () => {
     if (videoCurrentlyPlaying) {
       videoReferences.current[imageIndex].pause()
-    }
-    if (isYtVideo) {
-
     }
     setVideoCurrentlyPlaying(false)
   }
@@ -473,16 +516,19 @@ export const SlideshowLightbox = (props) => {
     setIsSlideshowPlaying(false)
   }
 
-  const resetVideo =() => {
+  const resetVideo = () => {
     if (videoCurrentlyPlaying) {
-      pauseVideo();
+      pauseVideo()
     }
     if (props.images) {
-      if (props.images[imageIndex].type == "yt") {
-        let elem = props.images[imageIndex];
-        videoReferences.current[imageIndex].src = `https://www.youtube.com/embed/${elem.videoID}?${shouldAutoplay(elem) ? "autoplay=1" : ""}`
+      if (props.images[imageIndex].type == 'yt') {
+        let elem = props.images[imageIndex]
+        videoReferences.current[
+          imageIndex
+        ].src = `https://www.youtube.com/embed/${elem.videoID}?${
+          shouldAutoplay(elem) ? 'autoplay=1' : ''
+        }`
       }
-      
     }
   }
 
@@ -496,15 +542,28 @@ export const SlideshowLightbox = (props) => {
     }
   }
 
-  const getThumbnailImgSrc = (img_src) => {
-    if (
-      typeof img_src === 'object' &&
-      !Array.isArray(img_src) &&
-      img_src !== null
-    ) {
-      return img_src.src
+  const getThumbnailImgSrc = (img, index) => {
+    if (isVideo(index)) {
+      return img.thumbnail
     } else {
-      return img_src
+      return img.src
+    }
+  }
+
+  const getThumbnailImgSrcNext = (img, index) => {
+    if (isVideo(index)) {
+      return img.thumbnail
+    } else {
+      let img_src = img.src
+      if (
+        typeof img_src === 'object' &&
+        !Array.isArray(img_src) &&
+        img_src !== null
+      ) {
+        return img_src.src
+      } else {
+        return img_src
+      }
     }
   }
 
@@ -546,7 +605,14 @@ export const SlideshowLightbox = (props) => {
             images[index].original ? images[index].original : images[index].src
           }
           onLoad={() => {
-            images[index]['loaded'] = true
+            let itemsLoader = isLoaderDisplayed
+            itemsLoader[index] = { loaded: true }
+            setIsLoaderDisplayed(itemsLoader)
+            if (props.images) {
+              setItemLoaded(index)
+            } else {
+              setImagesItemLoaded(index)
+            }
           }}
           id='img'
         />
@@ -587,7 +653,16 @@ export const SlideshowLightbox = (props) => {
               : img_link
           }
           onLoad={() => {
-            images[index]['loaded'] = true
+            let itemsLoader = isLoaderDisplayed
+            itemsLoader[index] = { loaded: true }
+
+            setIsLoaderDisplayed(itemsLoader)
+
+            if (props.images) {
+              setItemLoaded(index)
+            } else {
+              setImagesItemLoaded(index)
+            }
           }}
           id='img'
         />
@@ -597,46 +672,47 @@ export const SlideshowLightbox = (props) => {
     return imageElem
   }
 
-  const isVideo = (elem) => {
-    if (elem.type == 'yt' || elem.type == 'htmlVideo') {
-      return true
+  const isVideo = (index) => {
+    if (props.images) {
+      let elem = props.images[index]
+
+      if (elem.type == 'yt' || elem.type == 'htmlVideo') {
+        return true
+      }
     }
+
     return false
   }
 
   const shouldAutoplay = (elem) => {
     // Autoplay for HTML5 Video elems set to true by default
-    // Autoplay is off by default for YouTube embeds 
+    // Autoplay is off by default for YouTube embeds
 
-    if (elem.type == "yt" && (elem.autoPlay != true && elem.autoPlay != "true")) {
-        return false;
+    if (elem.type == 'yt' && elem.autoPlay != true && elem.autoPlay != 'true') {
+      return false
+    } else if (elem.autoPlay == false || elem.autoPlay == 'false') {
+      return false
     }
-    else if (elem.autoPlay == false || elem.autoPlay == "false") {
-      return false;
-    }
-    return true;
-
+    return true
   }
 
   const getVideoHeight = (elem) => {
     if (elem.videoHeight) {
       return elem.videoHeight
     }
-    return 500;
+    return 500
   }
 
   const getVideoWidth = (elem) => {
     if (elem.videoWidth) {
       return elem.videoWidth
     }
-    return 900;
+    return 900
   }
 
   const videoSlideElement = (elem, index) => {
-
     let videoElem
     if (elem.type == 'yt') {
-
       videoElem = (
         <div className='videoOuterContainer'>
           <iframe
@@ -644,30 +720,50 @@ export const SlideshowLightbox = (props) => {
             width={getVideoWidth(elem)}
             height={getVideoHeight(elem)}
             ref={(el) => (videoReferences.current[index] = el)}
-            src={`https://www.youtube.com/embed/${elem.videoID}?${shouldAutoplay(elem) ? "autoplay=1" : ""}`}
+            src={`https://www.youtube.com/embed/${elem.videoID}?${
+              shouldAutoplay(elem) ? 'autoplay=1' : ''
+            }`}
             title='YouTube video player'
             frameBorder='0'
             allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
             allowFullScreen
-            
+            onLoad={() => {
+              let itemsLoader = isLoaderDisplayed
+              itemsLoader[index] = { loaded: true }
+
+              setIsLoaderDisplayed(itemsLoader)
+
+              setItemLoaded(index)
+            }}
           ></iframe>
         </div>
       )
     } else if (elem.type == 'htmlVideo') {
-
       videoElem = (
         <div className='htmlVideo htmlVideoOuterContainer'>
           <video
             className={`cursor-pointer lightboxVideo`}
-            // key={props.id}
             width={getVideoWidth(elem)}
             ref={(el) => (videoReferences.current[index] = el)}
-            onPlay={() => {setVideoCurrentlyPlaying(true)}}
+            onPlay={() => {
+              setVideoCurrentlyPlaying(true)
+            }}
             height={getVideoHeight(elem)}
-            autoPlay={index == imgSlideIndex ? shouldAutoplay(elem) : ""}
+            autoPlay={index == imgSlideIndex ? shouldAutoplay(elem) : ''}
             controls
           >
-            <source src={elem.videoSrc} type='video/mp4' />
+            <source
+              src={elem.videoSrc}
+              type='video/mp4'
+              onLoad={() => {
+                let itemsLoader = isLoaderDisplayed
+                itemsLoader[index] = { loaded: true }
+
+                setIsLoaderDisplayed(itemsLoader)
+
+                setItemLoaded(index)
+              }}
+            />
           </video>
         </div>
       )
@@ -733,7 +829,7 @@ export const SlideshowLightbox = (props) => {
                         : 'slideshow_img'
                     }`}
                   >
-                    {isVideo(props.images[index]) ? (
+                    {isVideo(index) ? (
                       videoSlideElement(props.images[index], index)
                     ) : (props.images && props.render) ||
                       frameworkID == 'next' ? (
@@ -759,7 +855,15 @@ export const SlideshowLightbox = (props) => {
                             : images[index].src
                         }
                         onLoad={() => {
-                          images[index]['loaded'] = true
+                          let itemsLoader = isLoaderDisplayed
+                          itemsLoader[index] = { loaded: true }
+
+                          setIsLoaderDisplayed(itemsLoader)
+                          if (props.images) {
+                            setItemLoaded(index)
+                          } else {
+                            setImagesItemLoaded(index)
+                          }
                         }}
                         id='img'
                       />
@@ -861,7 +965,10 @@ export const SlideshowLightbox = (props) => {
 
   const removeFullScreenChangeEventListeners = () => {
     document.removeEventListener('fullscreenchange', exitFullScreenHandler)
-    document.removeEventListener('webkitfullscreenchange', exitFullScreenHandler)
+    document.removeEventListener(
+      'webkitfullscreenchange',
+      exitFullScreenHandler
+    )
     document.removeEventListener('MSFullscreenChange', exitFullScreenHandler)
     document.removeEventListener('mozfullscreenchange', exitFullScreenHandler)
   }
@@ -1282,7 +1389,7 @@ export const SlideshowLightbox = (props) => {
                             </motion.div>
                           )}
 
-                          {showDownloadBtn ? (
+                          {displayDownloadBtn() ? (
                             <Download
                               size={24}
                               onClick={() => {
@@ -1398,7 +1505,7 @@ export const SlideshowLightbox = (props) => {
                         nextSlide()
                       }}
                     >
-                      <span>&#10095;</span>
+                      {nextArrowElem}
                     </div>
                     <div
                       className={
@@ -1411,8 +1518,8 @@ export const SlideshowLightbox = (props) => {
                         prevSlide()
                       }}
                     >
-                      {/* {prevArrow} */}
-                      <span>&#10094;</span>
+                      {prevArrowElem}
+                      {/* <span>&#10094;</span> */}
                     </div>
 
                     <AnimatePresence initial={false} custom={direction}>
@@ -1434,12 +1541,12 @@ export const SlideshowLightbox = (props) => {
                         {regularImgPaneNodes}
                       </ReactSwipe>
 
-                      {shouldDisplayLoader() ? null : (
+                      {shouldLoaderDisplay() ? (
                         <span
                           key='loader'
                           className={`loader ${getLoaderThemeClass()}`}
                         ></span>
-                      )}
+                      ) : null}
                     </AnimatePresence>
 
                     <div
@@ -1500,7 +1607,7 @@ export const SlideshowLightbox = (props) => {
                                 ? imagesMetadata.map((img, index) => (
                                     <img
                                       className={`thumbnail`}
-                                      src={getThumbnailImgSrc(img.src)}
+                                      src={getThumbnailImgSrcNext(img, index)}
                                       style={
                                         imageIndex === index
                                           ? { border: thumbnailBorder }
@@ -1508,9 +1615,9 @@ export const SlideshowLightbox = (props) => {
                                       }
                                       key={index}
                                       onClick={() => {
-                                        resetVideo();
-                                        resetImage();
-                                        setCurrentSlide(index);
+                                        resetVideo()
+                                        resetImage()
+                                        setCurrentSlide(index)
                                       }}
                                       alt={img.alt}
                                       onLoad={() => setImagesLoaded(true)}
@@ -1519,7 +1626,7 @@ export const SlideshowLightbox = (props) => {
                                 : // Not Next.js
                                   images.map((img, index) => (
                                     <img
-                                      src={img.src}
+                                      src={getThumbnailImgSrc(img, index)}
                                       style={
                                         imageIndex === index
                                           ? { border: thumbnailBorder }
@@ -1528,9 +1635,9 @@ export const SlideshowLightbox = (props) => {
                                       className={'thumbnail'}
                                       key={index}
                                       onClick={() => {
-                                        resetVideo();
-                                        resetImage();
-                                        setCurrentSlide(index);
+                                        resetVideo()
+                                        resetImage()
+                                        setCurrentSlide(index)
                                       }}
                                       alt={img.alt}
                                       onLoad={() => setImagesLoaded(true)}
