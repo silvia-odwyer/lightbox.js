@@ -301,6 +301,9 @@ export const SlideshowLightbox = (props) => {
   }
 
   const shouldDisplayMagnifyingGlassIcon = () => {
+    if (isVideo(slideIndex)) {
+      return false
+    }
     if (isMobile == true) {
       return false
     }
@@ -497,7 +500,9 @@ export const SlideshowLightbox = (props) => {
 
   const pauseVideo = () => {
     if (videoCurrentlyPlaying) {
-      videoReferences.current[slideIndex].pause()
+      if (videoReferences.current[slideIndex]) {
+        videoReferences.current[slideIndex].pause()
+      }
     }
     setVideoCurrentlyPlaying(false)
   }
