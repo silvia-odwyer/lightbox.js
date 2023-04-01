@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react'
-import styles from './styles.module.css'
-import './css/tailwind.css';
-import {VideoLightbox} from "./VideoLightbox";
+// import styles from './styles.module.css'
+// import './css/tailwind.css';
 import {AnimImage as Image} from "./AnimImage";
 import {SlideshowLightbox} from "./SlideshowLightbox";
 import axios from "axios";
@@ -26,4 +25,4 @@ const initLightboxJS = (licenseKey, plan_type) => {
 
 };
 
-export { VideoLightbox, Image, SlideshowLightbox, initLightboxJS }
+export { Image, SlideshowLightbox, initLightboxJS }

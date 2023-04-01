@@ -16,7 +16,7 @@ const maxScale = 2.6;
 const minScale = 1;
 const defaultMapInteractionValue = {scale: 1, translation: { x: 0, y: 0 }};
 
-export const AnimImage = ({children, ...props}) => {
+export const AnimImage = (props) => {
   const [isOverlayDisplayed, setIsOverlayDisplayed] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomImg, setZoomImg] = useState(0);

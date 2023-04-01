@@ -1,6 +1,6 @@
 {
   "name": "lightbox.js-react",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
@@ -64,7 +64,6 @@
     "@silvia-odwyer/react-map-interaction-fork": "^2.1.0",
     "autoprefixer": "^9.8.8",
     "axios": "^0.27.2",
-    "embla-carousel-react": "^7.1.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^4.1.17",
     "intrinsic-scale": "^3.0.4",

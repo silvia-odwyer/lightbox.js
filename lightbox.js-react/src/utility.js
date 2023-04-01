@@ -5,6 +5,32 @@ export const wrapNums = (minNum, maxNum, v) => {
       return ((((v - minNum) % rangeSize) + rangeSize) % rangeSize) + minNum;
 };
 
+export const shouldAutoplay = (elem) => {
+  // Autoplay for HTML5 Video elems set to true by default
+  // Autoplay is off by default for YouTube embeds
+
+  if (elem.type == 'yt' && elem.autoPlay != true && elem.autoPlay != 'true') {
+    return false
+  } else if (elem.autoPlay == false || elem.autoPlay == 'false') {
+    return false
+  }
+  return true
+}
+
+export const getVideoHeight = (elem) => {
+  if (elem.videoHeight) {
+    return elem.videoHeight
+  }
+  return "200"
+}
+
+export const getVideoWidth = (elem) => {
+  if (elem.videoWidth) {
+    return elem.videoWidth
+  }
+  return "900"
+}
+
 export const useInterval = (callback, timeDelay) => {
       const savedCallbackRef = useRef();
     
@@ -63,3 +89,4 @@ export const swipePower = (offset, velocity) => {
 };
 
 export const isBrowser = () => typeof window !== "undefined"
+
