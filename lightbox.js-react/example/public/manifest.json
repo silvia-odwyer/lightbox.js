@@ -1,6 +1,6 @@
 {
-  "short_name": "lightbox.js",
-  "name": "lightbox.js",
+  "short_name": "lightbox-react-typescript",
+  "name": "lightbox-react-typescript",
   "icons": [
     {
       "src": "favicon.ico",

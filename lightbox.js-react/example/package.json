@@ -1,36 +1,44 @@
 {
-  "name": "lightbox.js-example",
+  "name": "lightbox.js-react-example",
   "homepage": ".",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npm run watch:css && node ../node_modules/react-scripts/bin/react-scripts.js start",
-    "build": "npm run build:css && node ../node_modules/react-scripts/bin/react-scripts.js build",
+    "start": "node ../node_modules/react-scripts/bin/react-scripts.js start",
+    "build": "node ../node_modules/react-scripts/bin/react-scripts.js build",
     "test": "node ../node_modules/react-scripts/bin/react-scripts.js test",
-    "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject",
-    "build:css": "postcss src/assets/tailwind.css -o src/assets/main.css",
-    "watch:css": "postcss src/assets/tailwind.css -o src/assets/main.css"
+    "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
   },
   "dependencies": {
-    "react": "^16.13.1",
-    "react-dom": "file:../node_modules/react-dom",
+    "@testing-library/jest-dom": "file:../node_modules/@testing-library/jest-dom",
+    "@testing-library/react": "file:../node_modules/@testing-library/react",
+    "@testing-library/user-event": "file:../node_modules/@testing-library/user-event",
+    "@types/jest": "file:../node_modules/@types/jest",
+    "@types/node": "file:../node_modules/@types/node",
+    "@types/react": "^18.0.31",
+    "@types/react-dom": "^18.0.11",
+    "lightbox.js-react": "..",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-scripts": "file:../node_modules/react-scripts",
-    "lightbox.js-react": "file:.."
+    "typescript": "file:../node_modules/typescript"
   },
   "devDependencies": {
-    "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
-    "autoprefixer": "^10.4.7",
-    "postcss": "^8.4.13",
-    "postcss-cli": "^9.1.0",
-    "tailwindcss": "^3.0.24"
+    "@babel/plugin-syntax-object-rest-spread": "^7.8.3"
   },
   "eslintConfig": {
     "extends": "react-app"
   },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }

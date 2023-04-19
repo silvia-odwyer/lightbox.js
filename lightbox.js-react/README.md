@@ -83,6 +83,9 @@ Next, wrap the images in the `SlideshowLightbox` component:
 </SlideshowLightbox> 
 ```
 
+### Next.js Guide
+To get started with Next.js, be sure to take a look at [the Next.js tutorial here](https://www.getlightboxjs.com/docs/NextJsGuide/), which shows how to set-up Lightbox.js and create an image gallery that opens the lightbox when an image is clicked on.
+
 ### Full Example
 ```jsx
 import React, { Component } from 'react'
