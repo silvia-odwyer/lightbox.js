@@ -160,6 +160,10 @@ export const SlideshowLightbox = (props: any) => {
     props.prevArrow ? props.prevArrow : null
   )
 
+  const [modalCloseOption, setModalCloseOption] = useState(
+    props.modalClose ? props.modalClose : "default"
+  )
+
   const [showDownloadBtn, setShowDownloadBtn] = useState(
     props.downloadImages ? props.downloadImages : false
   )
@@ -317,6 +321,17 @@ export const SlideshowLightbox = (props: any) => {
     return false
   }
 
+  const getImageStyle = () => {
+    let styleObject = {};
+    if (isRounded) {
+      styleObject["borderRadius"] = "20px";
+    }
+    if (modalCloseOption == "clickOutside") {
+      styleObject["pointerEvents"] = "auto"
+    }
+    return styleObject;
+  }
+
   const shouldDisplaySlideshowIcon = () => {
     if (images) {
       if (images.length == 1) {
@@ -341,17 +356,16 @@ export const SlideshowLightbox = (props: any) => {
   const checkModalClick = (e) => {
     const modals = document.getElementsByClassName('imageModal')
     let arr_modals = Array.from(modals)
-
     for (let i = 0; i < arr_modals.length; i++) {
       let elem = arr_modals[i]
-      let clickInside = elem.contains(e.target)
+      let clickInside = elem.contains(e.target);
 
       if (clickInside) {
         return
       }
     }
 
-    setShowModal(false)
+    closeModal()
   }
 
   const getRTLIndex = (img_gallery_length, i) => {
@@ -692,7 +706,8 @@ export const SlideshowLightbox = (props: any) => {
             ${enableMagnifyingGlass
               ? ' maxWidthFull'
               : ' maxWidthWithoutMagnifier'
-            }`}
+            } imageModal`}
+          style={getImageStyle()}
           ref={imageRef}
           loading='lazy'
           src={
@@ -741,10 +756,10 @@ export const SlideshowLightbox = (props: any) => {
             ${enableMagnifyingGlass
               ? ' maxWidthFull'
               : ' maxWidthWithoutMagnifier'
-            }`}
+            } imageModal`}
           ref={imageRef}
           loading='lazy'
-          style={isRounded ? { borderRadius: '20px' } : {}}
+          style={getImageStyle()}
           src={
             props.images[index].original
               ? props.images[index].original
@@ -796,7 +811,7 @@ export const SlideshowLightbox = (props: any) => {
     let videoElem
     if (elem.type == 'yt') {
       videoElem = (
-        <div className={`${styles.videoOuterContainer}`}>
+        <div className={`${styles.videoOuterContainer} imageModal`}>
           <iframe
             className={`${styles.ytVideo}`}
             width={getVideoWidth(elem)}
@@ -820,7 +835,7 @@ export const SlideshowLightbox = (props: any) => {
     } else if (elem.type == 'htmlVideo') {
       videoElem = (
         <div
-          className={`${styles.htmlVideo} ${styles.htmlVideoOuterContainer}`}
+          className={`${styles.htmlVideo} ${styles.htmlVideoOuterContainer} imageModal`}
         >
           <video
             className={`${styles.cursorPointer} ${styles.lightboxVideo}`}
@@ -899,7 +914,7 @@ export const SlideshowLightbox = (props: any) => {
                     className={`${props.fullScreen
                       ? styles.slideshow_img_fullscreen
                       : styles.slideshow_img
-                      }`}
+                      } ${props.lightboxImgClass}`}
                   >
                     {isVideo(index) ? (
                       videoSlideElement(props.images[index], index)
@@ -908,17 +923,18 @@ export const SlideshowLightbox = (props: any) => {
                       imageSlideElement(index)
                     ) : (
                       <img
-                        className={`${props.fullScreen
+                        className={`imageModal 
+                        ${props.fullScreen
                           ? styles.fullScreenLightboxImg
                           : styles.lightbox_img
                           } 
                         ${enableMagnifyingGlass
                             ? styles.maxWidthFull
                             : styles.maxWidthWithoutMagnifier
-                          }`}
+                          } `}
                         ref={imageRef}
                         loading='lazy'
-                        style={isRounded ? { borderRadius: '20px' } : {}}
+                        style={getImageStyle()}
                         src={
                           props.images && props.images[index].original
                             ? props.images[index].original
@@ -1149,10 +1165,11 @@ export const SlideshowLightbox = (props: any) => {
     }
 
     if (updateImages || !isInit) {
-      if (lightboxIdentifier) {
+      if (lightboxIdentifier && props.children) {
         let img_gallery: NodeListOf<HTMLImageElement> = document.querySelectorAll(
           `[data-lightboxjs=${lightboxIdentifier}]`
         )
+        
         let img_elements: ImageElement[] = []
         if (img_gallery.length > 0) {
           for (let i = 0; i <= img_gallery.length - 1; i++) {
@@ -1202,6 +1219,17 @@ export const SlideshowLightbox = (props: any) => {
           }
           if (isMounted && !coverMode) { setImages(img_elements) }
         }
+        else {
+          if (props.images) {
+            setImages(props.images)
+          }
+        }
+      }
+      else if (lightboxIdentifier && props.images && !props.children) {
+        setImages(props.images)
+      }
+      else if (!lightboxIdentifier && props.images && !props.children) {
+        setImages(props.images)
       }
 
       // otherwise, if no lightbox identifier or custom render method
@@ -1216,6 +1244,7 @@ export const SlideshowLightbox = (props: any) => {
         else {
           imgArray = props.children;
         }
+        
         let imgs: ImageElement[] = []
         for (let k = 0; k < imgArray.length; k++) {
           let img_elem = imgArray[k]
@@ -1240,7 +1269,7 @@ export const SlideshowLightbox = (props: any) => {
 
       if (isMounted) setIsInit(true)
     }
-
+    
 
   }
 
@@ -1252,10 +1281,12 @@ export const SlideshowLightbox = (props: any) => {
     let slideNum = 0;
     if (props.open) {
       if (props.startingSlideIndex) {
-        if (props.startingSlideIndex < images.length) {
+        if (props.startingSlideIndex < images.length && (props.startingSlideIndex >= 0)) {
           slideNum = props.startingSlideIndex;
         }
-        slideNum = 0;
+        else {
+          slideNum = 0
+        }
       }
 
       openModalWithSlideNum(slideNum)
@@ -1356,10 +1387,14 @@ export const SlideshowLightbox = (props: any) => {
         ))
         : null}
 
-      {/* IF Lightbox identifier provided or props.images provided */}
-      {lightboxIdentifier != false && coverMode == false
+      {/* IF Lightbox identifier provided or props.images provided AND props.children */}
+      {lightboxIdentifier != false && props.children && coverMode == false
         ? props.children
         : null}
+
+      {/* {lightboxIdentifier != false && !props.children && coverMode == false
+        ? <h1>images</h1>
+        : null} */}
 
       {(lightboxIdentifier == false && props.images) || coverMode == true
         ? null
@@ -1406,10 +1441,10 @@ export const SlideshowLightbox = (props: any) => {
                     duration: 0.2
                   }}
                 >
-                  <div className={`${styles.lightboxContainer}`}>
+                  <div className={`${styles.lightboxContainer}`} onClick={(e) => {if (modalCloseOption == "clickOutside") {checkModalClick(e)}}}>
                     <section
                       className={`${styles.iconsHeader} ${iconColor ? '' : getIconStyle()
-                        }`}
+                        } imageModal`}
                       style={{ color: iconColor }}
                     >
                       <KeyHandler
@@ -1627,8 +1662,8 @@ export const SlideshowLightbox = (props: any) => {
                         <div
                           className={
                             rightArrowStyle
-                              ? `${styles.next1} ${getArrowStyle()}`
-                              : styles.imageModal
+                              ? `${styles.next1} ${getArrowStyle()} imageModal`
+                              : "imageModal"
                           }
                           style={rightArrowStyle}
                           onClick={() => {
@@ -1642,8 +1677,8 @@ export const SlideshowLightbox = (props: any) => {
                         <div
                           className={
                             leftArrowStyle
-                              ? `${styles.prev1} ${getArrowStyle()}`
-                              : styles.imageModal
+                              ? `${styles.prev1} ${getArrowStyle()} imageModal`
+                              : "imageModal"
                           }
                           style={leftArrowStyle}
                           onClick={() => {
@@ -1696,7 +1731,7 @@ export const SlideshowLightbox = (props: any) => {
                       }
                     >
                       {isImageCaption() && !zoomedIn ? (
-                        <div className={`${styles.imgTitleContainer}`}>
+                        <div className={`${styles.imgTitleContainer} imageModal`}>
                           <p
                             className={`${styles.imgTitle}`}
                             key={'imgCaption' + slideIndex}
@@ -1732,8 +1767,8 @@ export const SlideshowLightbox = (props: any) => {
                           >
                             <ScrollContainer
                               className='scroll-container'
-                              vertical={false}
-                              horizontal={true}
+                              vertical={true}
+                              horizontal={false}
                               hideScrollbars={false}
                             >
                               {frameworkID == 'next' &&
@@ -1741,7 +1776,7 @@ export const SlideshowLightbox = (props: any) => {
                                 props.images
                                 ? props.images.map((img, index) => (
                                   <img
-                                    className={`${styles.thumbnail}`}
+                                    className={`${styles.thumbnail} imageModal`}
                                     src={getThumbnailImgSrcNext(img, index)}
                                     style={
                                       slideIndex === index
@@ -1765,7 +1800,7 @@ export const SlideshowLightbox = (props: any) => {
                                         ? { border: thumbnailBorder }
                                         : { border: inactiveThumbnailBorder }
                                     }
-                                    className={`${styles.thumbnail}`}
+                                    className={`${styles.thumbnail} imageModal`}
                                     key={index}
                                     onClick={() => {
                                       thumbnailClick(index)
