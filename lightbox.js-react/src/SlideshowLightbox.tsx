@@ -69,14 +69,14 @@ const defaultTheme = 'night'
 const mobileWidth = 768
 
 interface SlideItem {
-  src?: string,
+  src?: any,
   original?: string,
   type?: string,
   alt?: string,
 }
 
 interface ImageElement {
-  src?: string,
+  src?: any,
   alt?: string,
   loaded?: string,
 }
@@ -554,23 +554,23 @@ export const SlideshowLightbox = (props: any) => {
   }
 
   const nextSlide = () => {
-    initLoader((imgSlideIndex + 1) % images.length)
     resetVideo()
     resetImage()
     reactSwipeEl.next()
     setRefIndex(refIndex + 1)
     setImgSlideIndex([imgSlideIndex + 1, 1])
     setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
+    initLoader(slideIndex + 1 >= images.length ? 0 : slideIndex + 1)
   }
 
   const prevSlide = () => {
-    initLoader((imgSlideIndex - 1) % images.length)
     resetVideo()
     resetImage()
     reactSwipeEl.prev()
     setRefIndex(refIndex - 1)
     setZoomIdx(zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1)
     setImgSlideIndex([imgSlideIndex - 1, 1])
+    initLoader(slideIndex - 1 < 0 ? images.length - 1 : slideIndex - 1)
   }
 
   const pauseVideo = () => {
@@ -695,7 +695,7 @@ export const SlideshowLightbox = (props: any) => {
   }
 
   const imageSlideElement = (index) => {
-    let imageElem
+    let imageElem;
     if (!props.images) {
       imageElem = (
         <img
@@ -735,15 +735,15 @@ export const SlideshowLightbox = (props: any) => {
       // check if object (Next.js local image imports are passed as objects with a src attribute)
       if (props.images) {
         if (
-          typeof props.images[index].src === 'object' &&
-          !Array.isArray(props.images[index].src) &&
-          props.images[index].src !== null
+          typeof images[index].src === 'object' &&
+          !Array.isArray(images[index].src) &&
+          images[index].src !== null
         ) {
-          img_link = props.images[index].src.src
+          img_link = images[index].src?.src
         } else if (props.coverImageInLightbox == true) {
           img_link = images[index].src
         } else {
-          img_link = props.images[index].src
+          img_link = images[index].src
         }
       }
 
@@ -761,8 +761,8 @@ export const SlideshowLightbox = (props: any) => {
           loading='lazy'
           style={getImageStyle()}
           src={
-            props.images[index].original
-              ? props.images[index].original
+            images[index].original
+              ? images[index].original
               : img_link
           }
           onLoad={() => {
@@ -783,12 +783,95 @@ export const SlideshowLightbox = (props: any) => {
 
     return imageElem
   }
+  
+  const getLightboxElem = (index) => {
+    if (isVideo(index))  {
+      return videoSlideElement(index) 
+    }
+    else if (isPictureElement(index)) {
+      let elem_metadata = props.images[index]["picture"];
+      return <picture  className={`imageModal 
+      ${props.fullScreen
+        ? styles.fullScreenLightboxImg
+        : styles.lightbox_img
+        } 
+      ${enableMagnifyingGlass
+          ? styles.maxWidthFull
+          : styles.maxWidthWithoutMagnifier
+        } `}>
+            {Object.keys(elem_metadata).map((format) => (
+                <source
+                    type={format}
+                    key={format}
+                    srcSet={elem_metadata[format].srcSet}
+                />
+            ))}
+            <img src={elem_metadata['fallback']} />
+        </picture>
+    }
+    else {
+
+      if ((images && props.render) ||
+      frameworkID == 'next') {
+        return imageSlideElement(index);
+      }
+      else {
+          return <img
+          className={`imageModal 
+          ${props.fullScreen
+            ? styles.fullScreenLightboxImg
+            : styles.lightbox_img
+            } 
+          ${enableMagnifyingGlass
+              ? styles.maxWidthFull
+              : styles.maxWidthWithoutMagnifier
+            } `}
+          ref={imageRef}
+          loading='lazy'
+          style={getImageStyle()}
+          src={
+            images && images[index].original
+              ? images[index].original
+              : images[index].src
+          }
+          onLoad={() => {
+            if (index == slideIndex) {
+              setDisplayLoader(false)
+            }
+  
+            if (props.images) {
+              setItemLoaded(index)
+            } else {
+              setImagesItemLoaded(index)
+            }
+          }}
+          id='img'
+        />
+      }
+
+    }
+   
+  }
 
   const isVideo = (index) => {
+
     if (props.images) {
       let elem = props.images[index]
       if (elem) {
         if (elem.type == 'yt' || elem.type == 'htmlVideo') {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  const isPictureElement = (index) => {
+    if (props.images) {
+      let elem = props.images[index]
+      if (elem) {
+        if (elem.picture) {
           return true
         }
       }
@@ -807,8 +890,10 @@ export const SlideshowLightbox = (props: any) => {
     return false
   }
 
-  const videoSlideElement = (elem, index) => {
-    let videoElem
+  const videoSlideElement = (index) => {
+    let elem = props.images[index];
+    let videoElem;
+
     if (elem.type == 'yt') {
       videoElem = (
         <div className={`${styles.videoOuterContainer} imageModal`}>
@@ -914,46 +999,10 @@ export const SlideshowLightbox = (props: any) => {
                     className={`${props.fullScreen
                       ? styles.slideshow_img_fullscreen
                       : styles.slideshow_img
-                      } ${props.lightboxImgClass}`}
+                      } ${props.lightboxImgClass ? props.lightboxImgClass : ""}`}
                   >
-                    {isVideo(index) ? (
-                      videoSlideElement(props.images[index], index)
-                    ) : (props.images && props.render) ||
-                      frameworkID == 'next' ? (
-                      imageSlideElement(index)
-                    ) : (
-                      <img
-                        className={`imageModal 
-                        ${props.fullScreen
-                          ? styles.fullScreenLightboxImg
-                          : styles.lightbox_img
-                          } 
-                        ${enableMagnifyingGlass
-                            ? styles.maxWidthFull
-                            : styles.maxWidthWithoutMagnifier
-                          } `}
-                        ref={imageRef}
-                        loading='lazy'
-                        style={getImageStyle()}
-                        src={
-                          props.images && props.images[index].original
-                            ? props.images[index].original
-                            : images[index].src
-                        }
-                        onLoad={() => {
-                          if (index == slideIndex) {
-                            setDisplayLoader(false)
-                          }
-
-                          if (props.images) {
-                            setItemLoaded(index)
-                          } else {
-                            setImagesItemLoaded(index)
-                          }
-                        }}
-                        id='img'
-                      />
-                    )}
+                    {getLightboxElem(index)}
+                    
                   </div>
                 </TransformComponent>
               </TransformWrapper>
@@ -1150,11 +1199,13 @@ export const SlideshowLightbox = (props: any) => {
       let imagesRTLCopy = images
       imagesRTLCopy.reverse()
       setImages(imagesRTLCopy)
+
     }
   }
 
 
   const initImages = (isMounted, updateImages) => {
+
     if (coverMode && props.images) {
       if (props.coverImageInLightbox == false) {
         let filterImages = props.images.filter((img) => img.cover != true)
@@ -1217,19 +1268,32 @@ export const SlideshowLightbox = (props: any) => {
               }
             }
           }
-          if (isMounted && !coverMode) { setImages(img_elements) }
+          if (isMounted && !coverMode) {
+            if ( props.showAllImages != true && props.framework != "next") {
+              setImages(img_elements) 
+            } 
+            else if (props.framework == "next") {
+              setImages(props.images)
+            }
+            else {
+              setImages(props.images)
+            }
+          }
         }
         else {
           if (props.images) {
             setImages(props.images)
+
           }
         }
       }
       else if (lightboxIdentifier && props.images && !props.children) {
         setImages(props.images)
+
       }
       else if (!lightboxIdentifier && props.images && !props.children) {
         setImages(props.images)
+
       }
 
       // otherwise, if no lightbox identifier or custom render method
@@ -1263,7 +1327,7 @@ export const SlideshowLightbox = (props: any) => {
         setPreviewImageElems(imgArray)
 
       } else {
-        if (isMounted) { setImages(props.images) }
+        if (isMounted) { setImages(props.images);}
 
       }
 
@@ -1275,7 +1339,8 @@ export const SlideshowLightbox = (props: any) => {
 
   useEffect(() => {
     initImages(true, true)
-  }, [props.images]);
+  }, [props.images, props.displayedImages]);
+
 
   useEffect(() => {
     let slideNum = 0;
@@ -1369,7 +1434,7 @@ export const SlideshowLightbox = (props: any) => {
         ? props.images.map((elem, index) => (
           <img
             className={`${styles.cursorPointer}`}
-            src={elem.src}
+            src={!isVideo(index) ? elem.src : elem.thumbnail}
             // src={isSrcStr(elem.src) ? elem.src : elem.src.src}
             onClick={() => {
               let img_index
@@ -1538,6 +1603,7 @@ export const SlideshowLightbox = (props: any) => {
 
                           {displayDownloadBtn() ? (
                             <Download
+                            size={24}
                               className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                 }`}
                               style={iconColor ? { color: iconColor } : {}}
@@ -1708,7 +1774,7 @@ export const SlideshowLightbox = (props: any) => {
                         ref={(el) => (reactSwipeEl = el)}
                         childCount={images.length}
                       >
-                        {regularImgPaneNodes}
+                        {regularImgPaneNodes} 
                       </ReactSwipe>
 
                       {displayLoader == true && !isHTMLVideo(slideIndex) ? (
