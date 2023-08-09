@@ -48,6 +48,10 @@ export const AnimImage = (props) => {
     props.showMagnificationIcons ? props.showMagnificationIcons : true
   )
 
+  const [displayControls, setDisplayControls] = useState(
+    props.showControls ? props.showControls : true
+  )
+
   const [showDownloadBtn, setShowDownloadBtn] = useState(
     props.downloadImages ? props.downloadImages : false
   )
@@ -74,6 +78,18 @@ export const AnimImage = (props) => {
 
 
   const [state, setState] = React.useState();
+
+  const initProps = () => {
+    if (props.showControls != undefined) {
+      console.log("animImage showControls: ", props.showControls);
+      setDisplayControls(props.showControls)
+      setDisableZoom(props.showControls)
+      
+      if (props.showControls == false) {
+          setDisplayMagnificationIcons(false)
+      }
+    }
+  }
 
   useEffect(() => {
     if (props.theme) {
@@ -103,15 +119,22 @@ export const AnimImage = (props) => {
     }
     else if (frameworkID != "next") {
       return (
-        <img src={props.image.src} alt={props.image.title} className="img1" />
+        <img src={props.image.src} alt={props.image.title} className="img" />
       )
     }
   }
 
+  useEffect(() => {
+    let isMounted = true
+    if (isMounted) initProps()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   return (
     <SlideshowLightbox
-      showArrows={false} 
-      showThumbnailIcon={false} 
       showSlideshowIcon={false} 
       showThumbnails={false}
       backgroundColor={backgroundColor} 
@@ -124,6 +147,9 @@ export const AnimImage = (props) => {
       downloadImages={showDownloadBtn}
       roundedImages={imageRoundedBorder} 
       disableImageZoom={disableZoom}
+      showArrows={false} 
+      showThumbnailIcon={false} 
+      showControls={displayControls}
       modalClose={modalCloseOption}
       imageComponent={true}
       framework={frameworkID}

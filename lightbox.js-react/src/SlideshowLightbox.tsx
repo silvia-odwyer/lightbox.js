@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle, ForwardRefExoticComponent} from 'react'
 import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion'
 import styles from './styles.module.css'
 
@@ -8,8 +8,6 @@ import {
   getVideoHeight,
   getVideoWidth,
   shouldAutoplay,
-  openFullScreen,
-  closeFullScreen,
 } from './utility'
 import {
   ZoomIn,
@@ -23,6 +21,7 @@ import {
   XLg,
   GridFill
 } from 'react-bootstrap-icons'
+import { ReactNode } from 'react';
 import ScrollContainer from 'react-indiana-drag-scroll'
 import Magnifier from 'react-magnifier'
 import { Portal } from 'react-portal'
@@ -31,7 +30,7 @@ import { saveAs } from 'file-saver'
 import Div100vh from 'react-div-100vh'
 import KeyHandler from 'react-key-handler'
 import { useInterval } from 'usehooks-ts'
-import useEmblaCarousel, { EmblaCarouselType } from 'embla-carousel-react'
+import useEmblaCarousel from 'embla-carousel-react'
 import YouTube from 'react-youtube';
 import useResizeObserver from '@react-hook/resize-observer';
 
@@ -80,7 +79,73 @@ interface ImageElement {
   loaded?: string,
 }
 
-export const SlideshowLightbox = (props: any) => {
+type SlideshowLightboxHandle = {
+  children?: ReactNode;
+  reset: () => void;
+};
+
+export interface SlideshowLightboxProps {
+  children?: ReactNode;
+  ref?: any;
+  thumbnailBorder?: string;
+  magnifyingGlass? : boolean;
+  backgroundColor? : string;
+  theme? : string;
+  iconColor? : any;
+  fullScreen?: boolean;
+  showControls?: boolean;
+  disableImageZoom?: boolean;
+  slideshowInterval?: number;
+  showThumbnails?: boolean;
+  open?: boolean;
+  animateThumbnails?: boolean;
+  showFullScreenIcon?: boolean;
+  showThumbnailIcon?: boolean;
+  showSlideshowIcon?: boolean;
+  showMagnificationIcons?: boolean;
+  roundedImages?: boolean;
+  downloadImages?: boolean;
+  rtl?: boolean;
+  modalClose?: string;
+  framework?: string;
+  lightboxIdentifier?: string;
+  nextArrow?: any;
+  prevArrow?: any;
+  arrowStyle?: any;
+  showLoader?: boolean;
+  useCoverMode?: boolean;
+  rightArrowStyle?: any;
+  leftArrowStyle?: any;
+  imgAnimation?: string;
+  textColor?: string;
+  licenseKey?: string;
+  images?: any;
+  render?: any;
+  imageComponent?: boolean;
+  showArrows?: boolean;
+  lightboxImgClass?: string;
+  coverImageInLightbox?: boolean;
+  onOpen?: any;
+  onClose?: any;
+  className?: string;
+  startingSlideIndex?: number;
+  showAllImages?: any;
+  rightArrowClassname?: string;
+  leftArrowClassname?: string;
+  displayedImages?: any;
+  captionStyle?: any;
+}
+
+export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forwardRef<SlideshowLightboxHandle, SlideshowLightboxProps>((props, ref) => {
+
+  useImperativeHandle(
+    ref,
+    () => ({
+        reset() {
+          initImages(true, true)
+        }
+    })
+  )
 
   const createCustomThumbnailBorder = (): string | void => {
     if (props.thumbnailBorder) {
@@ -103,7 +168,7 @@ export const SlideshowLightbox = (props: any) => {
   const [reactSwipeOptions, setReactSwipeOptions] = useState({
     loop: true, 
     startIndex: 0,
-    active: true
+    active: true,    
   })
 
   const [carouselReady, setCarouselReady] = useState(false)
@@ -136,24 +201,23 @@ export const SlideshowLightbox = (props: any) => {
     props.roundedImages ? props.roundedImages : false
   )
 
-
-  const [showControls, setShowControls] = useState(
+  const [showControls, setShowControls] = useState<boolean>(
     props.showControls ? props.showControls : true
   )
 
-  const [displayFullScreenIcon, setDisplayFullScreenIcon] = useState(
+  const [displayFullScreenIcon, setDisplayFullScreenIcon] = useState<boolean>(
     props.showFullScreenIcon ? props.showFullScreenIcon : true
   )
 
-  const [displayThumbnailIcon, setDisplayThumbnailIcon] = useState(
+  const [displayThumbnailIcon, setDisplayThumbnailIcon] = useState<boolean>(
     props.showThumbnailIcon ? props.showThumbnailIcon : true
   )
 
-  const [displaySlideshowIcon, setDisplaySlideshowIcon] = useState(
+  const [displaySlideshowIcon, setDisplaySlideshowIcon] = useState<boolean>(
     props.showSlideshowIcon ? props.showSlideshowIcon : true
   )
 
-  const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState(
+  const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState<boolean>(
     props.showMagnificationIcons ? props.showMagnificationIcons : true
   )
 
@@ -232,7 +296,6 @@ export const SlideshowLightbox = (props: any) => {
     props.arrowStyle ? props.arrowStyle : 'dark'
   )
 
-
   const [YTVideoCurrentlyPlaying, setYTVideoCurrentlyPlaying] = useState(false)
 
   const [width, setWidth] = useState(0)
@@ -240,7 +303,6 @@ export const SlideshowLightbox = (props: any) => {
   const [isBrowserFullScreen, setIsBrowserFullScreen] = useState(false)
   const [enableMagnifyingGlass, setMagnifyingGlass] = useState(false)
   const [imagesLoaded, setImagesLoaded] = useState(false)
-  // const [refIndex, setRefIndex] = useState(0)
 
   const imageRef: React.RefObject<HTMLImageElement> = useRef(null)
 
@@ -380,6 +442,12 @@ export const SlideshowLightbox = (props: any) => {
     closeModal()
   }
 
+  const isZoomEnabled = () => {
+    if (disableZoom == true) {
+      return false;
+    }
+  }
+
   const getRTLIndex = (img_gallery_length, i) => {
     let index
     if (i == 0) {
@@ -436,19 +504,15 @@ export const SlideshowLightbox = (props: any) => {
   const updateImageSlideshow = (newDirection) => {
     if (isRTL) {
       scrollPrev()
-      // reactSwipeEl.prev()
     } else {
       scrollNext();
-      // reactSwipeEl.next()
     }
 
     setImgSlideIndex([imgSlideIndex + newDirection, newDirection])
     if (isRTL) {
-      // setRefIndex(refIndex - 1)
       setZoomIdx(zoomIdx - 1 < 0 ? images.length - 1 : zoomIdx - 1)
     } else {
       setZoomIdx(zoomIdx + 1 >= images.length ? 0 : zoomIdx + 1)
-      // setRefIndex(refIndex + 1)
     }
   }
 
@@ -499,7 +563,8 @@ export const SlideshowLightbox = (props: any) => {
   const getIconStyle = (): string | undefined => {
     if (arrowStyle == 'dark') {
       return styles.dark_header_icon
-    } else if (arrowStyle == 'light') {
+    } 
+    else if (arrowStyle == 'light') {
       return styles.light_header_icon
     }
   }
@@ -612,7 +677,6 @@ export const SlideshowLightbox = (props: any) => {
     } else {
       if (images[slideIndex].src) {
         saveAs(images[slideIndex].src!, 'image.jpeg')
-
       }
     }
   }
@@ -797,6 +861,17 @@ export const SlideshowLightbox = (props: any) => {
 
     return imageElem
   }
+
+  const isPanningDisabled = () => {
+    if (isMobile && zoomedIn == false) {
+      return true;
+    }
+    if (isMobile && zoomedIn) {
+      return false;
+    }
+    
+    return false;
+  }
   
   const getLightboxElem = (index) => {
     if (isVideo(index))  {
@@ -863,7 +938,6 @@ export const SlideshowLightbox = (props: any) => {
           id='img'
         />
           
-        
       }
     }
   }
@@ -921,12 +995,9 @@ export const SlideshowLightbox = (props: any) => {
         <div className={`${styles.videoOuterContainer} imageModal`}>
           <YouTube
             videoId={elem.videoID}                 
-            // className={`${styles.ytVideo}`}
             ref={(el) => (videoReferences.current[index] = el)}
-            iframeClassName={`${styles.ytVideo}`}        
-            // style={object}                   
+            iframeClassName={`${styles.ytVideo}`}                                          
             title='YouTube video player'
-            //loading={string}                
             opts={{
               height: getVideoHeight(elem),
                 width: getVideoWidth(elem),
@@ -935,7 +1006,10 @@ export const SlideshowLightbox = (props: any) => {
                   autoplay: shouldAutoplay(elem) ? 1 : 0,
                 }
               }
-            }                    
+            }
+            // style={object}
+            // className={`${styles.ytVideo}`}
+            //loading={string}                     
             onReady={(event) => {let videoElems = videoElements; videoElems[index] = event; setVideoElements(videoElems);
                 if (index == slideIndex) {
               setDisplayLoader(false)
@@ -1009,23 +1083,30 @@ export const SlideshowLightbox = (props: any) => {
     (_, index) => {
       return (
         <div key={index}>
-          {enableMagnifyingGlass == true ? (
-            <Magnifier
-              src={images[index].src!}
-              className={`${styles.magnifyWrapper} ${styles.lightbox_img}`}
-              height={imgContainHeight}
-              width={imgContainWidth}
-              mgShowOverflow={false}
-
-            />
-          ) : (
+          {
+          
+          enableMagnifyingGlass == true ? (
+             <Magnifier
+               src={images[index].src!}
+               className={`${styles.magnifyWrapper} ${styles.lightbox_img}`}
+               height={imgContainHeight}
+               width={imgContainWidth}
+               mgShowOverflow={false}
+             />
+          ) 
+          
+          : ( 
             <div className={`${styles.embla__slide}`}>
               <TransformWrapper
                 ref={(el) => (zoomReferences.current[index] = el)}
                 onWheel={(ref, wheelEvent) => {
                   initZoom(ref)
-                 }}
+                }}
                 disabled={disableZoom}
+                panning={{
+                  disabled: isPanningDisabled()
+                }}                
+                
                 key={index}
                 onZoom={
                   (ref, event) => {
@@ -1070,7 +1151,7 @@ export const SlideshowLightbox = (props: any) => {
                 </TransformComponent>
               </TransformWrapper>
             </div>
-          )}
+          )} 
         </div>
       )
     }
@@ -1166,26 +1247,28 @@ export const SlideshowLightbox = (props: any) => {
     return reducedMotionMediaQuery
   }
 
-  const initPropsForControlIcons = () => {
-    if (props.showFullScreenIcon != undefined) {
-      setDisplayFullScreenIcon(props.showFullScreenIcon)
-    }
-    if (props.showThumbnailIcon != undefined) {
-      setDisplayThumbnailIcon(props.showThumbnailIcon)
-    }
+   const initPropsForControlIcons = () => {
+     if (props.showFullScreenIcon != undefined) {
+        setDisplayFullScreenIcon(props.showFullScreenIcon)
+      }
+     if (props.showThumbnailIcon != undefined) {
+        setDisplayThumbnailIcon(props.showThumbnailIcon)
+     }
 
-    if (props.showSlideshowIcon != undefined) {
-      setDisplaySlideshowIcon(props.showSlideshowIcon)
-    }
-
-    if (props.showMagnificationIcons != undefined) {
-      setDisplayMagnificationIcons(props.showMagnificationIcons)
-    }
-  }
+     if (props.showSlideshowIcon != undefined) {
+       setDisplaySlideshowIcon(props.showSlideshowIcon)
+     }
+     if (props.showMagnificationIcons != undefined) {
+       setDisplayMagnificationIcons(props.showMagnificationIcons)
+     }
+   }
 
   const initProps = () => {
     if (props.showControls != undefined) {
-      setShowControls(props.showControls)
+        setShowControls(props.showControls)
+        if (props.showControls == false) {
+          setDisplayMagnificationIcons(false)
+        }
     }
 
     initPropsForControlIcons()
@@ -1266,7 +1349,7 @@ export const SlideshowLightbox = (props: any) => {
   }
 
   const initImages = (isMounted, updateImages) => {
-
+ 
     if (coverMode && props.images) {
       if (props.coverImageInLightbox == false) {
         let filterImages = props.images.filter((img) => img.cover != true)
@@ -1278,6 +1361,7 @@ export const SlideshowLightbox = (props: any) => {
 
     if (updateImages || !isInit) {
       if (lightboxIdentifier && props.children) {
+
         let img_gallery: NodeListOf<HTMLImageElement> = document.querySelectorAll(
           `[data-lightboxjs=${lightboxIdentifier}]`
         )
@@ -1354,7 +1438,6 @@ export const SlideshowLightbox = (props: any) => {
       }
       else if (!lightboxIdentifier && props.images && !props.children) {
         setImages(props.images)
-
       }
 
       // otherwise, if no lightbox identifier or custom render method
@@ -1396,6 +1479,7 @@ export const SlideshowLightbox = (props: any) => {
   }
 
   const onSelect = useCallback(() => {
+    
     if (!emblaApi) return
 
     let newSlideIndex: any = emblaApi.selectedScrollSnap();
@@ -1437,27 +1521,6 @@ export const SlideshowLightbox = (props: any) => {
     } 
   }, [zoomedIn])
 
-  // useEffect(() => {
-  //   console.log("open modal ", showModal)
-  //   if (!emblaApi) return 
-
-  //   console.log("reinit emblaapi")
-  //   emblaApi.reInit({startIndex: 1, loop: true})
-  // }, [ emblaApi,
-  //   showModal,
-  //    /* Add slides as a dependency to trigger this when the prop changes. If you're mapping the children prop to slides, you can add children to the dependency array instead. */
-  // ])
-
-  // useEffect(() => {
-  //    console.log("open modal ", showModal)
-  //    if (!emblaApi) return 
-
-  //    console.log("reinit emblaapi")
-  //    if (carouselReady) emblaApi.reInit()
-  //  }, [ carouselReady
-  //     /* Add slides as a dependency to trigger this when the prop changes. If you're mapping the children prop to slides, you can add children to the dependency array instead. */
-  // ])
-
   useEffect(() => {
       if (!emblaApi) return 
 
@@ -1492,7 +1555,6 @@ export const SlideshowLightbox = (props: any) => {
       }
 
       openModalWithSlideNum(slideNum)
-
     }
     else if (props.open == false) {
       closeModal()
@@ -1623,6 +1685,7 @@ export const SlideshowLightbox = (props: any) => {
       {coverMode ? props.children : false}
       
       <AnimateSharedLayout type='crossfade'>
+
         <AnimatePresence initial={false} exitBeforeEnter={true}>
           {showModal !== false && (
             <Portal>
@@ -1670,7 +1733,7 @@ export const SlideshowLightbox = (props: any) => {
                             closeModal()
                           }
                         }}
-                      />
+                      /> 
 
                       {/* Support for Internet Explorer and Edge key values  */}
                       <KeyHandler
@@ -1697,10 +1760,10 @@ export const SlideshowLightbox = (props: any) => {
                         }}
                       />
 
-                      {showControls && (
+                      {showControls == true && (
                         <div className={`${styles.controls}`}>
                           {disableZoom ||
-                            displayMagnificationIcons == false ? null : (
+                            displayMagnificationIcons == false ? null : 
                             <motion.div>
                               <ZoomIn
                                 size={24}
@@ -1715,14 +1778,15 @@ export const SlideshowLightbox = (props: any) => {
                                   if (zoomReferences.current[zoomIdx] != null) {
                                     zoomReferences.current[zoomIdx]!.zoomIn()
                                   }
+                                  setZoomedIn(true)
                                 }}
                               />
 
                             </motion.div>
-                          )}
+                           }
 
                           {disableZoom ||
-                            displayMagnificationIcons == false ? null : (
+                            displayMagnificationIcons == false ? null : 
                             <motion.div>
                               <ZoomOut
                                 size={24}
@@ -1731,15 +1795,17 @@ export const SlideshowLightbox = (props: any) => {
                                 style={iconColor ? { color: iconColor } : {}}
                                 color={iconColor ? iconColor : undefined}
                                 onClick={() => {
-                                  zoomReferences.current[zoomIdx]!.zoomOut()
-                                  if (zoomReferences.current[zoomIdx]!.state.scale == 1) {
+                                  zoomReferences.current[zoomIdx]!.zoomOut();
+                                  let scale = zoomReferences.current[zoomIdx]!.state.scale;
+                                  
+                                  if (scale == 1 || scale == 1.65) {
                                     setZoomedIn(false)
                                   }
 
                                 }}
                               />
                             </motion.div>
-                          )}
+                          }
 
                           {displayDownloadBtn() ? (
                             <Download
@@ -1900,7 +1966,6 @@ export const SlideshowLightbox = (props: any) => {
                     }
 
                     <AnimatePresence initial={false} custom={direction}>
-
                       <div 
                        className={`${showThumbnails
                         ? styles.slideshowInnerContainerThumbnails
@@ -2032,4 +2097,6 @@ export const SlideshowLightbox = (props: any) => {
       </AnimateSharedLayout>
     </div>
   </div>
+
 }
+)
