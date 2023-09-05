@@ -11,30 +11,8 @@ import {
   openFullScreen,
   closeFullScreen,
 } from './utility'
-import {
-  ZoomIn,
-  ZoomOut,
-  Fullscreen,
-  PlayCircleFill,
-  Search,
-  Download,
-  PauseCircleFill,
-  FullscreenExit,
-  XLg,
-  GridFill
-} from 'react-bootstrap-icons'
-import ScrollContainer from 'react-indiana-drag-scroll'
-import Magnifier from 'react-magnifier'
-import { Portal } from 'react-portal'
-import { TransformWrapper, TransformComponent,  ReactZoomPanPinchRef, } from 'react-zoom-pan-pinch'
-import ReactSwipe from 'react-swipe'
-import { saveAs } from 'file-saver'
-import Div100vh from 'react-div-100vh'
-import KeyHandler from 'react-key-handler'
 import {SlideshowLightbox} from "./SlideshowLightbox"
 import {AnimImage} from "./AnimImage"
-import { useIsomorphicLayoutEffect } from 'usehooks-ts'
-import { useInterval } from 'usehooks-ts'
 
 export const initLightboxJS = (licenseKey: string, plan_type: string) => {
   var body = {
@@ -45,7 +23,6 @@ export const initLightboxJS = (licenseKey: string, plan_type: string) => {
   axios.post('https://lightboxjs-server.herokuapp.com/license', body)
     .then(function (response) {
 
-      console.log("response ", response)
       let licenseKeyValid = response.data.license_valid;
 
       if (!licenseKeyValid) {

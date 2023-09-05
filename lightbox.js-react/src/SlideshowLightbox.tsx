@@ -22,7 +22,6 @@ import {
   GridFill
 } from 'react-bootstrap-icons'
 import { ReactNode } from 'react';
-import ScrollContainer from 'react-indiana-drag-scroll'
 import Magnifier from 'react-magnifier'
 import { Portal } from 'react-portal'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef, } from 'react-zoom-pan-pinch'
@@ -127,6 +126,8 @@ export interface SlideshowLightboxProps {
   coverImageInLightbox?: boolean;
   onOpen?: any;
   onClose?: any;
+  onNext?: any;
+  onPrev?: any;
   className?: string;
   startingSlideIndex?: number;
   showAllImages?: any;
@@ -168,8 +169,16 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [reactSwipeOptions, setReactSwipeOptions] = useState({
     loop: true, 
     startIndex: 0,
-    active: true,    
+    active: true,  
   })
+
+  let initialThumbnailOptions: any = {
+    startIndex: 0,
+    containScroll: 'keepSnaps',
+    dragFree: true
+  }
+
+  const [thumbnailSwipeOptions, setThumbnailSwipeOptions] = useState(initialThumbnailOptions)
 
   const [carouselReady, setCarouselReady] = useState(false)
 
@@ -186,7 +195,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   )
 
   const [slideshowInterval, setSlideshowInterval] = useState(
-    props.slideshowInterval ? props.slideshowInterval : 1100
+    props.slideshowInterval ? props.slideshowInterval : 1700
   )
 
   const [rightArrowStyle, setRightArrowStyle] = useState(
@@ -332,7 +341,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     return styles.night_loader
   }
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(reactSwipeOptions)
+  const [emblaRef, emblaApi] = useEmblaCarousel(reactSwipeOptions);
+  const [emblaThumbsRef, emblaThumbsApi] = useEmblaCarousel(thumbnailSwipeOptions)
 
   const scrollPrev = useCallback(() => {    
     if (emblaApi) {emblaApi.scrollPrev()}  
@@ -588,13 +598,25 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const dispatchOpenEvent = () => {
     if (props.onOpen) {
-      props.onOpen();
+      props.onOpen(slideIndex, images[slideIndex]);
     }
   }
 
   const dispatchCloseEvent = () => {
     if (props.onClose) {
       props.onClose(slideIndex)
+    }
+  }
+
+  const dispatchNextImgEvent = (newIndex) => {
+    if (props.onNext) {
+      props.onNext(newIndex, images[newIndex])
+    }
+  }
+
+  const dispatchPrevImgEvent = (newIndex) => {
+    if (props.onPrev) {
+      props.onPrev(newIndex, images[newIndex])
     }
   }
 
@@ -618,23 +640,39 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const openModal = (num) => {
-    if (emblaApi) { emblaApi.reInit()}
+    if (emblaApi) { 
+      emblaApi.reInit();
+      if (emblaThumbsApi) {
+        emblaThumbsApi?.scrollTo(emblaApi.selectedScrollSnap())
+      }
+    }
     setImgSlideIndex([num, 1])
     setShowModal(true)
     setIsOpen(true)
+
   }
 
   const setItemLoaded = (index) => {
     if (props.images) {
-      images[index]['loaded'] = true
-      setImages(images)
+      setImages(images.map((img, imgIndex) => {
+        if (imgIndex == index) {
+          return { ...img, loaded: true };
+        } else {
+          return img;
+        }
+      }));
+
     }
   }
 
   const setImagesItemLoaded = (index) => {
-    let imgs: SlideItem[] = images
-    imgs[index]['loaded'] = true
-    setImages(imgs)
+    setImages(images.map((img, imgIndex) => {
+      if (imgIndex == index) {
+        return { ...img, loaded: true };
+      } else {
+        return img;
+      }
+    }));
   }
 
   const resetMedia = (slide_index) => {
@@ -659,10 +697,17 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     initSlide(imgSlideIndex - 1)
   }
 
+  const setThumbnailStartIndex = (index) => {
+    let thumbnailSwipeOptionConfig = thumbnailSwipeOptions;
+    thumbnailSwipeOptionConfig.startIndex = index
+    setThumbnailSwipeOptions(thumbnailSwipeOptionConfig)
+  }
+
   const openModalWithSlideNum = (index) => {
     let reactSwipeOptionConfig = reactSwipeOptions
     reactSwipeOptionConfig.startIndex = index
     setReactSwipeOptions(reactSwipeOptionConfig)
+    setThumbnailStartIndex(index)
     setZoomIdx(index)
     openModal(index)
   }
@@ -707,6 +752,29 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         }
       }
     }
+  }
+
+  const getImageThumbnail = (img, index, isNextJS) => {
+    return (
+      <div key={"thumbnail_slide_" + index} className={`${styles.embla_thumbs__slide}`}>
+
+      <img
+        className={`${styles.thumbnail} imageModal`}
+        src={isNextJS == true ? getThumbnailImgSrcNext(img, index) : getThumbnailImgSrc(img, index)}
+        alt={img.alt}
+        onLoad={() => setImagesLoaded(true)}
+        style={
+          slideIndex === index
+            ? { border: thumbnailBorder }
+            : { border: inactiveThumbnailBorder }
+        }
+        key={"thumbnail_" + index}
+        onClick={() => {
+          thumbnailClick(index);
+        }}
+      />
+  </div>
+    )
   }
 
   const resetImage = () => {
@@ -823,6 +891,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
           img_link = images[index].src
         }
       }
+
 
       imageElem = (
         <img
@@ -1071,7 +1140,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const initZoom = (ref) => {
-    if (ref.state.scale == 1) {
+    
+    if (ref.state.scale <= 1.65) {
       setZoomedIn(false)
     }
     else {
@@ -1113,6 +1183,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     initZoom(ref)
                   }
                 }
+                onZoomStop={(ref, event) => {initZoom(ref)}}
+                onTransformed={
+                  (ref, event) => {
+                    initZoom(ref)
+                  }
+                }
+                onPinchingStop={(ref, event) => {
+                  initZoom(ref)
+                }}
                 centerZoomedOut={true}
                 initialScale={1}
                 alignmentAnimation={{ sizeX: 0, sizeY: 0 }}
@@ -1365,6 +1444,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         let img_gallery: NodeListOf<HTMLImageElement> = document.querySelectorAll(
           `[data-lightboxjs=${lightboxIdentifier}]`
         )
+        let originalImageAttr = false;
+        
         
         let img_elements: ImageElement[] = []
         if (img_gallery.length > 0) {
@@ -1395,7 +1476,17 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
               )
               img.classList.add('cursor-pointer')
 
-              if (img.src) {
+              let original_img_src = img.getAttribute('data-lightboxjs-original')
+
+              if (original_img_src) {
+                img_elements.push({
+                  src: original_img_src,
+                  alt: img.alt,
+                  loaded: 'false'
+                })
+                originalImageAttr = true;
+              }
+              else if (img.src) {
                 img_elements.push({
                   src: img.src,
                   alt: img.alt,
@@ -1414,10 +1505,14 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
             }
           }
           if (isMounted && !coverMode) {
-            if ( props.showAllImages != true && props.framework != "next") {
+            if (originalImageAttr) {
+              setImages(img_elements) 
+
+            }
+            else if ( props.showAllImages != true && props.framework != "next") {
               setImages(img_elements) 
             } 
-            else if (props.framework == "next") {
+            else if (props.framework == "next" && !originalImageAttr) {
               setImages(props.images)
             }
             else {
@@ -1478,19 +1573,42 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
-  const onSelect = useCallback(() => {
+  const dispatchSlideSelectEvents = (newIndex, prevIndex) => {
+
+    if (newIndex == 0 && prevIndex == images.length - 1) {
+      dispatchNextImgEvent(newIndex)
+    }
+    else if (newIndex == images.length - 1 && prevIndex == 0) {
+      dispatchPrevImgEvent(newIndex)
+    }
+
+    else if (newIndex > prevIndex) {
+      dispatchNextImgEvent(newIndex)
+    }
+    else if (newIndex < prevIndex) {
+      dispatchPrevImgEvent(newIndex)
+    }
     
+  }
+
+  const onSelect = useCallback(() => {
+
     if (!emblaApi) return
 
     let newSlideIndex: any = emblaApi.selectedScrollSnap();
-    let prevSlideIndex = emblaApi.previousScrollSnap();
+    let prevSlideIndex: any = emblaApi.previousScrollSnap();
 
     if (newSlideIndex != prevSlideIndex) {
       initSlide(newSlideIndex);
-      resetMedia(prevSlideIndex)
+      resetMedia(prevSlideIndex);
+      dispatchSlideSelectEvents(newSlideIndex, prevSlideIndex)
     }
 
-  }, [emblaApi])
+    if (emblaThumbsApi) {
+    emblaThumbsApi.scrollTo(emblaApi.selectedScrollSnap())
+    }
+
+  }, [emblaApi, emblaThumbsApi])
 
   const onReinit = useCallback(() => {
     if (!emblaApi) return
@@ -1711,13 +1829,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                         } imageModal`}
                       style={{ color: iconColor }}
                     >
-                      <KeyHandler
+                       <KeyHandler
                         keyValue={'ArrowLeft'}
                         code={'37'}
                         onKeyHandle={() => {
                           prevSlide()
                         }}
-                      />
+                      /> 
                       <KeyHandler
                         keyValue={'ArrowRight'}
                         code={'39'}
@@ -1728,9 +1846,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                       <KeyHandler
                         keyValue={'Escape'}
                         code={'27'}
-                        onKeyHandle={() => {
+                        onKeyHandle={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
                           if (!isBrowserFullScreen) {
-                            closeModal()
+                             closeModal()
                           }
                         }}
                       /> 
@@ -1742,7 +1862,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                         onKeyHandle={() => {
                           prevSlide()
                         }}
-                      />
+                      /> 
                       <KeyHandler
                         keyValue={'Right'}
                         code={'39'}
@@ -1753,7 +1873,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                       <KeyHandler
                         keyValue={'Esc'}
                         code={'27'}
-                        onKeyHandle={() => {
+                        onKeyHandle={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
                           if (!isBrowserFullScreen) {
                             closeModal()
                           }
@@ -1915,7 +2037,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           ) : null}
                         </div>
                       )}
-                      <motion.div className={styles.closeIcon}>
+                      <motion.div className={`${styles.closeIcon} ${props.showControls == false ? styles.mlAuto : ""}`}>
                         <XLg
                           size={24}
                           className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
@@ -1966,6 +2088,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     }
 
                     <AnimatePresence initial={false} custom={direction}>
+
                       <div 
                        className={`${showThumbnails
                         ? styles.slideshowInnerContainerThumbnails
@@ -2039,51 +2162,24 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                                 : ''
                               }`}
                           >
-                            <ScrollContainer
-                              className='scroll-container'
-                              vertical={true}
-                              horizontal={false}
-                              hideScrollbars={false}
-                            >
+                              
+                            <div className={`${styles.embla_thumbs} ${styles.thumbnails}`}>
+                            <div className={styles.embla_thumbs__viewport} ref={emblaThumbsRef}>
+                              <div className={styles.embla_thumbs__container}>
                               {frameworkID == 'next' &&
-
                                 props.images
                                 ? props.images.map((img, index) => (
-                                  <img
-                                    className={`${styles.thumbnail} imageModal`}
-                                    src={getThumbnailImgSrcNext(img, index)}
-                                    style={
-                                      slideIndex === index
-                                        ? { border: thumbnailBorder }
-                                        : { border: inactiveThumbnailBorder }
-                                    }
-                                    key={index}
-                                    onClick={() => {
-                                      thumbnailClick(index);
-                                    }}
-                                    alt={img.alt}
-                                    onLoad={() => setImagesLoaded(true)}
-                                  />
+                                  getImageThumbnail(img, index, true)
                                 ))
                                 : // Not Next.js
                                 images.map((img, index) => (
-                                  <img
-                                    src={getThumbnailImgSrc(img, index)}
-                                    style={
-                                      slideIndex === index
-                                        ? { border: thumbnailBorder }
-                                        : { border: inactiveThumbnailBorder }
-                                    }
-                                    className={`${styles.thumbnail} imageModal`}
-                                    key={index}
-                                    onClick={() => {
-                                      thumbnailClick(index)
-                                    }}
-                                    alt={img.alt}
-                                    onLoad={() => setImagesLoaded(true)}
-                                  />
+                                  getImageThumbnail(img, index, false)
                                 ))}
-                            </ScrollContainer>
+                          
+                            </div>
+                          </div>
+                        </div>
+                          
                           </motion.div>
                         )}
                       </AnimatePresence>
