@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle, ForwardRefExoticComponent} from 'react'
-import { motion, AnimatePresence, AnimateSharedLayout } from 'framer-motion'
+import { motion, AnimatePresence, AnimateSharedLayout, useIsPresent } from 'framer-motion'
 import styles from './styles.module.css'
 
 import {
@@ -70,12 +70,13 @@ interface SlideItem {
   original?: string,
   type?: string,
   alt?: string,
+  loaded?: boolean
 }
 
 interface ImageElement {
   src?: any,
   alt?: string,
-  loaded?: string,
+  loaded?: boolean,
 }
 
 type SlideshowLightboxHandle = {
@@ -129,6 +130,8 @@ export interface SlideshowLightboxProps {
   onNext?: any;
   onPrev?: any;
   className?: string;
+  imgWrapperClassName?: string;
+  imgClassName?: string;
   startingSlideIndex?: number;
   showAllImages?: any;
   rightArrowClassname?: string;
@@ -185,7 +188,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [zoomedIn, setZoomedIn] = useState(false)
 
   const [isOpen, setIsOpen] = useState(false)
-  
+
+  const [prevFocusedElem, setPrevFocusedElem] = useState<HTMLElement | null>(null)
+  const [animationEntered, setAnimationEntered] = useState(false)
+
   const [magnifyingGlassFeature, _setMagnifyingGlassFeature] = useState(
     props.magnifyingGlass ? props.magnifyingGlass : false
   )
@@ -325,6 +331,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const zoomReferences = useRef<(ReactZoomPanPinchRef | null)[]>([])
 
   const videoReferences = useRef({})
+
+  const btnRef = useRef(null)
+
 
   const [videoElements, setVideoElements] = useState({});
 
@@ -542,8 +551,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const initLoader = (newIndex) => {
+
     if (props.showLoader && props.images) {
-      if (!isVideo(newIndex) && images[newIndex]['loaded'] != true) {
+      if (!isVideo(newIndex) && images[newIndex].loaded != true) {
         setDisplayLoader(true)
       } else if (
         props.showLoader &&
@@ -637,9 +647,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     setIsOpen(false)
     setCarouselReady(false)
     setEmblaReinitialized(false)
+    if (prevFocusedElem) prevFocusedElem?.focus();
   }
 
   const openModal = (num) => {
+
     if (emblaApi) { 
       emblaApi.reInit();
       if (emblaThumbsApi) {
@@ -653,26 +665,24 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const setItemLoaded = (index) => {
-    if (props.images) {
-      setImages(images.map((img, imgIndex) => {
-        if (imgIndex == index) {
-          return { ...img, loaded: true };
-        } else {
-          return img;
-        }
-      }));
 
+    if (props.images) {
+      setImages(images =>
+        images.map((img, i) => index === i ? {
+          ...img,
+          loaded: true
+        } : img)
+      )
     }
   }
 
   const setImagesItemLoaded = (index) => {
-    setImages(images.map((img, imgIndex) => {
-      if (imgIndex == index) {
-        return { ...img, loaded: true };
-      } else {
-        return img;
-      }
-    }));
+    setImages(images =>
+      images.map((img, i) => index === i ? {
+        ...img,
+        loaded: true
+      } : img)
+    )
   }
 
   const resetMedia = (slide_index) => {
@@ -740,6 +750,27 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     setIsSlideshowPlaying(false)
   }
 
+  const getEmbedIndex = (slide_index, elems) => {
+    if (props.images) {
+      let iframe_index = 0;
+
+      for (let i = 0; i < props.images.length; i++) {
+        let item = props.images[i];
+        if ((item.type == "customVideoEmbed" || item.type == "yt")) {
+          if (i == slide_index) {
+            iframe_index++;
+            break;
+          }
+          else {
+            iframe_index++;
+          }
+        }
+      }
+
+      return iframe_index - 1;
+    }
+  }
+
   const resetVideo = (slide_index) => {
     if (props.images) {
       let elem = props.images[slide_index]
@@ -748,7 +779,25 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
           videoReferences.current[slide_index].pause()
         }
         else if (elem.type == "yt") {
-          videoElements[slide_index].target.pauseVideo()
+          if (videoElements[slide_index]) {
+            videoElements[slide_index].target.pauseVideo()
+
+          }
+        }
+        else if (elem.type == "customVideoEmbed") {
+          let lightboxjs_elem = document.getElementById("lightboxContainer");
+          let elems = lightboxjs_elem?.querySelectorAll("iframe");
+          if (elems) {
+            let iframe_elem_index = getEmbedIndex(slide_index, elems);
+            if (iframe_elem_index != undefined && iframe_elem_index >= 0) {
+              // reset iframe
+              let iframe = elems[iframe_elem_index];
+              let iframe_src = iframe.src
+              iframe.src = iframe_src;
+            }
+
+          }
+
         }
       }
     }
@@ -812,11 +861,29 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
-  const initWrapperClassname = () => {
-    if (props.className) {
-      return `${props.className} ${styles.lightboxjs}`
+  const isAnimImageComponent = () => {
+    if (images) {
+      if (images.length == 1) {
+        return true;
+      }
     }
-    return styles.lightboxjs
+    return false;
+  }
+
+  const initWrapperClassname = () => {
+    let classNameStr = "";
+    if (isAnimImageComponent()) {
+        if (props.imgWrapperClassName) {
+          classNameStr += `${props.imgWrapperClassName} `
+        }
+    }
+    else if (props.className) {
+        classNameStr += `${props.className} `
+    }
+    
+    classNameStr += `${styles.lightboxjs}`;
+    
+    return classNameStr;
   }
 
   const initStyling = () => {
@@ -1016,7 +1083,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (props.images) {
       let elem = props.images[index]
       if (elem) {
-        if (elem.type == 'yt' || elem.type == 'htmlVideo') {
+        if (elem.type == 'yt' || elem.type == 'htmlVideo' || elem.type == 'customVideoEmbed') {
           return true
         }
       }
@@ -1132,6 +1199,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
               }}
             />
           </video>
+        </div>
+      )
+    }
+    else if (elem.type == "customVideoEmbed") {
+      videoElem = (
+        <div className={`${styles.videoOuterContainer} imageModal`}>
+          {elem.embed}
         </div>
       )
     }
@@ -1482,7 +1556,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                 img_elements.push({
                   src: original_img_src,
                   alt: img.alt,
-                  loaded: 'false'
+                  loaded: false
                 })
                 originalImageAttr = true;
               }
@@ -1490,7 +1564,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                 img_elements.push({
                   src: img.src,
                   alt: img.alt,
-                  loaded: 'false'
+                  loaded: false
                 })
               } else if (img.tagName == 'DIV') {
                 let corresponding_img_item = props.images[i]
@@ -1499,7 +1573,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                 img_elements.push({
                   src: img_src,
                   alt: img_alt,
-                  loaded: 'false'
+                  loaded: false
                 })
               }
             }
@@ -1554,7 +1628,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
           let img_obj = {
             src: img_elem.props.src,
             alt: img_elem.props.alt,
-            loaded: 'false'
+            loaded: false
           }
           imgs.push(img_obj)
         }
@@ -1655,6 +1729,14 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (emblaApi) emblaApi.on('reInit', onReinit)  
   }, [emblaApi, onReinit])
 
+  // update theme if prop changes
+  useEffect(() => {
+    initStyling();
+    if (props.iconColor) { setIconColor(props.iconColor) }
+    if (props.backgroundColor) { setBackgroundColor(props.backgroundColor) }
+
+  }, [props.theme, props.iconColor, props.backgroundColor]);
+
   useEffect(() => {
     initImages(true, true)
   }, [props.images, props.displayedImages]);
@@ -1747,7 +1829,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       {props.images && lightboxIdentifier == false
         ? props.images.map((elem, index) => (
           <img
-            className={`${styles.cursorPointer}`}
+          className={`${props.imgClassName ? props.imgClassName : ''
+          } ${styles.cursorPointer}`}
+
             src={!isVideo(index) ? elem.src : elem.thumbnail}
             // src={isSrcStr(elem.src) ? elem.src : elem.src.src}
             onClick={() => {
@@ -1821,9 +1905,26 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                   exit={"inactive"}         
                   transition={
                     {duration: "0.3"}
-                  }      
+                  }    
+                  onAnimationComplete={() => {
+                    let animEntered = !animationEntered;
+                    setAnimationEntered(animEntered);
+     
+                    if (animEntered == true) {
+                      let prevFocusedElement: any = document.activeElement;
+                      setPrevFocusedElem(prevFocusedElement)
+
+                      document.getElementById("lightboxContainer")?.focus();
+                    }
+                    else {
+                      prevFocusedElem?.focus();
+                    }
+                    if (emblaApi) emblaApi.reInit()
+                  }}
+                  
                 >
-                  <div className={`${styles.lightboxContainer}`} onClick={(e) => {if (modalCloseOption == "clickOutside") {checkModalClick(e)}}}>
+                  <div className={`${styles.lightboxContainer}`} id="lightboxContainer" tabIndex={-1} role="dialog"
+                   onClick={(e) => {if (modalCloseOption == "clickOutside") {checkModalClick(e)}}}>
                     <section
                       className={`${styles.iconsHeader} ${iconColor ? '' : getIconStyle()
                         } imageModal`}
@@ -1887,13 +1988,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           {disableZoom ||
                             displayMagnificationIcons == false ? null : 
                             <motion.div>
-                              <ZoomIn
-                                size={24}
-                                color={iconColor ? iconColor : undefined}
-                                className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
-                                  }`}
-                                style={iconColor ? { color: iconColor } : {}}
-                                onClick={() => {
+                              <button onClick={() => {
                                   if (enableMagnifyingGlass) {
                                     initMagnifyingGlass()
                                   }
@@ -1901,8 +1996,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                                     zoomReferences.current[zoomIdx]!.zoomIn()
                                   }
                                   setZoomedIn(true)
-                                }}
-                              />
+                                }}>
+                                  <ZoomIn
+                                    size={24}
+                                    color={iconColor ? iconColor : undefined}
+                                    className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
+                                      }`}
+                                    style={iconColor ? { color: iconColor } : {}}
+                                  />
+                              </button>
 
                             </motion.div>
                            }
@@ -1910,144 +2012,177 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           {disableZoom ||
                             displayMagnificationIcons == false ? null : 
                             <motion.div>
+                              <button 
+                              onClick={() => {
+                                zoomReferences.current[zoomIdx]!.zoomOut();
+                                let scale = zoomReferences.current[zoomIdx]!.state.scale;
+                                
+                                if (scale == 1 || scale == 1.65) {
+                                  setZoomedIn(false)
+                                }
+
+                              }}>
                               <ZoomOut
                                 size={24}
                                 className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                   }`}
                                 style={iconColor ? { color: iconColor } : {}}
                                 color={iconColor ? iconColor : undefined}
-                                onClick={() => {
-                                  zoomReferences.current[zoomIdx]!.zoomOut();
-                                  let scale = zoomReferences.current[zoomIdx]!.state.scale;
-                                  
-                                  if (scale == 1 || scale == 1.65) {
-                                    setZoomedIn(false)
-                                  }
-
-                                }}
+                                
                               />
+                              </button>
+                              
                             </motion.div>
                           }
 
                           {displayDownloadBtn() ? (
+                            <button 
+                            onClick={() => {
+                              saveImage()
+                            }}>
                             <Download
                             size={24}
                               className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                 }`}
                               style={iconColor ? { color: iconColor } : {}}
                               color={iconColor ? iconColor : undefined}
-                              onClick={() => {
-                                saveImage()
-                              }}
+                             
                             />
+                            </button>
+                            
                           ) : null}
 
                           {displayFullScreenIcon ? (
                             isBrowserFullScreen ? (
                               <motion.div>
+                                <button 
+                                onClick={() => {
+                                  isBrowserFullScreen
+                                    ? exitFullScreen()
+                                    : fullScreen()
+                                }}>
                                 <FullscreenExit
                                   size={24}
                                   className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                     }`}
                                   style={iconColor ? { color: iconColor } : {}}
                                   color={iconColor ? iconColor : undefined}
-                                  onClick={() => {
-                                    isBrowserFullScreen
-                                      ? exitFullScreen()
-                                      : fullScreen()
-                                  }}
+                                  
                                 />
+                                </button>
+                                
                               </motion.div>
                             ) : (
                               <motion.div>
+                                <button onClick={() => {
+                                    isBrowserFullScreen
+                                      ? exitFullScreen()
+                                      : fullScreen()
+                                  }}>
                                 <Fullscreen
                                   size={24}
                                   className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                     }`}
                                   style={iconColor ? { color: iconColor } : {}}
                                   color={iconColor ? iconColor : undefined}
-                                  onClick={() => {
-                                    isBrowserFullScreen
-                                      ? exitFullScreen()
-                                      : fullScreen()
-                                  }}
+                                  
                                 />
+                                </button>
+                                
                               </motion.div>
                             )
                           ) : null}
 
                           {displayThumbnailIcon ? (
                             <motion.div>
+                              <button
+                               onClick={() => {
+                                setShowThumbnails(!showThumbnails)
+                              }}>
                               <GridFill
                                 size={24}
                                 className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                   }`}
                                 style={iconColor ? { color: iconColor } : {}}
                                 color={iconColor ? iconColor : undefined}
-                                onClick={() => {
-                                  setShowThumbnails(!showThumbnails)
-                                }}
+                               
                               />
+                              </button>
+                              
                             </motion.div>
                           ) : null}
 
                           {shouldDisplayMagnifyingGlassIcon() ? (
                             <motion.div>
+                              <button
+                                onClick={() => initMagnifyingGlass()}
+                              >
                               <Search
                                 size={24}
                                 className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                   }`}
                                 style={iconColor ? { color: iconColor } : {}}
                                 color={iconColor ? iconColor : undefined}
-                                onClick={() => initMagnifyingGlass()}
                               />
+                              </button>
+                              
                             </motion.div>
                           ) : null}
 
                           {shouldDisplaySlideshowIcon() ? (
                             <motion.div className={styles.slideshowPlayBtn}>
                               {isSlideshowPlaying ? (
+                                <button onClick={() => {
+                                  isSlideshowPlaying
+                                    ? stopSlideshow()
+                                    : playSlideshow()
+                                }}>
                                 <PauseCircleFill
                                   size={24}
                                   className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                     }`}
                                   style={iconColor ? { color: iconColor } : {}}
                                   color={iconColor ? iconColor : undefined}
-                                  onClick={() => {
-                                    isSlideshowPlaying
-                                      ? stopSlideshow()
-                                      : playSlideshow()
-                                  }}
+                                  
                                 />
+                                </button>
+                                
                               ) : (
-                                <PlayCircleFill
+                                <button onClick={() => {
+                                  isSlideshowPlaying
+                                    ? stopSlideshow()
+                                    : playSlideshow()
+                                }}>
+                                  <PlayCircleFill
                                   size={24}
                                   className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                                     }`}
                                   style={iconColor ? { color: iconColor } : {}}
                                   color={iconColor ? iconColor : undefined}
-                                  onClick={() => {
-                                    isSlideshowPlaying
-                                      ? stopSlideshow()
-                                      : playSlideshow()
-                                  }}
+                                  
                                 />
+                                </button>
+                                
                               )}
                             </motion.div>
                           ) : null}
                         </div>
                       )}
-                      <motion.div className={`${styles.closeIcon} ${props.showControls == false ? styles.mlAuto : ""}`}>
-                        <XLg
-                          size={24}
-                          className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
-                            }`}
-                          color={iconColor ? iconColor : undefined}
-                          style={iconColor ? { color: iconColor } : {}}
-                          onClick={() => {
-                            closeModal()
-                          }}
-                        />
+                      <motion.div  className={`${styles.closeIcon} ${props.showControls == false ? styles.mlAuto : ""}`}>
+                        <button id="closeBtn" className={styles.closeButton}
+                        onClick={() => {
+                          closeModal()
+                        }}>
+                          <XLg
+                          id="closeIcon"
+                            size={24}
+                            className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
+                              }`}
+                            color={iconColor ? iconColor : undefined}
+                            style={iconColor ? { color: iconColor } : {}}
+                          />
+                        </button>
+                        
                       </motion.div>
                     </section>
                     {displayArrows() ?

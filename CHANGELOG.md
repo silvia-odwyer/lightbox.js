@@ -2,6 +2,10 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [0.8.8] - 2023-09-25
+### Added
+   - Custom video embed support available. Videos with custom `iframe` elements can be rendered in the lightbox.
+
 ## [0.8.7] - 2023-09-21
 
 ### Added
@@ -70,12 +74,12 @@ This file contains notable changes and updates that have been made to Lightbox.j
    - Lightbox can now be opened via setting the new `open` prop to `true`. 
    - The image the lightbox should open to can be specified via the `startingSlideIndex` prop
    - New event listener `onClose` now available, which emits an event when the lightbox has been closed
-   - New props added: **rightArrowClassname** and **leftArrowClassname**: Custom class can be added to right and left arrows using the new `rightArrowClassname` and `leftArrowClassname` props
+   - New props added: **rightArrowClassname** and **leftArrowClassname**: Custom classes can be added to right and left arrows using the new `rightArrowClassname` and `leftArrowClassname` props
 
 ## [0.5.4] - 2023-04-13
  
 ### Fixed
-   - Fixed a bug regarding the lightbox not refreshing the set of images in the lightbox when the value of the `images` array updates with new images. The lightbox now refreshes the set of images shown in the lightbox when the values of the `images` prop is changed.
+   - Fixed image refresh bug. The lightbox now refreshes the set of images shown in the lightbox when the values of the `images` prop is changed.
 
 ## [0.4.8] - 2023-03-31
 
@@ -89,8 +93,7 @@ This file contains notable changes and updates that have been made to Lightbox.j
 
 ### Fixed
 - Portrait videos now contained within the device's screen height
-- Fixed bug regarding loading indicator not being removed after lightbox element has loaded. It should now be removed 
-as soon as the element has loaded.
+- Fixed loading indicator display bug. Loading indicator should now be removed as soon as the element has loaded.
 
 ## [0.4.1] - 2023-03-10
  
@@ -119,7 +122,7 @@ as soon as the element has loaded.
 ## [0.3.6] - 2023-03-06
 
 ## Added
-  - Added functionality to support the external gallery to show only one image, while multiple images can be rendered within the lightbox. This would be useful for developers who wish to display one image, such as a product image, but have other images of that product rendered in the lightbox.
+  - Added functionality to enable the external gallery to show only one image, while multiple images can be rendered within the lightbox. This would be useful for developers who wish to display one image, such as a product image, but have other images of that product rendered in the lightbox.
 
 ### Fixed
   - Fixed bug related to `thumbnailColor` and `iconColor` custom prop values not applying as expected. The lightbox default styling was overriding the custom specifications, but this has been fixed.

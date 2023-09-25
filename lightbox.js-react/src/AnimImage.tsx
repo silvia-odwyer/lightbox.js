@@ -44,6 +44,22 @@ export const AnimImage = (props) => {
     props.showFullScreenIcon ? props.showFullScreenIcon : true
   )
 
+  const [className, setClassName] = useState(
+    props.className ? props.className : ""
+  )
+
+  const [imgWrapperClass, setImgWrapperClass] = useState(
+    props.wrapperClassName ? props.wrapperClassName : ""
+  )
+
+  const [lightboxImgClassName, setLightboxImgClassName] = useState(
+    props.lightboxImgClass ? props.lightboxImgClass : ""
+  )
+  
+  const [imgClass, setImgClass] = useState(
+    props.className ? props.className : ""
+  )
+
   const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState(
     props.showMagnificationIcons ? props.showMagnificationIcons : true
   )
@@ -81,7 +97,6 @@ export const AnimImage = (props) => {
 
   const initProps = () => {
     if (props.showControls != undefined) {
-      console.log("animImage showControls: ", props.showControls);
       setDisplayControls(props.showControls)
       setDisableZoom(props.showControls)
       
@@ -119,7 +134,7 @@ export const AnimImage = (props) => {
     }
     else if (frameworkID != "next") {
       return (
-        <img src={props.image.src} alt={props.image.title} className="img" />
+        <img src={props.image.src} alt={props.image.title} className={`${className}`} />
       )
     }
   }
@@ -151,8 +166,12 @@ export const AnimImage = (props) => {
       showThumbnailIcon={false} 
       showControls={displayControls}
       modalClose={modalCloseOption}
+      lightboxImgClass={lightboxImgClassName}
+      imgClassName={imgClass}
       imageComponent={true}
       framework={frameworkID}
+      // className={className}
+      imgWrapperClassName={imgWrapperClass}
       images={images}>
 
       {getImage()}
