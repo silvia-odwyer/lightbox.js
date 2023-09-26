@@ -1,5 +1,5 @@
 # lightbox.js
-[![NPM](https://img.shields.io/npm/v/lightbox.js-react.svg)](https://www.npmjs.com/package/lightbox.js-react) ![JavaScript Style Guide](https://img.shields.io/github/languages/top/silvia-odwyer/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/gitter/room/silvia-odwyer/lightbox.js)](https://gitter.im/lightbox-js/community) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![JavaScript Style Guide](https://img.shields.io/tokei/lines/github/silvia-odwyer/lightbox.js)
+[![NPM](https://img.shields.io/npm/v/lightbox.js-react.svg)](https://www.npmjs.com/package/lightbox.js-react) ![JavaScript Style Guide](https://img.shields.io/github/languages/top/silvia-odwyer/lightbox.js) [![JavaScript Style Guide](https://img.shields.io/gitter/room/silvia-odwyer/lightbox.js)](https://gitter.im/lightbox-js/community) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) 
 
 > All-in-one React lightbox with animation and customization options
 
@@ -11,9 +11,11 @@ The following features are provided:
 - **Fully responsive** for mobile devices
 - **Animations**: Multiple image transitions with entry/exit animations
 - **Intuitive Zooming**: Users can zoom through:
-        - Pinch-to-zoom
         - Mouse wheel
-        - Single-click
+        - Double-click
+        - Pinch-to-zoom on mobile
+        - The zoom icons in the controls
+
 - **Panning**: Once an image is zoomed into, the image can be panned by dragging the image through the mouse, or if on a mobile device, with a swipe-to-drag motion.
 
 ![Imgur](https://i.imgur.com/wNgsJFB.gif)
@@ -134,6 +136,30 @@ for the `SlideshowLightbox` component.
 | slideshowInterval   | The time in milliseconds before the slideshow transitions to the next image.        |
 | animateThumbnails   | Whether or not to animate the thumbnails as they enter the view.        |
 | imgAnimation   | The image animation type to show between image transitions in the slideshow, options include "fade" and "imgDrag"        |
+| fullScreen   | Whether or not to display the images as full-screen       |
+| showControls   | Show the additional controls. If false, only the close icon is displayed.      |
+| showFullScreenIcon   | Show the full-screen icon in the controls. Default is true       |
+| showThumbnailIcon   | Show the thumbnail icon in the controls. Default is true.       |
+| showSlideshowIcon   | Show the slideshow icon in the controls. Default is true       |
+| showMagnificationIcons | Show the magnification icons in the controls. Default is true      |
+| modalClose   | If set to "clickOutside", modal will close when outside of image is clicked on.       |
+| disableImageZoom   | To disable image zoom functionality, set to true. |
+| open   | Whether or not the lightbox is opened |
+| startingSlideIndex   | The image with the matching index that the lightbox should open to |
+| rightArrowClassname    | Custom classname(s) for the right arrow |
+| leftArrowClassname    | Custom classname(s) for the left arrow |
+| roundedImages   | Apply rounded effect on the image border's corners |
+| nextArrow    | Custom component for the right arrow. The default right arrow element will be replaced with this component. |
+| prevArrow    | Custom component for the left arrow. The default left arrow element will be replaced with this component. |
+| captionStyle    | Style object passed to the image caption element |
+
+### Event Listeners
+| Name      | Description |
+| ----------- | ----------- |
+| onOpen      | Emitted when the lightbox is opened     |
+| onClose   | Emitted when the lightbox modal is closed      |
+| onNext   | Emitted when the lightbox carousel moves to the next image     |
+| onPrev   | Emitted when the lightbox carousel moves to the previous image        |
 
 ## Contact & Support
 If you'd like to contact us with any questions, feedback or queries you may have, be sure to drop a message through [our contact form](https://www.getlightboxjs.com/contact/), and we'll get back to you as soon as possible.

@@ -275,6 +275,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     props.showLoader ? props.showLoader : false
   )
 
+  const [startingIndex, setStartingIndex] = useState(
+    props.startingSlideIndex ? props.startingSlideIndex : 0
+  )
+
   // Styling/theming
   const [backgroundColor, setBackgroundColor] = useState(
     props.backgroundColor
@@ -1204,7 +1208,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
     else if (elem.type == "customVideoEmbed") {
       videoElem = (
-        <div className={`${styles.videoOuterContainer} imageModal`}>
+        <div className={`${styles.customVideoContainer} imageModal`}>
           {elem.embed}
         </div>
       )
@@ -1729,6 +1733,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (emblaApi) emblaApi.on('reInit', onReinit)  
   }, [emblaApi, onReinit])
 
+  useEffect(() => {
+
+    if (props.startingSlideIndex) {
+        setStartingIndex(wrapNums(0, images.length, props.startingSlideIndex))
+    }
+  }, [props.startingSlideIndex])
+
   // update theme if prop changes
   useEffect(() => {
     initStyling();
@@ -1743,18 +1754,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
 
   useEffect(() => {
-    let slideNum = 0;
-    if (props.open) {
-      if (props.startingSlideIndex) {
-        if (props.startingSlideIndex < images.length && (props.startingSlideIndex >= 0)) {
-          slideNum = props.startingSlideIndex;
-        }
-        else {
-          slideNum = 0
-        }
-      }
 
-      openModalWithSlideNum(slideNum)
+    if (props.open) {
+      setStartingIndex(wrapNums(0, images.length, props.startingSlideIndex))
+    
+      openModalWithSlideNum(startingIndex)
     }
     else if (props.open == false) {
       closeModal()
