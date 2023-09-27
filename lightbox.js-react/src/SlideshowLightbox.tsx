@@ -1733,12 +1733,12 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (emblaApi) emblaApi.on('reInit', onReinit)  
   }, [emblaApi, onReinit])
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (props.startingSlideIndex) {
-        setStartingIndex(wrapNums(0, images.length, props.startingSlideIndex))
-    }
-  }, [props.startingSlideIndex])
+  //   if (props.startingSlideIndex) {
+  //       setStartingIndex(wrapNums(0, images.length, props.startingSlideIndex))
+  //   }
+  // }, [props.startingSlideIndex])
 
   // update theme if prop changes
   useEffect(() => {
@@ -1756,14 +1756,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   useEffect(() => {
 
     if (props.open) {
-      setStartingIndex(wrapNums(0, images.length, props.startingSlideIndex))
+      let starting_index = wrapNums(0, images.length, props.startingSlideIndex);
+      setStartingIndex(starting_index)
     
-      openModalWithSlideNum(startingIndex)
+      openModalWithSlideNum(starting_index)
     }
     else if (props.open == false) {
       closeModal()
     }
-  }, [props.open]);
+  }, [props.open, props.startingSlideIndex]);
 
   useEffect(() => {
     if (isOpen == true) {

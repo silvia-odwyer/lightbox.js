@@ -2,7 +2,13 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [0.9.1] - 2023-09-27
+
+### Fixed
+   - If the `startingSlideIndex` prop is dynamically changed, its value is now updated in the lightbox
+
 ## [0.8.8] - 2023-09-25
+
 ### Added
    - Custom video embed support available. Videos with custom `iframe` elements can be rendered in the lightbox.
 
