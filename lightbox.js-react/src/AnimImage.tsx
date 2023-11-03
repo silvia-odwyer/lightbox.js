@@ -52,6 +52,14 @@ export const AnimImage = (props) => {
     props.wrapperClassName ? props.wrapperClassName : ""
   )
 
+  const [width, setWidth] = useState(
+    props.width ? props.width : null
+  )
+
+  const [height, setHeight] = useState(
+    props.height ? props.height : null
+  )
+
   const [lightboxImgClassName, setLightboxImgClassName] = useState(
     props.lightboxImgClass ? props.lightboxImgClass : ""
   )
@@ -134,7 +142,7 @@ export const AnimImage = (props) => {
     }
     else if (frameworkID != "next") {
       return (
-        <img src={props.image.src} alt={props.image.title} className={`${className}`} />
+        <img src={props.image.src} alt={props.image.title} width={width} height={height} className={`${className}`} />
       )
     }
   }

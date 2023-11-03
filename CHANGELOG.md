@@ -2,6 +2,15 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [0.9.6] - 2023-11-01
+### Added
+   - Added **thumbnailImgClass** prop, so that custom styling can be applied to lightbox thumbnails
+   - Thumbnail image src links can be specified for each individual image by adding a **thumbnailSrc** property to each image object in the images prop array
+
+## [0.9.5] - 2023-10-23
+### Added
+   - Image metadata can be displayed alongside each image in the lightbox
+
 ## [0.9.1] - 2023-09-27
 
 ### Fixed

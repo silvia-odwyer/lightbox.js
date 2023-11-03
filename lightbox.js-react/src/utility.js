@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 export const wrapNums = (minNum, maxNum, v) => {
+      if (minNum == maxNum) {
+        return minNum;
+      }
       let rangeSize = maxNum - minNum;
       return ((((v - minNum) % rangeSize) + rangeSize) % rangeSize) + minNum;
 };
