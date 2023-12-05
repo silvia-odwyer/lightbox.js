@@ -119,6 +119,7 @@ export interface SlideshowLightboxProps {
   showThumbnails?: boolean;
   open?: boolean;
   displayMetadata?: boolean;
+  navigationDots?: boolean;
   animateThumbnails?: boolean;
   showFullScreenIcon?: boolean;
   showThumbnailIcon?: boolean;
@@ -126,6 +127,7 @@ export interface SlideshowLightboxProps {
   showMagnificationIcons?: boolean;
   roundedImages?: boolean;
   downloadImages?: boolean;
+  showNavigationDots?: boolean;
   rtl?: boolean;
   modalClose?: string;
   framework?: string;
@@ -281,6 +283,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [showDownloadBtn, setShowDownloadBtn] = useState(
     props.downloadImages ? props.downloadImages : false
+  )
+
+  const [navigationDots, setNavigationDots] = useState(
+    props.showNavigationDots ? props.showNavigationDots : false
   )
 
   const [metadataLocale, setMetadataLocale] = useState(props.metadataTimeLocale ? props.metadataTimeLocale : "en-US")
@@ -488,7 +494,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     return true;
   }
 
-  const thumbnailClick = (index) => {
+  const navigationClick = (index) => {
     initLoader(index)
     setCurrentSlide(index)
   }
@@ -870,6 +876,14 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
+  const getNavigationDot = (index) => {
+    return (
+      <button style={slideIndex === index ? {backgroundColor: "cornflowerblue"} : {}} 
+      className={`${styles.navigationDot} imageModal`} onClick={() => {navigationClick(index)}}></button>
+
+    )
+  }
+
   const getImageThumbnail = (img, index, isNextJS) => {
     return (
       <div key={"thumbnail_slide_" + index} className={`${styles.embla_thumbs__slide}`}>
@@ -886,7 +900,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
           }
           key={"thumbnail_" + index}
           onClick={() => {
-            thumbnailClick(index);
+            navigationClick(index);
           }}
         />
       </div>
@@ -1161,7 +1175,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const getLightboxElem = (index) => {
-    if (isVideo(index)) {
+    if (isCustomEmbed(index)) {
+      return customEmbedElement(index)
+    }
+    else if (isVideo(index)) {
       return videoSlideElement(index)
     }
     else if (isPictureElement(index)) {
@@ -1292,6 +1309,19 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
       }
     }
+  }
+
+  const isCustomEmbed = (index) => {
+
+    if (props.images) {
+      let elem = props.images[index]
+      if (elem) {
+        if (elem.type == 'customEmbed') {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   const isVideo = (index) => {
@@ -1432,6 +1462,21 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
 
     return videoElem
+  }
+
+  const customEmbedElement = (index) => {
+    let elem = props.images[index];
+    let customElem;
+
+    if (elem.type == "customEmbed") {
+      customElem = (
+        <div className={`${styles.customEmbedContainer} imageModal`}>
+          {elem.embed}
+        </div>
+      )
+    }
+
+    return customElem
   }
 
   const initZoom = (ref) => {
@@ -2633,7 +2678,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                       ) : null}
 
                       <AnimatePresence initial={animatedThumbnails}>
-                        {showThumbnails !== false && (
+                        {showThumbnails !== false && navigationDots !== true && (
                           <motion.div
                             initial={'hidden'}
                             exit={'hidden'}
@@ -2651,7 +2696,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               : ''
                               }`}
                           >
-
                             <div className={`${styles.embla_thumbs} ${styles.thumbnails}`}>
                               <div className={styles.embla_thumbs__viewport} ref={emblaThumbsRef}>
                                 <div className={styles.embla_thumbs__container}>
@@ -2669,6 +2713,44 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               </div>
                             </div>
 
+                          </motion.div>
+                        )}
+
+                      {showThumbnails !== true && navigationDots !== false && (
+                          <motion.div
+                            initial={'hidden'}
+                            exit={'hidden'}
+                            animate={'visible'}
+                            style={
+                              imagesLoaded ? {} : { display: 'displayHidden' }
+                            }
+                            transition={{
+                              type: 'spring',
+                              duration: 0.75
+                            }}
+                            variants={thumbnailVariants}
+                            className={`${styles.thumbnails} ${isImageCaption()
+                              ? styles.thumbnailsWithCaption
+                              : ''
+                              }`}
+                          >
+                            <div className={`${styles.embla_thumbs} ${styles.thumbnails}`}>
+                              <div className={styles.embla_thumbs__viewport} ref={emblaThumbsRef}>
+                                <div className={`${styles.navigationDots} ${styles.embla_thumbs__container} imageModal
+                                `}>
+                                {frameworkID == 'next' &&
+                                    props.images
+                                    ? props.images.map((img, index) => (
+                                      getNavigationDot(index)
+                                    ))
+                                    : // Not Next.js
+                                    images.map((img, index) => (
+                                      getNavigationDot(index)
+                                    ))}
+
+                                </div>
+                              </div>
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
