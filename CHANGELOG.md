@@ -2,6 +2,12 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [0.9.7] - 2023-12-05
+### Added
+   - Added **showNavigationDots** prop; if set to true, carousel dots will be shown instead of image thumbnails in the lightbox
+   - Custom components can be displayed in the controls menu
+   - Custom embeds can be rendered in the lightbox (such as the Next.js Image component)
+
 ## [0.9.6] - 2023-11-01
 ### Added
    - Added **thumbnailImgClass** prop, so that custom styling can be applied to lightbox thumbnails

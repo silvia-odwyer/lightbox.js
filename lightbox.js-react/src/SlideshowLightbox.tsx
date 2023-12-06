@@ -146,6 +146,7 @@ export interface SlideshowLightboxProps {
   render?: any;
   imageComponent?: boolean;
   showArrows?: boolean;
+  controlComponent?: any;
   lightboxImgClass?: string;
   thumbnailImgClass?: string;
   coverImageInLightbox?: boolean;
@@ -308,6 +309,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [displayLoader, setDisplayLoader] = useState(
     props.showLoader ? props.showLoader : false
+  )
+
+  const [customControlComponent, setCustomControlComponent] = useState(
+    props.controlComponent ? props.controlComponent : false
   )
 
   const [startingIndex, setStartingIndex] = useState(
@@ -2532,6 +2537,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               )}
                             </motion.div>
                           ) : null}
+
+                          {customControlComponent ? <motion.div>{customControlComponent}</motion.div> : null}
                         </div>
                       )}
                       <motion.div className={`${styles.closeIcon} ${props.showControls == false ? styles.mlAuto : ""}`}>
@@ -2591,9 +2598,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     <AnimatePresence initial={false} custom={direction}>
 
                       <div
-                        className={`${showThumbnails
-                          ? styles.slideshowInnerContainerThumbnails
-                          : ''
+                        className={`${
+                          styles.slideshowInnerContainerThumbnails                       
                           } ${styles.embla} ${isImageCaption() ? styles.slideImageAndCaption : ''
                           } 
                           ${props.fullScreen
