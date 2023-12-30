@@ -91,5 +91,14 @@ export const swipePower = (offset, velocity) => {
     return Math.abs(offset) * velocity;
 };
 
-export const isBrowser = () => typeof window !== "undefined"
-
+export const getScale = (num, maxScale) => {
+  if (num < 1) {
+    return 1
+  }
+  else if (num > maxScale) {
+    return maxScale;
+  }
+  
+  return num;
+  
+}

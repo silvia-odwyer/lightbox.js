@@ -141,6 +141,7 @@ for the `SlideshowLightbox` component.
 | showFullScreenIcon   | Show the full-screen icon in the controls. Default is true       |
 | showThumbnailIcon   | Show the thumbnail icon in the controls. Default is true.       |
 | showSlideshowIcon   | Show the slideshow icon in the controls. Default is true       |
+| showNavigationDots   | Show navigation dots instead of image thumbnails. Default is false       |
 | showMagnificationIcons | Show the magnification icons in the controls. Default is true      |
 | modalClose   | If set to "clickOutside", modal will close when outside of image is clicked on.       |
 | disableImageZoom   | To disable image zoom functionality, set to true. |

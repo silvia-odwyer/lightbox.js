@@ -8,6 +8,7 @@ import {
   getVideoHeight,
   getVideoWidth,
   shouldAutoplay,
+  getScale,
 } from './utility'
 import {
   ZoomIn,
@@ -140,6 +141,7 @@ export interface SlideshowLightboxProps {
   rightArrowStyle?: any;
   leftArrowStyle?: any;
   imgAnimation?: string;
+  maxZoomScale?: number;
   textColor?: string;
   licenseKey?: string;
   images?: any;
@@ -240,6 +242,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [leftArrowStyle, setLeftArrowStyle] = useState(
     props.leftArrowStyle ? props.leftArrowStyle : {}
+  )
+
+  const [maxScale, setMaxScale] = useState<number>(
+    props.maxZoomScale ? getScale(props.maxZoomScale, 24) : 8
   )
 
   const [isRounded, setIsRounded] = useState(
@@ -597,14 +603,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (props.showArrows == false) {
       return false;
     }
-    else if (images.length == 1) {
-      return false;
-    }
     if (props.images) {
       if (props.images.length == 1) {
         return false;
       }
     }
+    else if (images.length == 1) {
+      return false;
+    }
+
     return true;
   }
 
@@ -1539,6 +1546,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     }}
                     centerZoomedOut={true}
                     initialScale={1}
+                    maxScale={maxScale}
                     alignmentAnimation={{ sizeX: 0, sizeY: 0 }}
                   >
                     <TransformComponent
@@ -2093,7 +2101,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   useEffect(() => {
-
     let starting_index = 0;
     if (props.startingSlideIndex) {
       starting_index = wrapNums(0, images.length, props.startingSlideIndex);
@@ -2101,10 +2108,17 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
 
     if ((props.open == true) && imagesEqualToPrevious(images) == false && props.startingSlideIndex) {
+      if (props.images) {
+        setImages(props.images)
+      }
       openModalWithSlideNum(starting_index)
     }
 
     else if ((props.open && prevValue != true)) {
+      if (props.images) {
+        setImages(props.images)
+      }
+      
       setIsDisplay(true)
 
       openModalWithSlideNum(starting_index)
@@ -2160,6 +2174,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
 
     if (!isInit) {
+
       initImages(isMounted, false);
 
       if (props.images && isRTL == true) {

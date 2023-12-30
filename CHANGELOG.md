@@ -2,10 +2,18 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [0.9.9] - 2023-12-29
+### Added
+   - Added **maxZoomScale** prop, so that the maximum zoom scale can be specified.
+
+## [0.9.8] - 2023-12-06
+### Fixed
+   - Fixed a bug regarding navigation through multiple custom embeds in the lightbox
+
 ## [0.9.7] - 2023-12-05
 ### Added
    - Added **showNavigationDots** prop; if set to true, carousel dots will be shown instead of image thumbnails in the lightbox
-   - Custom components can be displayed in the controls menu
+   - Custom components can be displayed in the controls menu, by passing the component to the **controlComponent** prop
    - Custom embeds can be rendered in the lightbox (such as the Next.js Image component)
 
 ## [0.9.6] - 2023-11-01
