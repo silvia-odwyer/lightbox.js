@@ -156,6 +156,7 @@ export interface SlideshowLightboxProps {
   onClose?: any;
   onNext?: any;
   onPrev?: any;
+  onImgError?: any;
   className?: string;
   imgWrapperClassName?: string;
   imgClassName?: string;
@@ -216,6 +217,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [carouselReady, setCarouselReady] = useState(false)
 
   const [zoomedIn, setZoomedIn] = useState(false)
+  const [text, setText] = useState("")
 
   const [isDisplay, setIsDisplay] = useState(false)
 
@@ -779,14 +781,28 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const nextSlide = () => {
+    setText("text1")
+    if (imgAnimation == "fade") {
+
+    }
 
     scrollNext();
+
+
     initSlide(imgSlideIndex + 1);
+
   }
 
   const prevSlide = () => {
+    setText("text")
+    if (imgAnimation == "fade") {
+
+    }
+
     scrollPrev()
-    initSlide(imgSlideIndex - 1)
+
+
+    initSlide(imgSlideIndex - 1);
   }
 
   const setThumbnailStartIndex = (index) => {
@@ -856,6 +872,23 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
+  const getEmblaClass = (index) => {
+
+    if (displayImgMetadata) {
+      return styles.embla__slide_grid;
+    }
+
+    if (slideIndex == index && imgAnimation == "fade") {
+      return `${styles.imgfade} ${styles.embla__slide} ${styles.embla__slide_selected}`
+    }
+    else if (imgAnimation == "fade") {
+      return `${styles.imgfade} ${styles.embla__slide}`;
+    }
+    else {
+      return styles.embla__slide;
+    }
+  }
+
   const resetVideo = (slide_index) => {
     if (props.images) {
       let elem = props.images[slide_index]
@@ -890,18 +923,20 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const getNavigationDot = (index) => {
     return (
-      <button style={slideIndex === index ? {backgroundColor: "cornflowerblue"} : {}} 
-      className={`${styles.navigationDot} imageModal`} onClick={() => {navigationClick(index)}}></button>
+      <button style={slideIndex === index ? { backgroundColor: "cornflowerblue" } : {}}
+        className={`${styles.navigationDot} imageModal`} onClick={() => { navigationClick(index) }}></button>
 
     )
   }
+
+
 
   const getImageThumbnail = (img, index, isNextJS) => {
     return (
       <div key={"thumbnail_slide_" + index} className={`${styles.embla_thumbs__slide}`}>
 
         <img
-          className={`${props.thumbnailImgClass ? props.thumbnailImgClass : "" } ${styles.thumbnail} imageModal `}
+          className={`${props.thumbnailImgClass ? props.thumbnailImgClass : ""} ${styles.thumbnail} imageModal `}
           src={isNextJS == true ? getThumbnailImgSrcNext(img, index) : getThumbnailImgSrc(img, index)}
           alt={img.alt}
           onLoad={() => setImagesLoaded(true)}
@@ -919,6 +954,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     )
   }
 
+  const handleError = (event, index) => {
+    if (props.onImgError) {
+      props.onImgError(event, images[slideIndex], index);
+
+    }
+  }
+
   const resetImage = () => {
     if (enableMagnifyingGlass) {
       initMagnifyingGlass()
@@ -930,7 +972,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const getThumbnailImgSrc = (img, index) => {
-    
+
     if (props.images && props.images.length > 0) {
       if (props.images[index].thumbnailSrc) {
         return props.images[index].thumbnailSrc
@@ -939,7 +981,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
     if (isVideo(index) && img.thumbnail) {
       return img.thumbnail
-    } 
+    }
     else {
       return img.src
     }
@@ -976,14 +1018,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const initWrapperClassname = () => {
+
     let classNameStr = "";
+    if (props.className) {
+      classNameStr += `${props.className} `
+    }
     if (isAnimImageComponent()) {
       if (props.imgWrapperClassName) {
         classNameStr += `${props.imgWrapperClassName} `
       }
-    }
-    else if (props.className) {
-      classNameStr += `${props.className} `
     }
 
     classNameStr += `${styles.lightboxjs}`;
@@ -1010,54 +1053,54 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const getMetadataPanel = () => {
-    
+
     let imgMetadataItem = imgMetadata[slideIndex];
 
     if (imgMetadataItem) {
       let element = <div className={styles.metadataPanel}>
-      <b>Filename</b>
-      {imgMetadataItem.name ? <p>{imgMetadataItem.name}</p> : null }
+        <b>Filename</b>
+        {imgMetadataItem.name ? <p>{imgMetadataItem.name}</p> : null}
 
-      {imgMetadataItem.createDate ?
-        <div>
-          <b>Captured Time</b>
-          <p>{imgMetadataItem.createDate.toString()}</p>
-        </div>
-
-        : null}
-
-      {
-        imgMetadataItem.width && imgMetadataItem.height ?
+        {imgMetadataItem.createDate ?
           <div>
-            <b>Resolution</b>
-            <p>{imgMetadataItem.width}*{imgMetadataItem.height}</p>
+            <b>Captured Time</b>
+            <p>{imgMetadataItem.createDate.toString()}</p>
+          </div>
+
+          : null}
+
+        {
+          imgMetadataItem.width && imgMetadataItem.height ?
+            <div>
+              <b>Resolution</b>
+              <p>{imgMetadataItem.width}*{imgMetadataItem.height}</p>
+            </div> : null
+        }
+
+        {imgMetadataItem.isoData || imgMetadataItem.fNumber || imgMetadataItem.shutterSpeed ?
+          <div>
+            <b>Image Details</b>
+            {
+              imgMetadataItem.isoData ? <span>ISO {imgMetadataItem.isoData}</span>
+                : null
+            }
+
+            {
+              imgMetadataItem.fNumber ? <span>f{imgMetadataItem.fNumber}</span> : null
+            }
+
+            {
+              imgMetadataItem.shutterSpeed ? <span>Shutter speed: {imgMetadataItem.shutterSpeed}</span> : null
+            }
           </div> : null
-      }
 
-      {imgMetadataItem.isoData || imgMetadataItem.fNumber || imgMetadataItem.shutterSpeed ? 
-      <div>
-         <b>Image Details</b>
-              {
-        imgMetadataItem.isoData ? <span>ISO {imgMetadataItem.isoData}</span>
-       : null
-      }
+        }
 
-      {
-        imgMetadataItem.fNumber ? <span>f{imgMetadataItem.fNumber}</span> : null
-      }
 
-      {
-        imgMetadataItem.shutterSpeed ? <span>Shutter speed: {imgMetadataItem.shutterSpeed}</span> : null
-      }
-      </div> : null
-                  
+      </div>
+      return element;
     }
 
-
-    </div>
-    return element;
-    }
-    
   }
 
   const imageSlideElement = (index) => {
@@ -1080,6 +1123,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
           src={
             images[index].original ? images[index].original : images[index].src
           }
+          onError={(event) => {
+            handleError(event, index)
+          }}
           onLoad={(img) => {
             if (index == slideIndex) {
               setDisplayLoader(false)
@@ -1136,6 +1182,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
               ? images[index].original
               : img_link
           }
+          onError={(event) => {
+            handleError(event, index)
+          }}
           onLoad={(img) => {
             if (index == slideIndex) {
               setDisplayLoader(false)
@@ -1168,9 +1217,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const getImageFilename = (img_src) => {
-      let img_src_split = img_src.split("/");
-      let name = img_src_split[img_src_split.length - 1];
-      return name;
+    let img_src_split = img_src.split("/");
+    let name = img_src_split[img_src_split.length - 1];
+    return name;
   }
 
   const parseCreateDate = (js_date) => {
@@ -1211,7 +1260,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
             srcSet={elem_metadata[format].srcSet}
           />
         ))}
-        <img src={elem_metadata['fallback']} />
+        <img src={elem_metadata['fallback']}
+          onError={(error) => {
+            handleError(error, index)
+          }}
+        />
       </picture>
     }
     else {
@@ -1291,16 +1344,16 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           break;
                       }
                     }
-                
+
                     let imgMetadataItems = imgMetadata;
                     imgMetadataItems[index] = individual_image_metadata;
                     setImgMetadata(imgMetadataItems);
-                  
+
                     if (index == slideIndex) {
                       setIsLoading(false)
                     }
                   }
-              
+
                 }
                 )
               }
@@ -1379,7 +1432,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   useEffect(() => {
     if (!emblaApi) return
-    //emblaApi.reInit() // If the slides prop changes, pick it up
+
+    if (imgAnimation == "fade") {
+      emblaApi.internalEngine().translate.toggleActive(false);
+    }
+
   }, [
     carouselReady, emblaApi
   ])
@@ -1432,7 +1489,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
               setYTVideoCurrentlyPlaying(false)
             }}
             onEnd={(event) => { setYTVideoCurrentlyPlaying(false) }}
-            onError={(event) => { }}
+            onError={(event) => { handleError(event, index) }}
             onStateChange={(event) => { }}
             onPlaybackRateChange={(event) => { }}
             onPlaybackQualityChange={(event) => { }}
@@ -1449,6 +1506,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
             width={getVideoWidth(elem)}
             ref={(el) => (videoReferences.current[index] = el)}
             onPlay={() => {
+            }}
+            onError={(event) => {
+              handleError(event, index)
             }}
             height={getVideoHeight(elem)}
             autoPlay={index == imgSlideIndex ? shouldAutoplay(elem) : false}
@@ -1517,7 +1577,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
             )
 
               : (
-                <div className={`${displayImgMetadata ? styles.embla__slide_grid : styles.embla__slide}`}>
+                <div className={getEmblaClass(index)}>
 
                   <TransformWrapper
                     ref={(el) => (zoomReferences.current[index] = el)}
@@ -1689,10 +1749,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         setImgAnimation('fade')
       }
 
-      reducedMotionMediaQuery.addEventListener(
-        'change',
-        setReducedMotion(reducedMotionMediaQuery)
-      )
+      if (reducedMotionMediaQuery?.addEventListener) {
+        reducedMotionMediaQuery.addEventListener('change', setReducedMotion(reducedMotionMediaQuery));
+      } 
+      else {
+        reducedMotionMediaQuery.addListener(setReducedMotion(reducedMotionMediaQuery));
+      }
+
     }
 
     return reducedMotionMediaQuery
@@ -1730,8 +1793,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
     if (isBrowser()) {
       setWidth(window.innerWidth)
-
-
     }
 
     if (window.innerWidth <= mobileWidth) {
@@ -2118,7 +2179,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       if (props.images) {
         setImages(props.images)
       }
-      
+
       setIsDisplay(true)
 
       openModalWithSlideNum(starting_index)
@@ -2613,21 +2674,20 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     <AnimatePresence initial={false} custom={direction}>
 
                       <div
-                        className={`${
-                          styles.slideshowInnerContainerThumbnails                       
+                        className={`${styles.slideshowInnerContainerThumbnails
                           } ${styles.embla} ${isImageCaption() ? styles.slideImageAndCaption : ''
                           } 
                           ${props.fullScreen
                             ? styles.slideshowInnerContainerFullScreen
                             : styles.slideshowInnerContainer
                           } ${displayImgMetadata ? styles.slideshowInnerContainer_imgMetadata : ""}  `}>
-                    
+
                         {shouldDisplayMetadataPanel() ?
                           <div className={styles.metadata}
                             style={getMetadataPanelStyle()}>
                             {isLoading ? null :
                               <div className={styles.metadataInnerContainer}>
-                                
+
                                 {getMetadataPanel()}
 
                                 {isMobile && showImgMetadataPanel ?
@@ -2653,7 +2713,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                         <div className={`${styles.embla__viewport} 
                             ${displayImgMetadata ? styles.embla__container_imgMetadata : ""}`}
                           ref={showModal ? emblaRef : null}>
-                          <div className={`${styles.embla__container} 
+                          <div className={`
+                          ${imgAnimation == "fade" ? styles.imgfade : ""} 
+                          ${styles.embla__container}
                             ${displayImgMetadata ? styles.embla__container_imgMetadata : ""}`}>
 
                             {regularImgPaneNodes}
@@ -2737,7 +2799,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           </motion.div>
                         )}
 
-                      {showThumbnails !== true && navigationDots !== false && (
+                        {showThumbnails !== true && navigationDots !== false && (
                           <motion.div
                             initial={'hidden'}
                             exit={'hidden'}
@@ -2759,7 +2821,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               <div className={styles.embla_thumbs__viewport} ref={emblaThumbsRef}>
                                 <div className={`${styles.navigationDots} ${styles.embla_thumbs__container} imageModal
                                 `}>
-                                {frameworkID == 'next' &&
+                                  {frameworkID == 'next' &&
                                     props.images
                                     ? props.images.map((img, index) => (
                                       getNavigationDot(index)

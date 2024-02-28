@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { SlideshowLightbox } from './SlideshowLightbox';
+import { ReactNode } from 'react';
 
 const themes: any = {
   day: {
@@ -23,7 +24,35 @@ const themes: any = {
 }
 const defaultTheme = "lightbox";
 
-export const AnimImage = (props) => {
+
+export interface AnimImageProps {
+  children?: ReactNode;
+  ref?: any;
+  fullScreen?: boolean;
+  backgroundColor?: string;
+  theme?: string;
+  iconColor?: any;
+  modalClose?: string;
+  image?: any;
+  roundedImages?: boolean;
+  disableImageZoom?: boolean;
+  showFullScreenIcon?: boolean;
+  showMagnificationIcons?: boolean;
+  showControls?: boolean;
+  downloadImages?: boolean;
+  rtl?: boolean;
+  width?: number | null;
+  height?: number | null;
+  framework?: string;
+  lightboxIdentifier?: string;
+  images?: any;
+  lightboxImgClass?: string;
+  wrapperClassName?: string;
+  className?: string;
+}
+
+
+export const AnimImage: React.FC<AnimImageProps> = (props) => {
   const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
 
   const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
@@ -83,7 +112,7 @@ export const AnimImage = (props) => {
   const [isRTL, setIsRTL] = useState(props.rtl ? props.rtl : false)
 
   const [lightboxIdentifier, setLightboxIdentifier] = useState(
-    props.lightboxIdentifier ? props.lightboxIdentifier : false
+    props.lightboxIdentifier ? props.lightboxIdentifier : ""
   )
 
   const [frameworkID, setFrameworkID] = useState(
@@ -142,7 +171,11 @@ export const AnimImage = (props) => {
     }
     else if (frameworkID != "next") {
       return (
-        <img src={props.image.src} alt={props.image.title} width={width} height={height} className={`${className}`} />
+        <img src={props.image? props.image.src : ""} 
+        alt={props.image.title} 
+        width={width != null ? width : "100%"} 
+        height={height != null ? height : "100%"} 
+        className={`${className}`} />
       )
     }
   }

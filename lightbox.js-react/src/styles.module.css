@@ -1184,7 +1184,7 @@ img.hoverShadow {
   max-width: 78vw;
 }
 
-.embla__slide {
+.imgdrag .embla__slide {
   flex: 0 0 80%;
   min-width: 0;
   max-width: 100%;
@@ -1321,4 +1321,38 @@ img.hoverShadow {
   padding-bottom: 24px;
   padding-left: 12px;
   padding-right: 12px;
+}
+
+.imgfade.embla__container {
+  transform: none !important; /* override Embla */
+  display: flex;
+  height: 250px;
+}
+
+.imgfade.embla__slide {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0 !important; /* override Embla */
+  right: 0 !important; /* override Embla */
+  opacity: 0;
+  transition: opacity 0.5s;
+  counter-increment: embla;
+  border-radius: 0.5rem;
+}
+
+.imgfade.embla__slide_selected {
+  opacity: 1;
+  transition: opacity 0.3s;
+  z-index: 1;
+}
+
+.imgfade.embla__slide:before {
+  position: absolute;
+  content: counter(embla);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
