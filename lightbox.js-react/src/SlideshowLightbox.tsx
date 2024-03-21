@@ -217,7 +217,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [carouselReady, setCarouselReady] = useState(false)
 
   const [zoomedIn, setZoomedIn] = useState(false)
-  const [text, setText] = useState("")
+
 
   const [isDisplay, setIsDisplay] = useState(false)
 
@@ -475,6 +475,12 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const getImageStyle = () => {
     let styleObject = {};
+    if (isImageCaption() && showThumbnails == false) {
+      styleObject["height"] = "77vh"
+    }
+    if (isImageCaption() && showThumbnails) {
+      styleObject["height"] = "67vh"
+    }
     if (isRounded) {
       styleObject["borderRadius"] = "20px";
     }
@@ -781,26 +787,16 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const nextSlide = () => {
-    setText("text1")
-    if (imgAnimation == "fade") {
-
-    }
 
     scrollNext();
-
 
     initSlide(imgSlideIndex + 1);
 
   }
 
   const prevSlide = () => {
-    setText("text")
-    if (imgAnimation == "fade") {
-
-    }
 
     scrollPrev()
-
 
     initSlide(imgSlideIndex - 1);
   }
@@ -927,6 +923,21 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         className={`${styles.navigationDot} imageModal`} onClick={() => { navigationClick(index) }}></button>
 
     )
+  }
+
+  const getThumbnailsOuterContainerStyle = () => {
+    let style = {};
+    if (isImageCaption()) {
+      if (showThumbnails) {
+        style["height"] = "21vh" 
+      }
+      else {
+        style["height"] = "12vh"
+      }
+      style["backgroundColor"] = backgroundColor;
+    }
+    return style;
+
   }
 
 
@@ -1795,9 +1806,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       setWidth(window.innerWidth)
     }
 
-    if (window.innerWidth <= mobileWidth) {
-      setImgAnimation('fade')
-    }
+    // if (window.innerWidth <= mobileWidth) {
+    //   setImgAnimation('fade')
+    // }
   }
 
   // Slideshow feature; if isSlideshowPlaying set to true, then slideshow cycles through images
@@ -2737,11 +2748,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                       className={`${styles.thumbnailsOuterContainer} ${isImageCaption() ? styles.thumbnailsAndCaption : ''}
                       ${displayImgMetadata ? styles.thumbnailsOuterContainer_metadata : ""} `}
                       style={
-                        isImageCaption()
-                          ? {
-                            backgroundColor: backgroundColor
-                          }
-                          : {}
+                        getThumbnailsOuterContainerStyle()
                       }
                     >
                       {isImageCaption() ? (

@@ -2,6 +2,10 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.0.3] - 2024-03-21
+### Fixed
+   - Updated image sizing when captions are displayed
+
 ## [1.0.1] - 2024-02-28
 ### Added
    - Added **onImgError** prop, so that when an image error occurs, the info can be passed to the event callback

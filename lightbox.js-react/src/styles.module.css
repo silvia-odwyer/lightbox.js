@@ -172,7 +172,7 @@ img.hoverShadow {
 }
 
 .thumbnailsAndCaption {
-  height: 20vh;
+  height: 19vh;
 }
 
 .htmlVideoOuterContainer video {
@@ -631,7 +631,7 @@ img.hoverShadow {
   }
 
   .lightbox_img {
-      height: 70vh;
+      /* height: 70vh; */
   }
 
   .thumbnail {
@@ -924,7 +924,7 @@ img.hoverShadow {
 
 .thumbnailsAndCaption {
   bottom: 0%;
-  height: 20vh;
+  height: 19vh;
   margin-top: 0em;
   width: 100vw;
 }
