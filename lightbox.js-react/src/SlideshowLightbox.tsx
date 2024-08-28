@@ -53,7 +53,7 @@ const themes: any = {
     background: '#151515',
     iconColor: '#626b77',
     thumbnailBorder: 'solid rgb(107, 133, 206)  2px',
-    textColor: '#626b77',
+    textColor: 'silver',
     metadataTextColor: "white"
 
   },
@@ -147,6 +147,7 @@ export interface SlideshowLightboxProps {
   images?: any;
   render?: any;
   imageComponent?: boolean;
+  imgElemClassname?: string;
   showArrows?: boolean;
   controlComponent?: any;
   lightboxImgClass?: string;
@@ -199,7 +200,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     startIndex: 0,
     active: true,
     duration: slideAnimDuration,
-    dragThreshold: 2
+    dragThreshold: 10,
+    skipSnaps: true
   })
 
   let initialThumbnailOptions: any = {
@@ -391,6 +393,67 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [isLoading, setIsLoading] = useState(true);
 
+  
+  const [touchStart, setTouchStart] = useState<any>(0)
+  const [touchEnd, setTouchEnd] = useState<any>(0)
+
+  const [mouseStartX, setMouseStartX] = useState<any>(0)
+  const [mouseStartY, setMouseStartY] = useState<any>(0)
+
+  const minimumSwipeDistance = 50 
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX)
+
+  const onTouchEnd = () => {
+    // only move to new image if imgAnimation set to "fade"
+    if (touchStart != null && touchEnd != null && imgAnimation == "fade") {
+      const distance: any = touchStart - touchEnd
+      if (distance != null) {
+        const isLeftSwipe = distance > minimumSwipeDistance
+        const isRightSwipe = distance < -minimumSwipeDistance
+        if (isLeftSwipe) {
+          nextSlide()
+        }
+        else if (isRightSwipe) {
+          prevSlide();
+        } 
+      }
+    }
+
+  }
+
+  const delta = 6;
+
+  const onMouseDown = (event) => {
+    setMouseStartX(event.pageX)
+    setMouseStartY(event.pageY)
+  }
+
+  const onMouseUp = (event) => {
+
+    if (imgAnimation == "fade" && zoomedIn == false) {
+      const differenceX = Math.abs(event.pageX - mouseStartX);
+    
+      if (differenceX > delta) {
+        const isLeftDragMotion = (mouseStartX - event.pageX) > delta;
+        const isRightDragMotion = (mouseStartX - event.pageX) < -delta;
+        
+        if (isLeftDragMotion) {
+          nextSlide();
+        }
+        else if (isRightDragMotion) {
+          prevSlide()
+        }
+      }
+    }
+
+  }
+
   const createCustomThumbnailBorder = (): string | void => {
     if (props.thumbnailBorder) {
       return `solid ${props.thumbnailBorder} 2px`
@@ -418,12 +481,18 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const scrollPrev = useCallback(() => {
-    if (emblaApi) { emblaApi.scrollPrev() }
+    if (emblaApi) { emblaApi.scrollPrev();
+      console.log("scroll prev")
+    }
 
   }, [emblaApi])
 
   const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext()
+    if (emblaApi) {
+      emblaApi.scrollNext() 
+      console.log("scroll next")
+
+    }
   }, [emblaApi])
 
   const variants = {
@@ -591,6 +660,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     removeFullScreenChangeEventListeners()
     setIsBrowserFullScreen(false)
   }
+
+  const emblaSlideSelect = useCallback((emblaApi) => {    
+    console.log("slide select")  
+  }, [])
+
+  useEffect(() => {    
+    if (emblaApi) emblaApi.on('slidesInView', emblaSlideSelect)  }, 
+  [emblaApi, emblaSlideSelect])
+
 
   const updateImageSlideshow = (newDirection) => {
     if (isRTL) {
@@ -783,10 +861,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       }
     }
 
-
   }
 
   const nextSlide = () => {
+
+    console.log("next slide")
 
     scrollNext();
 
@@ -795,6 +874,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const prevSlide = () => {
+
+    console.log("prev slide")
 
     scrollPrev()
 
@@ -1119,7 +1200,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (!props.images) {
       imageElem = (
         <img
-          className={`imageModal ${styles.embla__slide__img}
+          className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
         ${props.fullScreen
               ? styles.fullScreenLightboxImg
               : styles.lightbox_img
@@ -1127,7 +1208,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         ${enableMagnifyingGlass
               ? styles.maxWidthFull
               : styles.maxWidthWithoutMagnifier
-            } `}
+            }  ${styles.contain_img} `}
           style={getImageStyle()}
           ref={imageRef}
           loading='lazy'
@@ -1176,15 +1257,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
       imageElem = (
         <img
-          className={`imageModal ${styles.embla__slide__img}
-        ${props.fullScreen
+          className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
+        ${props.fullScreen 
               ? styles.fullScreenLightboxImg
               : styles.lightbox_img
             } 
         ${enableMagnifyingGlass
               ? styles.maxWidthFull
               : styles.maxWidthWithoutMagnifier
-            } `}
+            } ${styles.contain_img} `}
           ref={imageRef}
           loading='lazy'
           style={getImageStyle()}
@@ -1286,7 +1367,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       }
       else {
         return <img
-          className={`imageModal ${styles.embla__slide__img}
+          className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
           ${props.fullScreen
               ? styles.fullScreenLightboxImg
               : styles.lightbox_img
@@ -1294,7 +1375,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
           ${enableMagnifyingGlass
               ? styles.maxWidthFull
               : styles.maxWidthWithoutMagnifier
-            } `}
+            } ${styles.contain_img} `}
           ref={imageRef}
           key={index}
           loading='lazy'
@@ -1563,13 +1644,24 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const initZoom = (ref) => {
-
-    if (ref.state.scale <= 1.65) {
-      setZoomedIn(false)
+    if (imgAnimation == "fade") {
+      if (ref.state.scale <= 1) {
+        setZoomedIn(false)
+      }
+      else {
+        setZoomedIn(true)
+      }
     }
     else {
-      setZoomedIn(true)
+      if (ref.state.scale <= 1.65) {
+        setZoomedIn(false)
+      }
+      else {
+        setZoomedIn(true)
+      }
     }
+
+
   }
 
   const regularImgPaneNodes = Array.apply(null, Array(images.length)).map(
@@ -1588,7 +1680,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
             )
 
               : (
-                <div className={getEmblaClass(index)}>
+                <div className={getEmblaClass(index)} onTouchStart={onTouchStart} onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd} onMouseDown={onMouseDown} onMouseUp={onMouseUp}>
 
                   <TransformWrapper
                     ref={(el) => (zoomReferences.current[index] = el)}
@@ -2266,8 +2359,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }, [])
 
-  return <div>
-    <div className={`${initWrapperClassname()}`}>
+  return <div className={`${initWrapperClassname()}`}>
       {props.images && props.children && lightboxIdentifier == false
         ? props.children
         : null}
@@ -2853,7 +2945,5 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         </AnimatePresence>
       </AnimateSharedLayout>
     </div>
-  </div>
-
 }
 )

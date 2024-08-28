@@ -2,6 +2,26 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.1.0] - 2024-08-28
+### Fixed
+   - Added new **imgElemClassname** so that custom classes can be directly added to the image element within
+   each lightbox slide item. For instance, a custom border radius can be applied to the images.
+
+## [1.0.9] - 2024-06-10
+### Fixed
+   - The lightbox's surrounding wrapper element is now the first element rendered, removed the container that was 
+   previously the wrapper element's parent
+
+## [1.0.6] - 2024-04-12
+### Added
+   - Image swiping on desktop and mobile when the **imgAnimation** prop is set to the "fade" option
+### Fixed
+   - Classname bug for images
+
+## [1.0.4] - 2024-04-08
+### Fixed
+   - Updated image sizing on mobile devices
+
 ## [1.0.3] - 2024-03-21
 ### Fixed
    - Updated image sizing when captions are displayed
