@@ -149,6 +149,8 @@ export interface SlideshowLightboxProps {
   imageComponent?: boolean;
   imgElemClassname?: string;
   showArrows?: boolean;
+  showControlsBar?: boolean;
+  closeIconBtnStyle?: any;
   controlComponent?: any;
   lightboxImgClass?: string;
   thumbnailImgClass?: string;
@@ -341,6 +343,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [textColor, setTextColor] = useState(
     props.textColor ? props.textColor : themes[defaultTheme].textColor
   )
+  const [showControlsBar, setShowControlsBar] = useState(
+    props.showControlsBar ? props.showControlsBar : true
+  )
 
   const [coverMode, setCoverMode] = useState(
     props.useCoverMode ? props.useCoverMode : false
@@ -482,7 +487,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) { emblaApi.scrollPrev();
-      console.log("scroll prev")
     }
 
   }, [emblaApi])
@@ -490,7 +494,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const scrollNext = useCallback(() => {
     if (emblaApi) {
       emblaApi.scrollNext() 
-      console.log("scroll next")
 
     }
   }, [emblaApi])
@@ -662,7 +665,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const emblaSlideSelect = useCallback((emblaApi) => {    
-    console.log("slide select")  
   }, [])
 
   useEffect(() => {    
@@ -864,21 +866,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const nextSlide = () => {
-
-    console.log("next slide")
-
     scrollNext();
-
     initSlide(imgSlideIndex + 1);
 
   }
 
   const prevSlide = () => {
-
-    console.log("prev slide")
-
     scrollPrev()
-
     initSlide(imgSlideIndex - 1);
   }
 
@@ -1138,7 +1132,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
     if (props.fullScreen) {
       if (props.fullScreen == true) {
-        setImgAnimation('fade')
+        setImgAnimation(props.imgAnimation && props.imgAnimation == "imgDrag" ? props.imgAnimation : "fade")
         setIsRounded(false)
       }
     }
@@ -1202,7 +1196,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         <img
           className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
         ${props.fullScreen
-              ? styles.fullScreenLightboxImg
+              ? styles.lightbox_img
               : styles.lightbox_img
             } 
         ${enableMagnifyingGlass
@@ -1259,7 +1253,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         <img
           className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
         ${props.fullScreen 
-              ? styles.fullScreenLightboxImg
+              ? styles.lightbox_img
               : styles.lightbox_img
             } 
         ${enableMagnifyingGlass
@@ -1295,6 +1289,23 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
 
     return imageElem
+  }
+
+  const getCloseIconBtnStyle = () => {
+    let style_object = {}
+    if (iconColor) {
+      style_object =  { color: iconColor }
+    }
+    if (props.closeIconBtnStyle) {
+      let closeIconBtnStyleKeys = Object.keys(props.closeIconBtnStyle)
+      for (let i = 0; i < closeIconBtnStyleKeys.length; i++) {
+        let keyName = closeIconBtnStyleKeys[i];
+        let style_obj = props.closeIconBtnStyle[keyName]
+        style_object[keyName] =  style_obj;
+      }
+    }
+    return style_object;
+
   }
 
   const isPanningDisabled = () => {
@@ -1338,7 +1349,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       let elem_metadata = props.images[index]["picture"];
       return <picture className={`imageModal 
       ${props.fullScreen
-          ? styles.fullScreenLightboxImg
+          ?  styles.lightbox_img
           : styles.lightbox_img
         } 
       ${enableMagnifyingGlass
@@ -1369,7 +1380,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         return <img
           className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
           ${props.fullScreen
-              ? styles.fullScreenLightboxImg
+              ? styles.lightbox_img
               : styles.lightbox_img
             } 
           ${enableMagnifyingGlass
@@ -1722,14 +1733,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                         margin: 'auto'
                       }}
                       contentStyle={
-                        props.fullScreen
-                          ? {
-                            maxWidth: '100vw',
-                            height: '100vh',
-                            marginLeft: 'auto',
-                            marginRight: 'auto'
-                          }
-                          : {
+                        {
                             maxWidth: '100vw',
                             height: '100vh',
                             margin: 'auto',
@@ -1740,7 +1744,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     >
                       <div
                         className={`${props.fullScreen
-                          ? styles.slideshow_img_fullscreen
+                          ? styles.slideshow_img
                           : styles.slideshow_img
                           } ${props.lightboxImgClass ? props.lightboxImgClass : ""}
                       ${displayImgMetadata ? styles.slideshow_img_metadata : ""}
@@ -2721,7 +2725,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                         </div>
                       )}
                       <motion.div className={`${styles.closeIcon} ${props.showControls == false ? styles.mlAuto : ""}`}>
-                        <button id="closeBtn" className={styles.closeButton}
+                        <button id="closeBtn" className={`${props.showControlsBar == false && props.showControls == false 
+                        ? styles.closeButtonRounded : styles.closeButton}`}
+
                           onClick={() => {
                             closeModal()
                           }}>
@@ -2731,7 +2737,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                             className={`${styles.lightboxjs_icon} ${iconColor ? '' : getIconStyle()
                               }`}
                             color={iconColor ? iconColor : undefined}
-                            style={iconColor ? { color: iconColor } : {}}
+                            style={getCloseIconBtnStyle()}
                           />
                         </button>
 
@@ -2778,12 +2784,14 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
                       <div
                         className={`${styles.slideshowInnerContainerThumbnails
-                          } ${styles.embla} ${isImageCaption() ? styles.slideImageAndCaption : ''
+                          } ${styles.embla} ${isImageCaption() && showControlsBar == true ? styles.slideImageAndCaption : ''
                           } 
-                          ${props.fullScreen
-                            ? styles.slideshowInnerContainerFullScreen
-                            : styles.slideshowInnerContainer
-                          } ${displayImgMetadata ? styles.slideshowInnerContainer_imgMetadata : ""}  `}>
+                          ${styles.slideshowInnerContainer}
+                          ${props.showControlsBar == false || props.fullScreen
+                            ? styles.hideControlsBar
+                            : ""
+                          }
+                          ${displayImgMetadata ? styles.slideshowInnerContainer_imgMetadata : ""}  `}>
 
                         {shouldDisplayMetadataPanel() ?
                           <div className={styles.metadata}

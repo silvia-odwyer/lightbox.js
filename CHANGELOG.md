@@ -2,6 +2,17 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.1.5] - 2024-10-08
+### Added
+   - Added new **showControlsBar** prop so that top controls bar can be shown/hidden, depending on the value set. If set to true,
+   the controls bar will be shown (default), and if set to false, the controls bar will be hidden and only the close icon
+   will be shown
+   - Added new **closeIconBtnStyle** prop so that the style of the close icon can be specified
+
+## [1.1.3] - 2024-09-14
+### Fixed
+   - Img animation style for full-screen images can now be specified
+
 ## [1.1.0] - 2024-08-28
 ### Fixed
    - Added new **imgElemClassname** so that custom classes can be directly added to the image element within
