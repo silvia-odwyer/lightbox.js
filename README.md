@@ -57,7 +57,6 @@ Once the library has been installed, import the CSS file for Lightbox.js within 
 
 ```jsx
 import {initLightboxJS} from 'lightbox.js-react'
-import 'lightbox.js-react/dist/index.css'
 ```
 
 Then, just initialize the license key within your React app's `index.js` file like so:
@@ -93,7 +92,6 @@ To get started with Next.js, be sure to take a look at [the Next.js tutorial her
 import React, { Component } from 'react'
 
 import {SlideshowLightbox} from 'lightbox.js-react'
-import 'lightbox.js-react/dist/index.css'
 
 class Demo extends Component {
   render() {

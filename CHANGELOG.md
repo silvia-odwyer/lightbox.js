@@ -2,6 +2,29 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.2.2] - 2024-11-21
+### Updated
+   - Updated dependencies
+
+## [1.2.0] - 2024-11-20
+### Added
+   - Added **disableAnim** prop so that animations can be toggled on/off. If set to true, no entry/exit animation will be
+   shown when the modal is closed.
+
+## [1.1.9] - 2024-11-16
+### Added
+   - Added **onThumbnailClick** prop so that the lightbox can listen for thumbnail click events and emit these events
+
+## [1.1.7] - 2024-10-19
+### Added
+   - Added **lightboxWidth** prop so that the lightbox's width can be specifid
+   - Added **rightSidebarComponent** prop, where a sidebar can be added to the right-hand side of the lightbox
+
+## [1.1.6] - 2024-10-14
+### Added
+   - Added **onSelect** event listener which keeps track of when the slide index is updated. When the lightbox is opened and
+   when slides are moved to, this will emit the new slide index and metadata about the image (such as img src etc).
+
 ## [1.1.5] - 2024-10-08
 ### Added
    - Added new **showControlsBar** prop so that top controls bar can be shown/hidden, depending on the value set. If set to true,
