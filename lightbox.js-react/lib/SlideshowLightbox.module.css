@@ -497,7 +497,7 @@
   
   
     .fullScreenContainer {
-      width: 100vw;
+      width: 80vw;
       height: 100vh;
     }
   
@@ -548,7 +548,7 @@
     }
   
     .fullScreenContainer img {
-      width: 100vw;
+      width: 80vw;
     }
   
     .slideshowInnerContainerFullScreen {
@@ -592,7 +592,6 @@
       padding-top: 0.3em;
       height: 5vh;
       bottom: 11%;
-      /* width: 90vw; */
     }
   
     .thumbnail,
@@ -615,7 +614,7 @@
     }
   
     .fullScreenContainer {
-      width: 100vw;
+      width: 80vw;
       height: 100vh;
     }
   
@@ -660,6 +659,10 @@
     .hideControlsBar .slideshowImg, .hideControlsBarAndCaption .slideshowImg  {
       padding-top: 12vh;
     }
+
+    .fullScreenContainer .slideshowImg {
+      padding-top: 0vh;
+    }
   
   
     .lightboxImg {
@@ -683,7 +686,7 @@
     }
   
     .fullScreenContainer img {
-      width: 100vw;
+      width: 80vw;
     }
   }
   
@@ -1417,4 +1420,10 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+  }
+
+  .fullImg {
+    height: 84vh;
+    max-height: 84vh;
+    object-fit: contain;
   }

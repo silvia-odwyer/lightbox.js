@@ -73,6 +73,7 @@ const inactiveThumbnailBorder = 'solid transparent 2px'
 
 const defaultTheme = 'night'
 const mobileWidth = 768
+const tabletWidth = 1024
 
 const usePrevious = (value) => {
   // custom hook to get previous prop value
@@ -159,6 +160,7 @@ export interface SlideshowLightboxProps {
   closeIconBtnStyle?: any;
   controlComponent?: any;
   lightboxImgClass?: string;
+  thumbnailImgAnim?: boolean;
   thumbnailImgClass?: string;
   coverImageInLightbox?: boolean;
   onOpen?: any;
@@ -223,6 +225,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [width, setWidth] = useState(0)
 
   const isMobile = width <= mobileWidth;
+  const isTablet = width <= tabletWidth;
 
   const [thumbnailSwipeOptions, setThumbnailSwipeOptions] = useState(initialThumbnailOptions)
 
@@ -231,6 +234,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [zoomedIn, setZoomedIn] = useState(false)
 
   const [isDisplay, setIsDisplay] = useState(false)
+
+  const [fullImg, setFullImg] = useState(false)
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -1051,7 +1056,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       <div key={"thumbnail_slide_" + index} className={`${styles.emblaThumbsSlide}`}>
 
         <img
-          className={`${props.thumbnailImgClass ? props.thumbnailImgClass : ""} ${styles.thumbnail} imageModal `}
+          className={`${styles.thumbnail} imageModal ${props.thumbnailImgClass ? props.thumbnailImgClass : ""}  `}
           src={isNextJS == true ? getThumbnailImgSrcNext(img, index) : getThumbnailImgSrc(img, index)}
           alt={img.alt}
           onLoad={() => setImagesLoaded(true)}
@@ -1227,7 +1232,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     if (!props.images) {
       imageElem = (
         <img
-          className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
+          className={`imageModal ${fullImg && props.thumbnailImgAnim ? styles.fullImg : false}  
+          ${props.imgElemClassname ? props.imgElemClassname : ''}
         ${styles.lightboxImg} 
         ${enableMagnifyingGlass
               ? styles.maxWidthFull
@@ -1281,7 +1287,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
       imageElem = (
         <img
-          className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
+          className={`imageModal  ${fullImg && props.thumbnailImgAnim ? styles.fullImg : false}   
+           ${props.imgElemClassname ? props.imgElemClassname : ''}
         ${ styles.lightboxImg} 
         ${enableMagnifyingGlass
               ? styles.maxWidthFull
@@ -1336,10 +1343,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const isPanningDisabled = () => {
-    if (isMobile && zoomedIn == false) {
+    if ((isMobile || isTablet) && zoomedIn == false) {
       return true;
     }
-    if (isMobile && zoomedIn) {
+    if ((isMobile || isTablet) && zoomedIn) {
       return false;
     }
 
@@ -1402,7 +1409,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       }
       else {
         return <img
-          className={`imageModal ${props.imgElemClassname ? props.imgElemClassname : ''}
+          className={`imageModal  ${fullImg && props.thumbnailImgAnim ? styles.fullImg : false}   
+           ${props.imgElemClassname ? props.imgElemClassname : ''}
           ${styles.lightboxImg} 
           ${enableMagnifyingGlass
               ? styles.maxWidthFull
@@ -1699,7 +1707,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const regularImgPaneNodes = Array.apply(null, Array(images.length)).map(
     (_, index) => {
       return (
-        <div key={index}>
+        <div key={index} className={`${props.fullScreen ? styles.fullScreenContainer : null}`}>
           {
             enableMagnifyingGlass == true ? (
               <div></div>
@@ -2258,7 +2266,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const rootNode = emblaApi?.rootNode() || null;
 
-  useResizeObserver(rootNode, handleResize);
+  if (isBrowser() && !noWindow) {
+    useResizeObserver(rootNode, handleResize);
+
+  }
 
   const removeOnSelectListener = useCallback(() => {
     if (emblaApi) emblaApi.off('select', onSelect)
@@ -2556,7 +2567,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                    }}
  >
                 <motion.div
-                  className={`${styles.slideshowAnimContainer}`}
+                  className={`${styles.slideshowAnimContainer} `}
                   key='slideshowAnimContainer'
 
                   id='slideshowAnim'
@@ -2566,7 +2577,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                   }}
                
                 >
-                  <div className={`${styles.lightboxContainer}`} id="lightboxContainer" tabIndex={-1} role="dialog"
+                  <div className={`${styles.lightboxContainer} `} id="lightboxContainer" tabIndex={-1} role="dialog"
                     onClick={(e) => { if (modalCloseOption == "clickOutside") { checkModalClick(e) } }}>
                     <section
                       className={`${styles.iconsHeader} ${iconColor ? '' : getIconStyle()
@@ -2758,6 +2769,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               <button
                                 onClick={() => {
                                   setShowThumbnails(!showThumbnails)
+                                  setFullImg(!fullImg)
                                 }}>
                                 <GridFill
                                   size={24}
