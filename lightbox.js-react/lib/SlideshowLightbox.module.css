@@ -107,7 +107,7 @@
       height: 67vw;
       width: 60%;
     }
-  
+
     .thumbnailsOuterContainer {
       position: fixed;
       bottom: 5%;
@@ -119,6 +119,9 @@
       height: 100vh;
     }
   
+    .rotateImgInnerContainer {
+      top: 8%;
+    }
   
     .hideControlsBar .slideshowInnerContainer {
       top: 0;
@@ -206,7 +209,7 @@
   }
   
   .modalContainer {
-    width: 99vw;
+    width: 100vw;
     height: 100%;
     max-height: 100%;
     direction: ltr;
@@ -274,7 +277,7 @@
   }
   
   .slideshowInnerContainer {
-    position: fixed;
+    /* position: fixed; */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -311,7 +314,7 @@
   }
   
   .lightboxContainer {
-    width: 100vw;
+    width: 100%;
     height: 100%;
     position: relative;
     display: flex;
@@ -480,6 +483,7 @@
     .imgTitleContainer {
       padding-bottom: 0px;
     }
+    
   
     .next1 {
       right: 0.7%;
@@ -494,10 +498,8 @@
       top: 10%;
     } */
   
-  
-  
     .fullScreenContainer {
-      width: 80vw;
+      width: 100vw;
       height: 100vh;
     }
   
@@ -532,6 +534,12 @@
       height: 70vh;
       width: 80vw;
     }
+
+    .innerContainerWithTopCaption {
+      top: 8%;
+    }
+
+    
   
     .slideshowImgFullscreen {
       display: grid;
@@ -540,6 +548,10 @@
       margin-left: auto;
       margin-right: auto;
       scrollbar-gutter: stable both-edges;
+    }
+    
+    .rotateImgInnerContainer {
+      top: 2%;
     }
   
     .slideshowInnerContainer img {
@@ -614,7 +626,7 @@
     }
   
     .fullScreenContainer {
-      width: 80vw;
+      width: 100vw;
       height: 100vh;
     }
   
@@ -764,6 +776,50 @@
     /* --thumbs-slide-height: 9rem; */
     margin-top: var(--thumbs-slide-spacing);
   }
+
+  @media screen and (max-width: 40em) {
+    .innerContainerWithTopCaption {
+      position: relative;
+    }
+  
+    .imgTitleContainer {
+      position: absolute;
+      top: 12%;
+    }
+  }
+
+  @media screen and (max-width: 44em) and (min-width: 30em) {
+    .innerContainerWithTopCaption {
+      position: relative;
+    }
+  
+    .imgTitleContainer {
+      position: absolute;
+      top: 5%;
+    }
+  }
+
+  @media screen and (max-width: 46em) and (min-width: 30em) {
+    .innerContainerWithTopCaption {
+      position: relative;
+    }
+  
+    .imgTitleContainer {
+      position: absolute;
+      top: 7%;
+    }
+  }
+  
+  @media screen and (max-width: 49em) and (min-width: 45em) {
+    .innerContainerWithTopCaption {
+      position: relative;
+    }
+  
+    .imgTitleContainer {
+      position: absolute;
+      top: 5%;
+    }
+  }
   
   @media screen and (max-width: 29em) {
     .fullScreenContainer img {
@@ -775,7 +831,9 @@
       /* --thumbs-slide-height: 9rem; */
       margin-top: var(--thumbs-slide-spacing);
     }
-  
+
+
+
     .htmlVideo {
       margin-top: 5vh;
     }
@@ -840,8 +898,10 @@
       /* font-size: 28px; */
     }
   
-  
   }
+
+
+
   
   @media screen and (max-width: 53em) {
     .slideshowImg {
@@ -888,7 +948,10 @@
   }
   
   .fullScreenContainer img {
-    object-fit: cover;
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    
   }
   
   .thumbnails {
@@ -994,7 +1057,7 @@
   }
   
   .slideImageAndCaption {
-    top: 7%;
+    top: 9%;
   }
   
   .slideImageAndCaption.hideControlsBar {
@@ -1033,6 +1096,7 @@
       position: fixed;
       left: 180px;
     }
+    
   }
   
   @media screen and (max-width: 440px) {
@@ -1400,7 +1464,7 @@
     width: 100%;
     height: 100%;
     position: absolute;
-    top: 0;
+    /* top: 0; */
     left: 0 !important; /* override Embla */
     right: 0 !important; /* override Embla */
     opacity: 0;
@@ -1427,3 +1491,13 @@
     max-height: 84vh;
     object-fit: contain;
   }
+
+.rotateImg90Deg{
+  transform: rotate(90deg);
+  transition: transform 1s linear;
+}  
+
+.rotate_img {
+  transition: transform 0.7s linear;
+}
+

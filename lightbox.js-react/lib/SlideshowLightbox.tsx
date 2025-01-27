@@ -17,6 +17,7 @@ import {
   PlayCircleFill,
   Search,
   Download,
+  ArrowClockwise,
   PauseCircleFill,
   FullscreenExit,
   InfoCircle,
@@ -73,7 +74,7 @@ const inactiveThumbnailBorder = 'solid transparent 2px'
 
 const defaultTheme = 'night'
 const mobileWidth = 768
-const tabletWidth = 1024
+const tabletWidth = 1100
 
 const usePrevious = (value) => {
   // custom hook to get previous prop value
@@ -163,17 +164,21 @@ export interface SlideshowLightboxProps {
   thumbnailImgAnim?: boolean;
   thumbnailImgClass?: string;
   coverImageInLightbox?: boolean;
+  captionPlacement?: string;
   onOpen?: any;
   onClose?: any;
   onNext?: any;
   onPrev?: any;
   onSelect?: any;
+  onRotate?: any;
   onThumbnailClick?: any;
   onImgError?: any;
   className?: string;
   imgWrapperClassName?: string;
+  fullScreenFillMode?: string;
   imgClassName?: string;
   startingSlideIndex?: number;
+  rotateIcon?: boolean;
   showAllImages?: any;
   rightArrowClassname?: string;
   leftArrowClassname?: string;
@@ -230,6 +235,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [thumbnailSwipeOptions, setThumbnailSwipeOptions] = useState(initialThumbnailOptions)
 
   const [carouselReady, setCarouselReady] = useState(false)
+  const[isTabletUserAgent, setIsTabletUserAgent] = useState(false);
 
   const [zoomedIn, setZoomedIn] = useState(false)
 
@@ -244,10 +250,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [lightboxModalWidth, setLightboxModalWidth] = useState(
     props.lightboxWidth ? props.lightboxWidth : "100vw"
-  )
-
-  const [rightSidebarComponent, setRightSidebarComponent] = useState(
-    props.rightSidebarComponent ? props.rightSidebarComponent : null
   )
 
   const [magnifyingGlassFeature, _setMagnifyingGlassFeature] = useState(
@@ -292,6 +294,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [displaySlideshowIcon, setDisplaySlideshowIcon] = useState<boolean>(
     props.showSlideshowIcon ? props.showSlideshowIcon : true
+  )
+
+  const [rotateImgIcon, setRotateImgIcon] = useState<boolean>(
+    props.rotateIcon ? props.rotateIcon : false
   )
 
   const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState<boolean>(
@@ -367,6 +373,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     props.showControlsBar ? props.showControlsBar : true
   )
 
+  const [imgCaptionPlacement, setImgCaptionPlacement] = useState(
+    props.captionPlacement ? props.captionPlacement : "below"
+  )
+
   const [coverMode, setCoverMode] = useState(
     props.useCoverMode ? props.useCoverMode : false
   )
@@ -406,6 +416,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [imgContainHeight, setImgContainHeight] = useState(500)
   const [imgContainWidth, setImgContainWidth] = useState(426)
   const [isInit, setIsInit] = useState(false)
+  const [currentRotation, setCurrentRotation] = useState(0)
 
   const { open } = props;
   const previousValues: any = usePrevious({ open });
@@ -413,6 +424,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   // Refs
   const zoomReferences = useRef<(ReactZoomPanPinchRef | null)[]>([])
   const videoReferences = useRef({})
+  const imageRefs = useRef([])
+
   const btnRef = useRef(null)
   const [videoElements, setVideoElements] = useState({});
 
@@ -528,13 +541,28 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
-  const isImageCaption = () => {
+  const isImageCaption = (placement) => {
+    if (placement != imgCaptionPlacement) {
+      return false;
+    }
     if (props.images && props.images.length > 0) {
       if (props.images[slideIndex]?.caption) {
         return true
       }
     }
     return false
+  }
+
+  const getInnerContainerStyles = () => {
+
+    if (isImageCaption("above")) {
+      return styles.innerContainerWithTopCaption
+    }
+    if (rotateImgIcon) {
+      return styles.rotateImgInnerContainer;
+    }
+    return styles.slideshowInnerContainerThumbnails
+   
   }
 
   const displayDownloadBtn = () => {
@@ -570,12 +598,46 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const getImageStyle = () => {
     let styleObject = {};
-    if (isImageCaption() && showThumbnails == false) {
-      styleObject["height"] = "77vh"
+    if (imageFullScreen) {
+      if (props.fullScreenFillMode) {
+        styleObject["objectFit"] = props.fullScreenFillMode;
+      }
+      else {
+        styleObject["objectFit"] = "cover"
+
+      }
+      
     }
-    if (isImageCaption() && showThumbnails) {
-      styleObject["height"] = "67vh"
+    if (!imageFullScreen && !rotateImgIcon) {
+      if (isImageCaption(imgCaptionPlacement) && showThumbnails == false) {
+        styleObject["height"] = "67vh"
+      }
+      if (isImageCaption(imgCaptionPlacement) && showThumbnails) {
+        styleObject["height"] = "67vh"
+      }
+      
+      if (props.thumbnailImgAnim && showThumbnails == false) {
+        styleObject["height"] = "87vh"
+      }
+      else if (isImageCaption(imgCaptionPlacement) != true) {
+        styleObject["height"] = "77vh"
+
+      }
+      if (props.thumbnailImgAnim && showThumbnails) {
+        styleObject["height"] = "67vh"
+      }
     }
+
+    if (rotateImgIcon && showThumbnails) {
+      styleObject["width"] = "57vw"
+      styleObject["marginTop"] = "10vh"
+    }
+    else if (rotateImgIcon && showThumbnails == false) {
+      styleObject["width"] = "57vw"
+      styleObject["marginTop"] = "15vh"
+    }
+
+
     if (isRounded) {
       styleObject["borderRadius"] = "20px";
     }
@@ -826,6 +888,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     setIsOpen(false)
     setCarouselReady(false)
     setEmblaReinitialized(false)
+    setCurrentRotation(0);
+    //resetRotation()
     if (prevFocusedElem) prevFocusedElem?.focus();
   }
 
@@ -881,6 +945,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     let wrap_slide_index = wrapNums(0, images.length, newSlideIndex)
     setZoomIdx(wrap_slide_index)
     initLoader(wrap_slide_index);
+    imageRefs.current[wrap_slide_index].classList.add(`${styles.rotate_img}`)
 
     if (displayImgMetadata) {
       initImgMetadataPanel();
@@ -1036,7 +1101,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const getThumbnailsOuterContainerStyle = () => {
     let style = {};
-    if (isImageCaption()) {
+    if (isImageCaption("below")) {
       if (showThumbnails) {
         style["height"] = "21vh" 
       }
@@ -1085,6 +1150,40 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
+  const rotateImage = () => {
+    let img_elem = imageRefs.current[zoomIdx];
+    let transform_val = img_elem.style.transform;
+    
+    let current_rotation = 0;
+    if (transform_val) {
+      var reg = /rotate\(([0-9.]+)deg\)/;
+      current_rotation = parseFloat(transform_val.match(reg)[1]);
+    }
+
+    let newRotation = current_rotation + 90;
+
+    let res = newRotation / 90;
+
+    img_elem.style.transform = `rotate(${newRotation}deg)`
+
+    setCurrentRotation(newRotation);
+    if (props.onRotate) {
+      let rotationVal = newRotation;
+      if (newRotation > 360) {
+        rotationVal = newRotation % 360;
+      }
+      props.onRotate(rotationVal);
+    }
+  }
+
+
+const resetRotation = () => {
+  imageRefs.current[zoomIdx].classList.remove(`${styles.rotate_img}`)
+
+  imageRefs.current[zoomIdx].style.transform = "";
+    setCurrentRotation(0)
+}
+
   const resetImage = () => {
     if (enableMagnifyingGlass) {
       initMagnifyingGlass()
@@ -1093,6 +1192,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         zoomReferences.current[zoomIdx]!.resetTransform()
       }
     }
+    // resetRotation()
   }
 
   const getThumbnailImgSrc = (img, index) => {
@@ -1220,7 +1320,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
         }
 
-
       </div>
       return element;
     }
@@ -1240,7 +1339,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
               : styles.maxWidthWithoutMagnifier
             }  ${styles.containImg} `}
           style={getImageStyle()}
-          ref={imageRef}
+          ref={el => imageRefs.current[index] = el}
           loading='lazy'
           src={
             images[index].original ? images[index].original : images[index].src
@@ -1294,7 +1393,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
               ? styles.maxWidthFull
               : styles.maxWidthWithoutMagnifier
             } ${styles.containImg} `}
-          ref={imageRef}
+          ref={el => imageRefs.current[index] = el}
           loading='lazy'
           style={getImageStyle()}
           src={
@@ -1342,14 +1441,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   }
 
-  const isPanningDisabled = () => {
-    if ((isMobile || isTablet) && zoomedIn == false) {
+  const isPanningDisabled = () => { 
+    if ((isMobile || isTablet || isTabletUserAgent) && zoomedIn == false) {
       return true;
     }
-    if ((isMobile || isTablet) && zoomedIn) {
+    if ((isMobile || isTablet || isTabletUserAgent) && zoomedIn) {
       return false;
     }
-
     return false;
   }
 
@@ -1411,12 +1509,12 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         return <img
           className={`imageModal  ${fullImg && props.thumbnailImgAnim ? styles.fullImg : false}   
            ${props.imgElemClassname ? props.imgElemClassname : ''}
-          ${styles.lightboxImg} 
+          ${styles.lightboxImg} ${styles.rotate_img}
           ${enableMagnifyingGlass
               ? styles.maxWidthFull
               : styles.maxWidthWithoutMagnifier
             } ${styles.containImg} `}
-          ref={imageRef}
+          ref={el => imageRefs.current[index] = el}
           key={index}
           loading='lazy'
           style={getImageStyle()}
@@ -1708,6 +1806,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     (_, index) => {
       return (
         <div key={index} className={`${props.fullScreen ? styles.fullScreenContainer : null}`}>
+          
           {
             enableMagnifyingGlass == true ? (
               <div></div>
@@ -1771,16 +1870,20 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           }
                       }
                       key={index}
-                    >
+                    > 
                       <div
                         className={`${styles.slideshowImg} ${props.lightboxImgClass ? props.lightboxImgClass : ""}
                       ${displayImgMetadata ? styles.slideshowImgMetadata : ""}
                       `}
+                      style={{
+                        width: props.lightboxWidth ? props.lightboxWidth : ""
+                      }}
                       >
-                        {getLightboxElem(index)}
+                         
+                         {getLightboxElem(index)} 
                       </div>
-                    </TransformComponent>
-                  </TransformWrapper>
+                     </TransformComponent>
+                  </TransformWrapper> 
                 </div>
               )}
         </div>
@@ -2212,10 +2315,18 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
+  const useForceUpdate = () => {
+    let [value, setValue] = useState(true);
+    return () => setValue(!value);
+  }
+
+  const forceUpdate = useForceUpdate();
+
   const dispatchSlideSelectEvents = (newIndex, prevIndex) => {
 
     if (props.onSelect) {
       props.onSelect(newIndex, images[newIndex])
+      forceUpdate();
     }
 
     if (newIndex == 0 && prevIndex == images.length - 1) {
@@ -2425,6 +2536,14 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
     let isMounted = true
     if (isMounted) initProps()
+
+    if (window) {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      let is_tablet_useragent = /(ipad|iphone|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/.test(userAgent);
+      let is_ipad_useragent = /Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+
+      setIsTabletUserAgent(is_tablet_useragent || is_ipad_useragent) 
+    }
 
     if (coverMode && props.images) {
       if (props.coverImageInLightbox == false) {
@@ -2764,6 +2883,27 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
                             </motion.div> : null}
 
+                            {rotateImgIcon ? (
+                            <motion.div>
+                              <button
+                                onClick={() => {
+                                  // setShowThumbnails(!showThumbnails)
+                                  // setFullImg(!fullImg)
+                                  rotateImage();
+                                }}>
+                                <ArrowClockwise
+                                  size={24}
+                                  className={`${styles.lightboxjsIcon} ${iconColor ? '' : getIconStyle()
+                                    }`}
+                                  style={iconColor ? { color: iconColor } : {}}
+                                  color={iconColor ? iconColor : undefined}
+
+                                />
+                              </button>
+
+                            </motion.div>
+                          ) : null}
+
                           {displayThumbnailIcon ? (
                             <motion.div>
                               <button
@@ -2901,10 +3041,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     <AnimatePresence initial={false} custom={direction}>
 
                       <div
-                        className={`${styles.slideshowInnerContainerThumbnails
-                          } ${styles.embla} ${isImageCaption() && showControlsBar == true ? styles.slideImageAndCaption : ''
+                        className={`${getInnerContainerStyles()} ${styles.embla} 
+                        ${isImageCaption("below") && showControlsBar == true ? styles.slideImageAndCaption : ''
                           } 
-                          ${styles.slideshowInnerContainer}
+                          ${props.fullScreen ? "" : styles.slideshowInnerContainer } 
                           ${props.showControlsBar == false || props.fullScreen
                             ? styles.hideControlsBar
                             : ""
@@ -2939,6 +3079,22 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
                           </div>
                           : null}
+                            {isImageCaption("above") ? (
+                        <div className={`${styles.imgTitleContainer} imageModal`}>
+                          <p
+                            className={`${styles.imgTitle}`}
+                            key={'imgCaption' + slideIndex}
+                            style={
+                              props.captionStyle
+                                ? props.captionStyle
+                                : { color: textColor }
+                            }
+                          >
+                            {getImageCaption()}
+                          </p>
+                        </div>
+                      ) : null}
+
                         <div className={`${styles.emblaViewport} 
                             ${displayImgMetadata ? styles.emblaContainerImgMetadata : ""}`}
                           ref={showModal ? emblaRef : null}>
@@ -2946,8 +3102,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                           ${imgAnimation == "fade" ? styles.imgfade : ""} 
                           ${styles.emblaContainer}
                             ${displayImgMetadata ? styles.emblaContainerImgMetadata : ""}`}>
-
-                            {regularImgPaneNodes}
+                      
+                            {regularImgPaneNodes} 
 
                           </div>
                         </div>
@@ -2963,13 +3119,13 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     </AnimatePresence>
 
                     <div
-                      className={`${styles.thumbnailsOuterContainer} ${isImageCaption() ? styles.thumbnailsAndCaption : ''}
+                      className={`${styles.thumbnailsOuterContainer} ${isImageCaption("below") ? styles.thumbnailsAndCaption : ''}
                       ${displayImgMetadata ? styles.thumbnailsOuterContainerMetadata : ""} `}
                       style={
                         getThumbnailsOuterContainerStyle()
                       }
                     >
-                      {isImageCaption() ? (
+                      {isImageCaption("below") ? (
                         <div className={`${styles.imgTitleContainer} imageModal`}>
                           <p
                             className={`${styles.imgTitle}`}
@@ -2999,7 +3155,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               duration: 0.75
                             }}
                             variants={thumbnailVariants}
-                            className={`${styles.thumbnails} ${isImageCaption()
+                            className={`${styles.thumbnails} ${isImageCaption("below")
                               ? styles.thumbnailsWithCaption
                               : ''
                               }`}
@@ -3037,7 +3193,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                               duration: 0.75
                             }}
                             variants={thumbnailVariants}
-                            className={`${styles.thumbnails} ${isImageCaption()
+                            className={`${styles.thumbnails} ${isImageCaption("below")
                               ? styles.thumbnailsWithCaption
                               : ''
                               }`}
@@ -3065,7 +3221,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
                     </div>
                   </div>
                 </motion.div>
-                {rightSidebarComponent}
+                {props.rightSidebarComponent ? props.rightSidebarComponent : null}
 
                 </motion.div>
              

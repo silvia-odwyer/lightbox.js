@@ -2,6 +2,22 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.3.3] - 2025-01-27
+### Added
+   - Added new **fullScreenFillMode** prop, to specify whether or not the image object-fit property should be set to "contain" or "cover".
+
+## [1.3.1] - 2025-01-23
+### Added
+   - Image rotation functionality implemented
+
+## [1.3.0] - 2025-01-11
+### Fixed
+   - Horizontal tablet swiping between images now fixed
+
+## [1.2.8] - 2025-01-10
+### Fixed
+   - Modal width bug fixed
+
 ## [1.2.2] - 2024-11-21
 ### Updated
    - Updated dependencies
