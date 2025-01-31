@@ -599,11 +599,16 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const getImageStyle = () => {
     let styleObject = {};
     if (imageFullScreen) {
-      if (props.fullScreenFillMode) {
+      styleObject["maxHeight"] = "100vh"
+
+      if (props.fullScreenFillMode == "cover") {
         styleObject["objectFit"] = props.fullScreenFillMode;
+        styleObject["maxWidth"] = "80%"
+
       }
       else {
-        styleObject["objectFit"] = "cover"
+        styleObject["objectFit"] = "contain"
+        styleObject["maxHeight"] = "100vh"
 
       }
       
@@ -1198,7 +1203,7 @@ const resetRotation = () => {
   const getThumbnailImgSrc = (img, index) => {
 
     if (props.images && props.images.length > 0) {
-      if (props.images[index].thumbnailSrc) {
+      if (props.images[index] && props.images[index].thumbnailSrc) {
         return props.images[index].thumbnailSrc
       }
     }
