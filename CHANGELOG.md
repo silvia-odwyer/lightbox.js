@@ -2,6 +2,30 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.5.5] - 2025-06-04
+### Added
+   - New **toggleThumbnailDisplay** prop added. This feature displays/hides thumbnails when lightbox image is clicked.
+
+### Fixed
+   - Fixed issue regarding wrapper div with fixed height, it's only shown when lightbox is open (this was introduced in a recent update)
+
+## [1.4.9] - 2025-03-10
+### Added
+   - Added new **lightboxHeight** prop, so that the height of the modal can be specified. Can be useful when adding a custom footer component to the lightbox.
+
+## [1.4.8] - 2025-02-21
+### Fixed
+   - When moving into the browser's full-screen mode, images (with fullScreen prop set to true) now take up full width and height 
+   of screen when magnified
+
+## [1.4.7] - 2025-02-17
+### Fixed
+   - Fixed image caption positioning bug on mobile devices
+
+## [1.3.4] - 2025-01-27
+### Fixed
+   - Full-screen images now have maxHeight and maxWidth style properties set
+
 ## [1.3.3] - 2025-01-27
 ### Added
    - Added new **fullScreenFillMode** prop, to specify whether or not the image object-fit property should be set to "contain" or "cover".

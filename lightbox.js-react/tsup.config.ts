@@ -1,16 +1,25 @@
 import { defineConfig } from "tsup";
 import cssModulesPlugin from "esbuild-css-modules-plugin";
-import path from 'path'
+import path from "path";
 
 const env = process.env.NODE_ENV;
 
-export default defineConfig({
-  esbuildPlugins: [cssModulesPlugin()],
-  clean: true,
-  format: ['cjs', 'esm'], // generate cjs and esm files
-  outDir: "dist",
-  entryPoints: ['lib/index.ts'],
-  target: 'es2020',
-  entry: ['lib/**/*.tsx'], //include all files under src
+// const react18PluginOptions: React18PluginOptions = {
+//   keepTests: false,
+// };
 
+export default defineConfig({
+  clean: true,
+  sourcemap: true,
+  tsconfig: path.resolve(__dirname, "./tsconfig.json"),
+  entry: [ "./lib/SlideshowLightbox/SlideshowLightbox.tsx"],
+  bundle: false,
+  format: ["esm"],
+  outDir: "dist",
+  esbuildOptions(options, context) {
+    options.outbase = "./";
+    },
+    banner: { js: '"use client";' },
+
+  
 });

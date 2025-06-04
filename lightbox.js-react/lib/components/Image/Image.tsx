@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, ReactNode } from 'react'
-import { SlideshowLightbox } from './SlideshowLightbox';
+import { SlideshowLightbox } from '../SlideshowLightbox/SlideshowLightbox';
 
 const themes: any = {
   day: {
@@ -96,11 +96,11 @@ export const Image: React.FC<ImageProps> = (props) => {
     props.className ? props.className : ""
   )
 
-  const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState(
+  const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState<boolean>(
     props.showMagnificationIcons ? props.showMagnificationIcons : true
   )
 
-  const [displayControls, setDisplayControls] = useState(
+  const [displayControls, setDisplayControls] = useState<boolean>(
     props.showControls ? props.showControls : true
   )
 

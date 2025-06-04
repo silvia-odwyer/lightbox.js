@@ -28,15 +28,17 @@ import { ReactNode } from 'react';
 import Magnifier from '@oemuap/react-magnifier'
 import { Portal } from 'react-portal'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef, } from 'react-zoom-pan-pinch'
-import { saveAs } from 'file-saver'
+// import { saveAs } from 'file-saver-es'
 import Div100vh from 'react-div-100vh'
 import KeyHandler from '@banzai-inc/react-key-handler'
 import { useInterval } from 'usehooks-ts'
 import useEmblaCarousel from 'embla-carousel-react'
 import YouTube from 'react-youtube';
 import useResizeObserver from '@react-hook/resize-observer';
-import exifr from 'exifr'
-
+//import exifr from 'exifr'
+import exifr from 'exifr/dist/full.esm.mjs'
+import JsFileDownloader from 'js-file-downloader';
+import { use100vh } from 'react-div-100vh';
 
 let thumbnailVariants: any = {
   visible: { opacity: 1, y: 0 },
@@ -120,6 +122,7 @@ export interface SlideshowLightboxProps {
   disableImageZoom?: boolean;
   slideshowInterval?: number;
   slideDuration?: number;
+  lightboxHeight?: string;
   lightboxWidth?: string;
   showThumbnails?: boolean;
   open?: boolean;
@@ -157,7 +160,9 @@ export interface SlideshowLightboxProps {
   imgElemClassname?: string;
   showArrows?: boolean;
   showControlsBar?: boolean;
+  toggleThumbnailDisplay?: boolean;
   rightSidebarComponent?: any;
+  lightboxFooterComponent?: any;
   closeIconBtnStyle?: any;
   controlComponent?: any;
   lightboxImgClass?: string;
@@ -201,6 +206,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [[imgSlideIndex, direction], setImgSlideIndex] = useState([0, 0])
   const [showModal, setShowModal] = useState(false)
   const [slideAnimDuration, setSlideAnimDuration] = useState(props.slideDuration ? props.slideDuration : 25)
+  const [toggleThumbnails, setToggleThumbnails] = useState(props.toggleThumbnailDisplay ? props.toggleThumbnailDisplay : false)
 
   const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false)
 
@@ -227,7 +233,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     dragFree: true
   }
 
-  const [width, setWidth] = useState(0)
+  const [width, setWidth] = useState(0);
+
 
   const isMobile = width <= mobileWidth;
   const isTablet = width <= tabletWidth;
@@ -235,7 +242,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [thumbnailSwipeOptions, setThumbnailSwipeOptions] = useState(initialThumbnailOptions)
 
   const [carouselReady, setCarouselReady] = useState(false)
-  const[isTabletUserAgent, setIsTabletUserAgent] = useState(false);
+  const [isTabletUserAgent, setIsTabletUserAgent] = useState(false);
 
   const [zoomedIn, setZoomedIn] = useState(false)
 
@@ -250,6 +257,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const [lightboxModalWidth, setLightboxModalWidth] = useState(
     props.lightboxWidth ? props.lightboxWidth : "100vw"
+  )
+
+  const [lightboxModalHeight, setLightboxModalHeight] = useState(
+    props.lightboxHeight ? props.lightboxHeight : "100vh"
   )
 
   const [magnifyingGlassFeature, _setMagnifyingGlassFeature] = useState(
@@ -349,6 +360,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     props.showLoader ? props.showLoader : false
   )
 
+  const [pinch, setPinch] = useState(false);
+
   const [customControlComponent, setCustomControlComponent] = useState(
     props.controlComponent ? props.controlComponent : false
   )
@@ -402,6 +415,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     props.arrowStyle ? props.arrowStyle : 'dark'
   )
 
+  const div100vhHeight = use100vh();
+  const lboxHeight = lightboxModalHeight == "100vh" ? div100vhHeight : lightboxModalHeight;
+
   const [YTVideoCurrentlyPlaying, setYTVideoCurrentlyPlaying] = useState(false)
 
 
@@ -432,25 +448,32 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const [isLoading, setIsLoading] = useState(true);
   const [noWindow, setNoWindow] = useState(props.noWindow ? props.noWindow : false)
 
-  
   const [touchStart, setTouchStart] = useState<any>(0)
   const [touchEnd, setTouchEnd] = useState<any>(0)
 
   const [mouseStartX, setMouseStartX] = useState<any>(0)
   const [mouseStartY, setMouseStartY] = useState<any>(0)
 
-  const minimumSwipeDistance = 50 
+  const minimumSwipeDistance = 50
 
   const onTouchStart = (e) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
+
+    if (e.targetTouches && e.targetTouches.length == 1) {
+      setTouchEnd(null)
+      setTouchStart(e.targetTouches[0].clientX)
+    }
+
+    if (e.targetTouches && e.targetTouches.length == 2) {
+      setPinch(true)
+    }
   }
 
   const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX)
 
-  const onTouchEnd = () => {
+  const onTouchEnd = (e) => {
     // only move to new image if imgAnimation set to "fade"
-    if (touchStart != null && touchEnd != null && imgAnimation == "fade") {
+    if (touchStart != null && touchEnd != null && imgAnimation == "fade" && zoomedIn == false && pinch == false
+    ) {
       const distance: any = touchStart - touchEnd
       if (distance != null) {
         const isLeftSwipe = distance > minimumSwipeDistance
@@ -460,9 +483,20 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
         }
         else if (isRightSwipe) {
           prevSlide();
-        } 
+        }
       }
+     
     }
+    else if (touchStart != null && touchEnd != null && zoomedIn == false && pinch == false
+    ) {
+        // click 
+        if (toggleThumbnails) {
+          setShowThumbnails(!showThumbnails)
+        }
+      
+    }
+    setPinch(false)
+    setTouchStart(null)
 
   }
 
@@ -474,23 +508,26 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const onMouseUp = (event) => {
-
-    if (imgAnimation == "fade" && zoomedIn == false) {
-      const differenceX = Math.abs(event.pageX - mouseStartX);
-    
-      if (differenceX > delta) {
-        const isLeftDragMotion = (mouseStartX - event.pageX) > delta;
+    const differenceX = Math.abs(event.pageX - mouseStartX);
+    const isLeftDragMotion = (mouseStartX - event.pageX) > delta;
         const isRightDragMotion = (mouseStartX - event.pageX) < -delta;
-        
-        if (isLeftDragMotion) {
-          nextSlide();
-        }
-        else if (isRightDragMotion) {
-          prevSlide()
-        }
-      }
-    }
 
+        if (differenceX > delta) {
+
+          if (isLeftDragMotion && imgAnimation == "fade" && zoomedIn == false) {
+            nextSlide();
+          }
+          else if (isRightDragMotion && imgAnimation == "fade" && zoomedIn == false) {
+            prevSlide()
+          }
+          
+        }
+        else {
+          // click
+          if (toggleThumbnails) {
+            setShowThumbnails(!showThumbnails);
+          }
+        }
   }
 
   const createCustomThumbnailBorder = (): string | void => {
@@ -520,14 +557,15 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const scrollPrev = useCallback(() => {
-    if (emblaApi) { emblaApi.scrollPrev();
+    if (emblaApi) {
+      emblaApi.scrollPrev();
     }
 
   }, [emblaApi])
 
   const scrollNext = useCallback(() => {
     if (emblaApi) {
-      emblaApi.scrollNext() 
+      emblaApi.scrollNext()
 
     }
   }, [emblaApi])
@@ -553,6 +591,19 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     return false
   }
 
+  const getContainerStyles = () => {
+    if ((props.showControlsBar == false || props.fullScreen)) {
+      return { height: lboxHeight }
+    }
+    else if (isBrowserFullScreen) {
+
+      // return {height: "100vh"}
+    }
+    else {
+      return {}
+    }
+  }
+
   const getInnerContainerStyles = () => {
 
     if (isImageCaption("above")) {
@@ -562,7 +613,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       return styles.rotateImgInnerContainer;
     }
     return styles.slideshowInnerContainerThumbnails
-   
+
   }
 
   const displayDownloadBtn = () => {
@@ -598,34 +649,39 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
 
   const getImageStyle = () => {
     let styleObject = {};
+    styleObject["objectFit"] = "contain"
+
     if (imageFullScreen) {
-      styleObject["maxHeight"] = "100vh"
-
-      if (props.fullScreenFillMode == "cover") {
+      if (props.fullScreenFillMode) {
         styleObject["objectFit"] = props.fullScreenFillMode;
-        styleObject["maxWidth"] = "80%"
+        if (props.fullScreenFillMode == "cover") {
+          styleObject["maxHeight"] = "94vh"
+          styleObject["maxWidth"] = "70vw"
+          styleObject["marginTop"] = "auto"
+          styleObject["marginBottom"] = "auto"
 
+        }
       }
       else {
         styleObject["objectFit"] = "contain"
-        styleObject["maxHeight"] = "100vh"
-
+        styleObject["height"] = lboxHeight;
+        styleObject["maxHeight"] = lboxHeight;
       }
-      
+
     }
     if (!imageFullScreen && !rotateImgIcon) {
       if (isImageCaption(imgCaptionPlacement) && showThumbnails == false) {
-        styleObject["height"] = "67vh"
+        // styleObject["height"] = "67vh"
       }
       if (isImageCaption(imgCaptionPlacement) && showThumbnails) {
-        styleObject["height"] = "67vh"
+        // styleObject["height"] = "67vh"
       }
-      
+
       if (props.thumbnailImgAnim && showThumbnails == false) {
         styleObject["height"] = "87vh"
       }
       else if (isImageCaption(imgCaptionPlacement) != true) {
-        styleObject["height"] = "77vh"
+        // styleObject["height"] = "77vh"
 
       }
       if (props.thumbnailImgAnim && showThumbnails) {
@@ -727,11 +783,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const fullScreen = () => {
     let lightbox = document.getElementById('slideshowAnim')
     openFullScreen(lightbox)
-    setIsBrowserFullScreen(true)
+    // setIsBrowserFullScreen(true)
     initFullScreenChangeEventListeners()
   }
 
-  const exitFullScreenHandler = () => {
+  const fullScreenHandler = () => {
     //in full screen mode
     if (
       document['webkitIsFullScreen'] ||
@@ -739,27 +795,32 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       document['msFullscreenElement']
     ) {
       setIsBrowserFullScreen(true)
+      setLightboxModalHeight("100vh")
+
     } else {
       if (isBrowserFullScreen) {
         closeFullScreen(document)
       }
       removeFullScreenChangeEventListeners()
       setIsBrowserFullScreen(false)
+      setLightboxModalHeight(props.lightboxHeight ? props.lightboxHeight : "100vh")
+
     }
   }
 
   const exitFullScreen = () => {
     closeFullScreen(document)
     removeFullScreenChangeEventListeners()
-    setIsBrowserFullScreen(false)
+    // setIsBrowserFullScreen(false)
   }
 
-  const emblaSlideSelect = useCallback((emblaApi) => {    
+  const emblaSlideSelect = useCallback((emblaApi) => {
   }, [])
 
-  useEffect(() => {    
-    if (emblaApi) emblaApi.on('slidesInView', emblaSlideSelect)  }, 
-  [emblaApi, emblaSlideSelect])
+  useEffect(() => {
+    if (emblaApi) emblaApi.on('slidesInView', emblaSlideSelect)
+  },
+    [emblaApi, emblaSlideSelect])
 
 
   const updateImageSlideshow = (newDirection) => {
@@ -925,6 +986,28 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     }
   }
 
+  const getContainerHeight = () => {
+
+    if (props.lightboxHeight && isBrowserFullScreen) {
+      return "100vh";
+    }
+    else if (props.lightboxHeight && !isBrowserFullScreen) {
+      return props.lightboxHeight;
+    }
+    return ""
+  }
+
+  const getContainerWidth = () => {
+    if (props.lightboxWidth && !isBrowserFullScreen) {
+      return props.lightboxWidth
+    }
+    else if (props.lightboxWidth && isBrowserFullScreen) {
+      return ""
+    }
+    return ""
+
+  }
+
   const setImagesItemLoaded = (index) => {
     setImages(images =>
       images.map((img, i) => index === i ? {
@@ -997,20 +1080,31 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
   const saveImage = () => {
+    let img_url;
     if (props.images.length > 0) {
       if (props.images[slideIndex].original) {
-        saveAs(props.images[slideIndex].original, 'image.jpg')
+        img_url = props.images[slideIndex].original;
+
       } else {
-        saveAs(props.images[slideIndex]['src'], 'image.jpg')
+        img_url = props.images[slideIndex]['src'];
       }
     } else {
       if (images[slideIndex].src) {
-        saveAs(images[slideIndex].src!, 'image.jpeg')
+        img_url = images[slideIndex].src!
       }
     }
+
+    new JsFileDownloader({
+      url: img_url,
+      filename: "image.jpg"
+    })
+      .then(function () {
+        // download ended
+      })
+      .catch(function (error) {
+        // an error occurred
+      });
   }
-
-
 
   const playSlideshow = () => {
     setMagnifyingGlass(false)
@@ -1053,12 +1147,20 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
       return styles.emblaSlideGrid;
     }
 
-    if (slideIndex == index && imgAnimation == "fade") {
-      return `${styles.imgfade} ${styles.emblaSlide} ${styles.emblaSlideSelected}`
+    if (imgAnimation == "fade") {
+      let styles_str = "";
+
+      if (props.fullScreen != true) {
+        styles_str += `${styles.notFullScreen} `
+      }
+
+      styles_str += ` ${styles.imgfade} ${styles.emblaSlide} `
+      if (slideIndex == index) {
+        styles_str += `${styles.emblaSlideSelected} `
+      }
+      return styles_str;
     }
-    else if (imgAnimation == "fade") {
-      return `${styles.imgfade} ${styles.emblaSlide}`;
-    }
+
     else {
       return styles.emblaSlide;
     }
@@ -1108,7 +1210,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     let style = {};
     if (isImageCaption("below")) {
       if (showThumbnails) {
-        style["height"] = "21vh" 
+        style["height"] = "21vh"
       }
       else {
         style["height"] = "12vh"
@@ -1118,8 +1220,6 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
     return style;
 
   }
-
-
 
   const getImageThumbnail = (img, index, isNextJS, props) => {
     return (
@@ -1158,7 +1258,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   const rotateImage = () => {
     let img_elem = imageRefs.current[zoomIdx];
     let transform_val = img_elem.style.transform;
-    
+
     let current_rotation = 0;
     if (transform_val) {
       var reg = /rotate\(([0-9.]+)deg\)/;
@@ -1182,12 +1282,12 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> = React.forward
   }
 
 
-const resetRotation = () => {
-  imageRefs.current[zoomIdx].classList.remove(`${styles.rotate_img}`)
+  const resetRotation = () => {
+    imageRefs.current[zoomIdx].classList.remove(`${styles.rotate_img}`)
 
-  imageRefs.current[zoomIdx].style.transform = "";
+    imageRefs.current[zoomIdx].style.transform = "";
     setCurrentRotation(0)
-}
+  }
 
   const resetImage = () => {
     if (enableMagnifyingGlass) {
@@ -1203,7 +1303,7 @@ const resetRotation = () => {
   const getThumbnailImgSrc = (img, index) => {
 
     if (props.images && props.images.length > 0) {
-      if (props.images[index] && props.images[index].thumbnailSrc) {
+      if (props.images[index].thumbnailSrc) {
         return props.images[index].thumbnailSrc
       }
     }
@@ -1214,6 +1314,18 @@ const resetRotation = () => {
     else {
       return img.src
     }
+  }
+
+  const getImgFadeClass = () => {
+    if (imgAnimation == "fade") {
+      if (isImageCaption("above")) {
+        return ` ${styles.imgfade} ${styles.imgFadeWithTopCaption}`
+      }
+      else {
+        return ` ${styles.imgfade}`
+      }
+    }
+
   }
 
   const getThumbnailImgSrcNext = (img, index) => {
@@ -1352,6 +1464,7 @@ const resetRotation = () => {
           onError={(event) => {
             handleError(event, index)
           }}
+       
           onLoad={(img) => {
             if (index == slideIndex) {
               setDisplayLoader(false)
@@ -1393,7 +1506,7 @@ const resetRotation = () => {
         <img
           className={`imageModal  ${fullImg && props.thumbnailImgAnim ? styles.fullImg : false}   
            ${props.imgElemClassname ? props.imgElemClassname : ''}
-        ${ styles.lightboxImg} 
+        ${styles.lightboxImg} 
         ${enableMagnifyingGlass
               ? styles.maxWidthFull
               : styles.maxWidthWithoutMagnifier
@@ -1409,6 +1522,7 @@ const resetRotation = () => {
           onError={(event) => {
             handleError(event, index)
           }}
+        
           onLoad={(img) => {
             if (index == slideIndex) {
               setDisplayLoader(false)
@@ -1432,21 +1546,21 @@ const resetRotation = () => {
   const getCloseIconBtnStyle = () => {
     let style_object = {}
     if (iconColor) {
-      style_object =  { color: iconColor }
+      style_object = { color: iconColor }
     }
     if (props.closeIconBtnStyle) {
       let closeIconBtnStyleKeys = Object.keys(props.closeIconBtnStyle)
       for (let i = 0; i < closeIconBtnStyleKeys.length; i++) {
         let keyName = closeIconBtnStyleKeys[i];
         let style_obj = props.closeIconBtnStyle[keyName]
-        style_object[keyName] =  style_obj;
+        style_object[keyName] = style_obj;
       }
     }
     return style_object;
 
   }
 
-  const isPanningDisabled = () => { 
+  const isPanningDisabled = () => {
     if ((isMobile || isTablet || isTabletUserAgent) && zoomedIn == false) {
       return true;
     }
@@ -1523,6 +1637,7 @@ const resetRotation = () => {
           key={index}
           loading='lazy'
           style={getImageStyle()}
+      
           src={
             images && images[index].original
               ? images[index].original
@@ -1541,6 +1656,7 @@ const resetRotation = () => {
                 individual_image_metadata["name"] = name;
 
                 exifr.parse(img_target, true).then(exif => {
+
                   if (exif) {
                     let keys = ["isoData", "createDate", "height", "width", "shutterSpeed", "fNumber"];
 
@@ -1589,8 +1705,7 @@ const resetRotation = () => {
                     }
                   }
 
-                }
-                )
+                })
               }
             }
 
@@ -1810,8 +1925,9 @@ const resetRotation = () => {
   const regularImgPaneNodes = Array.apply(null, Array(images.length)).map(
     (_, index) => {
       return (
-        <div key={index} className={`${props.fullScreen ? styles.fullScreenContainer : null}`}>
-          
+        <div key={index} className={`${props.fullScreen ? styles.fullScreenContainer : null}`}
+          style={{ height: lboxHeight }}>
+
           {
             enableMagnifyingGlass == true ? (
               <div></div>
@@ -1826,7 +1942,7 @@ const resetRotation = () => {
 
               : (
                 <div className={getEmblaClass(index)} onTouchStart={onTouchStart} onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd} onMouseDown={onMouseDown} onMouseUp={onMouseUp}>
+                  onTouchEnd={onTouchEnd} onMouseDown={onMouseDown} onMouseUp={onMouseUp}>
 
                   <TransformWrapper
                     ref={(el) => (zoomReferences.current[index] = el)}
@@ -1863,32 +1979,38 @@ const resetRotation = () => {
                       contentClass={styles.reactTransformComponent}
                       wrapperStyle={{
                         maxWidth: '100vw',
-                        height: '100vh',
+                        height: "100vh",
                         margin: 'auto'
                       }}
                       contentStyle={
                         {
-                            maxWidth: '100vw',
-                            height: '100vh',
-                            margin: 'auto',
-                            display: 'grid'
-                          }
+                          maxWidth: '100vw',
+                          height: "100vh",
+                          margin: 'auto',
+                          display: 'grid'
+                        }
                       }
                       key={index}
-                    > 
+                    >
                       <div
-                        className={`${styles.slideshowImg} ${props.lightboxImgClass ? props.lightboxImgClass : ""}
-                      ${displayImgMetadata ? styles.slideshowImgMetadata : ""}
+                        className={`${styles.slideshowImg}
+
+                        ${props.fullScreen ? styles.fullScreenSlideshowImg : ""}
+                        
+                        ${props.lightboxImgClass ? props.lightboxImgClass : ""}
+                      ${displayImgMetadata ? styles.slideshowImgMetadata : ""} 
+                      ${isImageCaption(imgCaptionPlacement) ? styles.slideshowImgWithCaption : ""}
                       `}
-                      style={{
-                        width: props.lightboxWidth ? props.lightboxWidth : ""
-                      }}
+                        style={{
+                          width: getContainerWidth(),
+                          height: getContainerHeight()
+                        }}
                       >
-                         
-                         {getLightboxElem(index)} 
+
+                        {getLightboxElem(index)}
                       </div>
-                     </TransformComponent>
-                  </TransformWrapper> 
+                    </TransformComponent>
+                  </TransformWrapper>
                 </div>
               )}
         </div>
@@ -1942,20 +2064,20 @@ const resetRotation = () => {
   }
 
   const initFullScreenChangeEventListeners = () => {
-    document.addEventListener('fullscreenchange', exitFullScreenHandler)
-    document.addEventListener('webkitfullscreenchange', exitFullScreenHandler)
-    document.addEventListener('MSFullscreenChange', exitFullScreenHandler)
-    document.addEventListener('mozfullscreenchange', exitFullScreenHandler)
+    document.addEventListener('fullscreenchange', fullScreenHandler)
+    document.addEventListener('webkitfullscreenchange', fullScreenHandler)
+    document.addEventListener('MSFullscreenChange', fullScreenHandler)
+    document.addEventListener('mozfullscreenchange', fullScreenHandler)
   }
 
   const removeFullScreenChangeEventListeners = () => {
-    document.removeEventListener('fullscreenchange', exitFullScreenHandler)
+    document.removeEventListener('fullscreenchange', fullScreenHandler)
     document.removeEventListener(
       'webkitfullscreenchange',
-      exitFullScreenHandler
+      fullScreenHandler
     )
-    document.removeEventListener('MSFullscreenChange', exitFullScreenHandler)
-    document.removeEventListener('mozfullscreenchange', exitFullScreenHandler)
+    document.removeEventListener('MSFullscreenChange', fullScreenHandler)
+    document.removeEventListener('mozfullscreenchange', fullScreenHandler)
   }
 
   const initEventListeners = () => {
@@ -1994,7 +2116,7 @@ const resetRotation = () => {
 
       if (reducedMotionMediaQuery?.addEventListener) {
         reducedMotionMediaQuery.addEventListener('change', setReducedMotion(reducedMotionMediaQuery));
-      } 
+      }
       else {
         reducedMotionMediaQuery.addListener(setReducedMotion(reducedMotionMediaQuery));
       }
@@ -2116,16 +2238,16 @@ const resetRotation = () => {
 
   const initAndOpenLightbox = (i, img_gallery, isMounted) => {
     let index;
-  
+
     if (isRTL) {
       index = getRTLIndex(img_gallery.length, i)
     } else {
       index = i
     }
-  
+
     let reactSwipeOptionConfig = reactSwipeOptions
-     reactSwipeOptionConfig.startIndex = index
-  
+    reactSwipeOptionConfig.startIndex = index
+
     if (isMounted) setReactSwipeOptions(reactSwipeOptionConfig)
     setZoomIdx(index)
     openModal(index)
@@ -2154,38 +2276,38 @@ const resetRotation = () => {
             queryElems.forEach(element => {
               img_gallery.push(element)
             });
-              
+
           }
           let img_elements: ImageElement[] = []
 
           if (img_gallery.length > 0) {
             for (let i = 0; i <= img_gallery.length - 1; i++) {
               let img = img_gallery[i]
-                img.addEventListener(
-                  'click',
-                  () => {
-                    initAndOpenLightbox(i, img_gallery, isMounted)
-                  },
-                  false
-                )
-                img.classList.add('cursor-pointer')
-                
-                if (img.src) {
-                  img_elements.push({
-                    src: img.src,
-                    alt: img.alt,
-                    loaded: false
-                  })
-                }else if (img.href) {
-                  img_elements.push({
-                    src: img.href,
-                    alt: img.alt,
-                    loaded: false
-                  })
-                }
-          
+              img.addEventListener(
+                'click',
+                () => {
+                  initAndOpenLightbox(i, img_gallery, isMounted)
+                },
+                false
+              )
+              img.classList.add('cursor-pointer')
+
+              if (img.src) {
+                img_elements.push({
+                  src: img.src,
+                  alt: img.alt,
+                  loaded: false
+                })
+              } else if (img.href) {
+                img_elements.push({
+                  src: img.href,
+                  alt: img.alt,
+                  loaded: false
+                })
+              }
+
             }
-            
+
             if (isMounted && !coverMode) {
               if (props.framework != "next") {
                 setImages(img_elements)
@@ -2195,20 +2317,20 @@ const resetRotation = () => {
               }
             }
 
+          }
         }
-      }
         else {
 
           let img_gallery: NodeListOf<HTMLImageElement> = document.querySelectorAll(
             `[data-lightboxjs=${lightboxIdentifier}]`
           )
           let originalImageAttr = false;
-  
+
           let img_elements: ImageElement[] = []
           if (img_gallery.length > 0) {
             for (let i = 0; i <= img_gallery.length - 1; i++) {
               let img = img_gallery[i]
-  
+
               let attr_val = img.getAttribute('data-lightboxjs')
               if (attr_val == lightboxIdentifier) {
                 img.addEventListener(
@@ -2219,9 +2341,9 @@ const resetRotation = () => {
                   false
                 )
                 img.classList.add('cursor-pointer')
-  
+
                 let original_img_src = img.getAttribute('data-lightboxjs-original')
-  
+
                 if (original_img_src) {
                   img_elements.push({
                     src: original_img_src,
@@ -2251,7 +2373,7 @@ const resetRotation = () => {
             if (isMounted && !coverMode) {
               if (originalImageAttr) {
                 setImages(img_elements)
-  
+
               }
               else if (props.showAllImages != true && props.framework != "next") {
                 setImages(img_elements)
@@ -2547,7 +2669,7 @@ const resetRotation = () => {
       let is_tablet_useragent = /(ipad|iphone|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/.test(userAgent);
       let is_ipad_useragent = /Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
 
-      setIsTabletUserAgent(is_tablet_useragent || is_ipad_useragent) 
+      setIsTabletUserAgent(is_tablet_useragent || is_ipad_useragent)
     }
 
     if (coverMode && props.images) {
@@ -2597,37 +2719,37 @@ const resetRotation = () => {
     let image_elems;
 
     if (props.images && props.children && lightboxIdentifier == false) {
-        image_elems =  props.children
+      image_elems = props.children
     }
     else if (props.images && lightboxIdentifier == false) {
-        image_elems = props.images.map((elem, index) => (
-          <img
-            className={`${props.imgClassName ? props.imgClassName : ''
-              } ${styles.cursorPointer}`}
+      image_elems = props.images.map((elem, index) => (
+        <img
+          className={`${props.imgClassName ? props.imgClassName : ''
+            } ${styles.cursorPointer}`}
 
-            src={!isVideo(index) ? elem.src : elem.thumbnail}
-            onClick={() => {
-              let img_index
+          src={!isVideo(index) ? elem.src : elem.thumbnail}
+          onClick={() => {
+            let img_index
 
-              if (isRTL) {
-                img_index = getRTLIndex(props.images.length, index)
-              } else {
-                img_index = index
-              }
+            if (isRTL) {
+              img_index = getRTLIndex(props.images.length, index)
+            } else {
+              img_index = index
+            }
 
-              openModalWithSlideNum(img_index)
-            }}
-            key={index}
-          />
-        ))
+            openModalWithSlideNum(img_index)
+          }}
+          key={index}
+        />
+      ))
     }
     else if (lightboxIdentifier != false && props.children && coverMode == false) {
-      {/* IF Lightbox identifier provided or props.images provided AND props.children */}
-        image_elems = props.children
+      {/* IF Lightbox identifier provided or props.images provided AND props.children */ }
+      image_elems = props.children
     }
     // No lightbox identifier provided or no cover mode
     else if (!((lightboxIdentifier == false && props.images) || coverMode == true)) {
-        image_elems = previewImageElems
+      image_elems = previewImageElems
         .filter((elem) => elem.type == 'img')
         .map((elem, index) => (
           <img
@@ -2650,7 +2772,7 @@ const resetRotation = () => {
         ))
     }
     else if (coverMode) {
-        image_elems = props.children
+      image_elems = props.children
     }
     return image_elems;
 
@@ -2660,46 +2782,46 @@ const resetRotation = () => {
 
     {renderPreviewImages()}
 
-      {/* <AnimateSharedLayout> */}
+    <AnimatePresence initial={false} mode={"wait"}>
+      {showModal !== false && (
+        <Portal>
+          <Div100vh>
 
-        <AnimatePresence initial={false} mode={"wait"}>
-          {showModal !== false && (
-            <Portal>
-              <Div100vh>
-                <motion.div className={`${styles.modalContainer}`}
-                   initial={"inactive"}
-                   variants={variants}
-                   animate={showModal ? "active" : "inactive"}
-                   exit={"inactive"}
-                   transition={
-                     { duration: "0.3" }
-                   }
-                   onAnimationComplete={() => {
-                     let animEntered = !animationEntered;
-                     setAnimationEntered(animEntered);
- 
-                     if (animEntered == true) {
-                       let prevFocusedElement: any = document.activeElement;
-                       setPrevFocusedElem(prevFocusedElement)
- 
-                       document.getElementById("lightboxContainer")?.focus();
-                     }
-                     else {
-                       prevFocusedElem?.focus();
-                     }
-                     if (emblaApi) emblaApi.reInit()
-                   }}
- >
+            <div style={{ height: lboxHeight }}>
+              <motion.div className={`${styles.modalContainer}`}
+                style={{ height: lboxHeight }}
+                initial={"inactive"}
+                variants={variants}
+                animate={showModal ? "active" : "inactive"}
+                exit={"inactive"}
+                transition={
+                  { duration: "0.3" }
+                }
+                onAnimationComplete={() => {
+                  let animEntered = !animationEntered;
+                  setAnimationEntered(animEntered);
+
+                  if (animEntered == true) {
+                    let prevFocusedElement: any = document.activeElement;
+                    setPrevFocusedElem(prevFocusedElement)
+
+                    document.getElementById("lightboxContainer")?.focus();
+                  }
+                  else {
+                    prevFocusedElem?.focus();
+                  }
+                  if (emblaApi) emblaApi.reInit()
+                }}
+              >
                 <motion.div
                   className={`${styles.slideshowAnimContainer} `}
                   key='slideshowAnimContainer'
-
                   id='slideshowAnim'
                   style={{
                     backgroundColor: backgroundColor,
                     width: lightboxModalWidth,
+                    height: lboxHeight
                   }}
-               
                 >
                   <div className={`${styles.lightboxContainer} `} id="lightboxContainer" tabIndex={-1} role="dialog"
                     onClick={(e) => { if (modalCloseOption == "clickOutside") { checkModalClick(e) } }}>
@@ -2888,7 +3010,7 @@ const resetRotation = () => {
 
                             </motion.div> : null}
 
-                            {rotateImgIcon ? (
+                          {rotateImgIcon ? (
                             <motion.div>
                               <button
                                 onClick={() => {
@@ -2988,8 +3110,8 @@ const resetRotation = () => {
                         </div>
                       )}
                       <motion.div className={`${styles.closeIcon} ${props.showControls == false ? styles.mlAuto : ""}`}>
-                        <button id="closeBtn" className={`${props.showControlsBar == false && props.showControls == false 
-                        ? styles.closeButtonRounded : styles.closeButton}`}
+                        <button id="closeBtn" className={`${props.showControlsBar == false && props.showControls == false
+                          ? styles.closeButtonRounded : styles.closeButton}`}
 
                           onClick={() => {
                             closeModal()
@@ -3049,12 +3171,13 @@ const resetRotation = () => {
                         className={`${getInnerContainerStyles()} ${styles.embla} 
                         ${isImageCaption("below") && showControlsBar == true ? styles.slideImageAndCaption : ''
                           } 
-                          ${props.fullScreen ? "" : styles.slideshowInnerContainer } 
+                          ${props.fullScreen ? "" : styles.slideshowInnerContainer} 
                           ${props.showControlsBar == false || props.fullScreen
                             ? styles.hideControlsBar
                             : ""
                           }
-                          ${displayImgMetadata ? styles.slideshowInnerContainerImgMetadata : ""}  `}>
+                          ${displayImgMetadata ? styles.slideshowInnerContainerImgMetadata : ""}  `}
+                        style={getContainerStyles()}>
 
                         {shouldDisplayMetadataPanel() ?
                           <div className={styles.metadata}
@@ -3084,31 +3207,32 @@ const resetRotation = () => {
 
                           </div>
                           : null}
-                            {isImageCaption("above") ? (
-                        <div className={`${styles.imgTitleContainer} imageModal`}>
-                          <p
-                            className={`${styles.imgTitle}`}
-                            key={'imgCaption' + slideIndex}
-                            style={
-                              props.captionStyle
-                                ? props.captionStyle
-                                : { color: textColor }
-                            }
-                          >
-                            {getImageCaption()}
-                          </p>
-                        </div>
-                      ) : null}
+                        {isImageCaption("above") ? (
+                          <div className={`${styles.imgTitleContainer} imageModal`}>
+                            <p
+                              className={`${styles.imgTitle}`}
+                              key={'imgCaption' + slideIndex}
+                              style={
+                                props.captionStyle
+                                  ? props.captionStyle
+                                  : { color: textColor }
+                              }
+                            >
+                              {getImageCaption()}
+                            </p>
+                          </div>
+                        ) : null}
 
                         <div className={`${styles.emblaViewport} 
                             ${displayImgMetadata ? styles.emblaContainerImgMetadata : ""}`}
+                          style={props.fullScreen == true ? { height: lightboxModalHeight } : {}}
                           ref={showModal ? emblaRef : null}>
                           <div className={`
-                          ${imgAnimation == "fade" ? styles.imgfade : ""} 
+                          ${getImgFadeClass()}
                           ${styles.emblaContainer}
                             ${displayImgMetadata ? styles.emblaContainerImgMetadata : ""}`}>
-                      
-                            {regularImgPaneNodes} 
+
+                            {regularImgPaneNodes}
 
                           </div>
                         </div>
@@ -3228,14 +3352,19 @@ const resetRotation = () => {
                 </motion.div>
                 {props.rightSidebarComponent ? props.rightSidebarComponent : null}
 
-                </motion.div>
-             
+              </motion.div>
 
-              </Div100vh>
-            </Portal>
-          )}
-        </AnimatePresence>
-      {/* </AnimateSharedLayout> */}
-    </div>
+              {props.lightboxFooterComponent ? props.lightboxFooterComponent : null}
+
+            </div>
+          </Div100vh>
+
+        </Portal>
+      )}
+    </AnimatePresence>
+    {/* </AnimateSharedLayout> */}
+
+
+  </div>
 }
 )
