@@ -2,12 +2,16 @@
 # Changelog
 This file contains notable changes and updates that have been made to Lightbox.js, including bug fixes and new functionality.
 
+## [1.5.7] - 2025-06-10
+### Added
+   - Updated showLoader functionality when displaying loading indicator
+
 ## [1.5.5] - 2025-06-04
 ### Added
    - New **toggleThumbnailDisplay** prop added. This feature displays/hides thumbnails when lightbox image is clicked.
 
 ### Fixed
-   - Fixed issue regarding wrapper div with fixed height, it's only shown when lightbox is open (this was introduced in a recent update)
+   - Fixed issue regarding wrapper div with fixed height, it's now only shown when lightbox is open (this was introduced in a recent update and caused a bug that displayed the wrapper div)
 
 ## [1.4.9] - 2025-03-10
 ### Added

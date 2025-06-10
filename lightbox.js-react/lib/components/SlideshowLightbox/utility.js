@@ -71,22 +71,6 @@ export const openFullScreen = (lightbox_elem) => {
   }
 }
 
-export const closeFullScreen = (document) => {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  } 
-
-  /* Safari */
-  else if (document.webkitExitFullscreen) { 
-    document.webkitExitFullscreen();
-  } 
-  
-  /* Internet Explorer */
-  else if (document.msExitFullscreen) { 
-    document.msExitFullscreen();
-  }
-}
-
 export const swipePower = (offset, velocity) => {
     return Math.abs(offset) * velocity;
 };
@@ -102,3 +86,34 @@ export const getScale = (num, maxScale) => {
   return num;
   
 }
+
+export const closeFullScreen = (document) => {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+
+  /* Safari */
+  else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  }
+
+  /* Internet Explorer */
+  else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+}
+
+
+export const createCustomThumbnailBorder = (thumbnailBorder) => {
+  if (thumbnailBorder) {
+    return `solid ${thumbnailBorder} 2px`
+  }
+}
+
+
+export const areObjectsEqual = (object1, object2) =>
+typeof object1 === 'object' && object1 != null && typeof object2 === 'object' && object2 != null
+  && Object.keys(object1).length > 0
+  ? Object.keys(object1).length === Object.keys(object2).length
+  && Object.keys(object1).every(p => areObjectsEqual(object1[p], object2[p]))
+  : object1 === object2;
