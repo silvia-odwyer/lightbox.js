@@ -62,6 +62,7 @@
 .prev1 {
   left: 2%;
   padding-right: 2vw;
+  padding-left: 3vw;
 }
 
 .thumbnails {
@@ -311,7 +312,7 @@
   top: calc(50% - 20px);
   position: absolute;
   display: flex;
-  transition: all 0.2s;
+  transition: color 0.2s;
   justify-content: center;
   align-items: center;
   padding-bottom: 2vh;
@@ -319,11 +320,16 @@
   user-select: none;
   cursor: pointer;
   font-weight: bold;
-  border-radius: 30px;
+  /* border-radius: 30px; */
   width: 40px;
   height: 40px;
   font-size: 18px;
   z-index: 10000000;
+  
+  background: none !important;
+  border: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
 
@@ -346,16 +352,19 @@
 
 .iconsHeader {
   color: white;
-  position: absolute;
   display: flex;
   flex-direction: row;
   /* align-items: center;
     justify-content: center; */
   cursor: pointer;
-  top: 10px;
-  right: 45px;
   z-index: 999999999;
   /* padding: 0.14vw; */
+}
+
+.iconHeaderDefault {
+  position: absolute;
+  top: 10px;
+  right: 45px;
 }
 
 .ytVideo {
@@ -450,6 +459,16 @@
 
   }
 
+  .iconHeaderCenter {
+    width: 100vw; 
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    position: fixed;
+    top: 10px;
+    justify-content: center;
+    left: 0;
+  }
 
 }
 
@@ -471,6 +490,19 @@
 
   .next1 {
     right: 0.7%;
+  }
+
+  .iconHeaderCenter {
+    width: 100%; 
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    position: fixed;
+    top: 10px;
+    justify-content: center;
+    left: 0;
+
+  
   }
 
   /* .thumbnailsOuterContainer {
@@ -642,7 +674,7 @@
   }
 
   .next1 {
-    right: 0.4%;
+    right: 2.4%;
   }
 
   
@@ -898,7 +930,7 @@
     margin-right: auto;
   }
 
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     left: 115px;
   }
@@ -1020,6 +1052,7 @@
   max-height: 70vh;
   margin-left: auto;
   margin-right: auto;
+  pointer-events: auto !important;
 }
 
 .controls button, .closeButton, .closeButtonRounded {
@@ -1097,14 +1130,14 @@
 }
 
 @media screen and (max-width: 880px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     right: 5%;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     left: 180px;
   }
@@ -1112,21 +1145,21 @@
 }
 
 @media screen and (max-width: 440px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     left: 160px;
   }
 }
 
 @media screen and (max-width: 410px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     left: 140px;
   }
 }
 
 @media screen and (max-width: 385px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     left: 135px;
     /* top: 24px; */
@@ -1134,16 +1167,16 @@
 }
 
 @media screen and (max-width: 365px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
     left: 90px;
   }
 }
 
 @media screen and (max-width: 345px) {
-  .iconsHeader {
+  .iconHeaderDefault {
     position: fixed;
-    left: 82px;
+    left: 94px;
   }
 }
 
@@ -1516,4 +1549,32 @@ transition: transform 0.7s linear;
 
 .slideshowImg img {
 height: 100%;
+}
+
+.zoomInCursor {
+  cursor: zoom-in;
+}
+
+.zoomOutCursor {
+  cursor: zoom-out;
+}
+
+.lightboxjsBtn:focus {
+  outline: none;
+}
+
+.lightboxjsBtn_showOutline:focus-visible {
+  outline: 2px solid #00aaff;
+  outline-offset: 2px;
+}
+
+.lightboxjsBtn::-webkit-focus-inner {
+  border: 0;
+}
+
+.lightboxjsBtn {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  background: none;
 }

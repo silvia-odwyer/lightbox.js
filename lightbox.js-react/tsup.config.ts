@@ -3,21 +3,33 @@ import { defineConfig } from "tsup";
 import cssModulesPlugin from "esbuild-css-modules-plugin";
 
 export default defineConfig((options) => ({
-  entry: ["lib/index.ts", "lib/**/*.ts", "lib/**/*.tsx"],
-  format: ["cjs", "esm"],
-  esbuildPlugins: [
-    cssModulesPlugin()
-  ],
-  dts: true,
-  clean: true,
-  // bundle: false,
-  sourcemap: true,
-  // splitting: false, 
-  // "loader": {
-  //   ".css": "copy"
-  // },
-  target: "es2022",
+  // Entry points
+  entry: ["lib/index.ts"],
+
+  // Output formats
+  format: ["cjs", "esm"], // CJS for CRA <5, ESM for modern bundlers
+
+  // External dependencies (not bundled)
   external: ["react", "react/jsx-runtime"],
-  // minify: !options.watch,
-  banner: { js: '"use client";' },
+
+  esbuildPlugins: [cssModulesPlugin()],
+
+  // TypeScript declarations
+  dts: true, 
+
+  // Clean dist folder on build
+  clean: true,  
+
+  // Sourcemaps for debugging
+  sourcemap: false,  
+
+  // Target modern JS for ESM, slightly older for CJS if needed
+  target: "es2017", // safe for CRA <5
+
+  banner: { js: '"use client";' },  
+
+  splitting: false, 
+
+  // minify only for production
+  minify: !options.watch,  
 }));

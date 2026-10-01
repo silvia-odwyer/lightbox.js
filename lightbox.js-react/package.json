@@ -1,6 +1,6 @@
 {
   "name": "lightbox.js-react",
-  "version": "1.5.7",
+  "version": "1.7.0",
   "description": "React lightbox with animation and customization options",
   "author": "silvia-odwyer",
   "license": "GNU General Public License v3.0",
@@ -13,7 +13,7 @@
     "react",
     "lightbox",
     "zoom",
-    "gallery"
+    "gallery", "nextjs"
   ],
   "engines": {
     "node": ">=10"
@@ -31,19 +31,18 @@
     "lint:fix": "eslint --fix -c .eslintrc.cjs ./src/**/*.{ts,tsx}",
     "pre-commit": "lint-staged"
   },
+  
   "types": "./dist/index.d.ts",
-  "typings": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./*": {
-      "types": "./dist/components/*/index.d.ts",
-      "import": "./dist/components/*/index.mjs",
-      "require": "./dist/components/*/index.js"
-    }
+      ".": {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      }
   },
+  
   "peerDependencies": {
     "react": "15 - 19",
     "react-dom": "15 - 19"
@@ -61,8 +60,10 @@
     "embla-carousel-react": "^8.3.1",
     "exifr": "^7.1.3",
     "framer-motion": "11.11.17",
+    "heic2any": "^0.0.4",
     "intrinsic-scale": "^5.0.0",
     "js-file-downloader": "^1.1.25",
+    "libheif-js": "github:catdad-experiments/libheif-js",
     "react-bootstrap-icons": "^1.11.4",
     "react-div-100vh": "^0.7.0",
     "react-portal": "^4.2.2",
@@ -89,6 +90,7 @@
     "prettier": "^3.0.3",
     "tsup": "^8.0.1",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.24.0"
+    "typescript-eslint": "^8.24.0",
+    "vite": "^7.1.10"
   }
 }

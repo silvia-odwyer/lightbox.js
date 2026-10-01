@@ -1,9 +1,10 @@
-import * as React from 'react'
-import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle, ForwardRefExoticComponent } from 'react'
-import exifr from 'exifr/dist/full.esm.mjs'
-import styles from './SlideshowLightbox.module.css'
+import exifr from 'exifr/dist/full.esm.mjs';
+import * as React from 'react';
+import { useState } from 'react';
+import styles from './SlideshowLightbox.module.css';
 
 export function LightboxImage({ props, imgRef, fullImg, imgStyle, imgSrc, index, displayImgMetadata, enableMagnifyingGlass,
+  onImgError,
     onUpdateImgMetadata }) {
     const [isLoading, setIsLoading] = useState(true);
   
@@ -14,8 +15,8 @@ export function LightboxImage({ props, imgRef, fullImg, imgStyle, imgSrc, index,
     }
   
     const handleError = (event, index) => {
-      if (props.onImgError) {
-        props.onImgError(event, index);
+      if (onImgError) {
+        onImgError(event, index);
       }
     }
   
@@ -55,6 +56,7 @@ export function LightboxImage({ props, imgRef, fullImg, imgStyle, imgSrc, index,
         <img
           className={`imageModal ${fullImg && props.thumbnailImgAnim ? styles.fullImg : false}  
             ${props.imgElemClassname ? props.imgElemClassname : ''}
+            ${props.isZoomCursor ? styles.zoomInCursor : ""}
           ${styles.lightboxImg} ${styles.rotate_img}
           ${enableMagnifyingGlass
               ? styles.maxWidthFull

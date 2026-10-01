@@ -16,4 +16,6 @@ export const initLightboxJS = (licenseKey: string, plan_type: string) => {
   
 };
 
-export * from "./components";
+export * from "./components/Image";
+export * from "./components/SlideshowLightbox";
+export * from "./components/VideoLightbox";

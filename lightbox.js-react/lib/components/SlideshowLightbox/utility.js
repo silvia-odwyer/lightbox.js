@@ -117,3 +117,14 @@ typeof object1 === 'object' && object1 != null && typeof object2 === 'object' &&
   ? Object.keys(object1).length === Object.keys(object2).length
   && Object.keys(object1).every(p => areObjectsEqual(object1[p], object2[p]))
   : object1 === object2;
+
+export const usePrevious = (value) => {
+    // custom hook to get previous prop value
+    const ref = useRef();
+  
+    useEffect(() => {
+      ref.current = value;
+    });
+  
+    return ref.current;
+}
