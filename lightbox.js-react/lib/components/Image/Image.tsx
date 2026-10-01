@@ -1,26 +1,7 @@
 import React, { useEffect, useState, useRef, ReactNode } from 'react'
 import { SlideshowLightbox } from '../SlideshowLightbox/SlideshowLightbox';
+import {singleItemThemes as themes} from "../shared-utility.js"
 
-const themes: any = {
-  day: {
-    background: 'white',
-    iconColor: 'black',
-    thumbnailBorder: 'solid transparent 2px',
-    textColor: 'black'
-  },
-  night: {
-    background: '#151515',
-    iconColor: 'silver',
-    thumbnailBorder: 'solid rgb(107, 133, 206)  2px',
-    textColor: 'silver'
-  },
-  lightbox: {
-    background: 'rgba(12, 12, 12, 0.93)',
-    iconColor: 'silver',
-    thumbnailBorder: 'solid rgb(107, 133, 206) 2px',
-    textColor: 'silver'
-  }
-}
 const defaultTheme = "lightbox";
 
 
@@ -118,7 +99,9 @@ export const Image: React.FC<ImageProps> = (props) => {
     props.framework ? props.framework : ''
   )
 
-  const [images, setImages] = useState<any>([])
+  const [images, setImages] = useState<any>(
+     props.framework == "next" && props.image ? [props.image] : null
+  )
 
   // const [displayLoader, setDisplayLoader] = useState(
   //   props.showLoader ? props.showLoader : false
@@ -150,15 +133,7 @@ export const Image: React.FC<ImageProps> = (props) => {
       }
     }
 
-    if (props.image && images && images.length == 0 && frameworkID == "next") {
-      let imgs: any = [];
-      imgs.push(props.image) 
-      setImages(imgs);
-    }
-    else {
-      setImages(null)
-    }
-
+ 
     return () => {
     };
 

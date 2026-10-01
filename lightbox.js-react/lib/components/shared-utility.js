@@ -1,13 +1,13 @@
+import { useEffect } from "react";
+
 const openFullScreen = (lightbox_elem) => {
   if (lightbox_elem.requestFullscreen) {
     lightbox_elem.requestFullscreen();
   } else if (lightbox_elem.webkitRequestFullscreen) {
-
-  /* Safari */
+    /* Safari */
     lightbox_elem.webkitRequestFullscreen();
   } else if (lightbox_elem.msRequestFullscreen) {
-
-  /* Internet Explorer */
+    /* Internet Explorer */
     lightbox_elem.msRequestFullscreen();
   }
 };
@@ -36,6 +36,28 @@ export const themes = {
   },
 };
 
+// Themes for Image and VideoLightbox components
+export const singleItemThemes = {
+  day: {
+    background: 'white',
+    iconColor: 'black',
+    thumbnailBorder: 'solid transparent 2px',
+    textColor: 'black'
+  },
+  night: {
+    background: '#151515',
+    iconColor: 'silver',
+    thumbnailBorder: 'solid rgb(107, 133, 206)  2px',
+    textColor: 'silver'
+  },
+  lightbox: {
+    background: 'rgba(12, 12, 12, 0.93)',
+    iconColor: 'silver',
+    thumbnailBorder: 'solid rgb(107, 133, 206) 2px',
+    textColor: 'silver'
+  }
+}
+
 export const variants = {
   active: {
     opacity: 1,
@@ -44,6 +66,32 @@ export const variants = {
     opacity: 0,
   },
 };
+
+
+/**
+ * Locks page scroll while `locked` is true and restores
+ * the previous scroll position when it becomes false or the
+ * component unmounts.
+ */
+export function useScrollLock(locked) {
+  useEffect(() => {
+    if (!locked || typeof window === "undefined") return;
+
+    const scrollY = window.scrollY;
+    const { style } = document.body;
+
+    style.position = "fixed";
+    style.top = `-${scrollY}px`;
+    style.width = "100%";
+
+    return () => {
+      style.position = "";
+      style.top = "";
+      style.width = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [locked]);
+}
 
 export const fullScreen = (fullScreenHandler) => {
   let lightbox = document.getElementById("slideshowAnim");
@@ -94,4 +142,13 @@ export const getContainerWidth = (lightboxWidth, isBrowserFullScreen) => {
     return "";
   }
   return "";
+};
+
+export const unlockScroll = () => {
+  if (document.body.style.position !== "fixed") return;
+  const y = scrollYRef.current;
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.width = "";
+  window.scrollTo(0, y);
 };

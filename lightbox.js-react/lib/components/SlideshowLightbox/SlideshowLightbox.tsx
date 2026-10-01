@@ -17,7 +17,7 @@ import {
   removeFullScreenChangeEventListeners,
   initFullScreenChangeEventListeners,
   fullScreen,
-  getContainerWidth,
+  getContainerWidth, useScrollLock,
   getContainerHeight,
   themes,
 } from "../shared-utility.js";
@@ -1049,7 +1049,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
         setEmblaReinitialized(false);
         setCurrentRotation(0);
         //resetRotation()
-        if (prevFocusedElem) prevFocusedElem?.focus();
+        //if (prevFocusedElem) prevFocusedElem?.focus();
       };
 
       const getCursor = () => {
@@ -2815,33 +2815,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
         return () => modal.removeEventListener("keydown", handleTab);
       }, [showModal]);
 
-      const scrollYRef = useRef(0);
-
-      useEffect(() => {
-        if (showModal) {
-          // Save current scroll position
-          scrollYRef.current = window.scrollY;
-
-          // Lock the scroll
-          document.body.style.position = "fixed";
-          document.body.style.top = `-${scrollYRef.current}px`;
-          document.body.style.width = "100%";
-        } else {
-          // Restore scroll position
-          const y = scrollYRef.current;
-          document.body.style.position = "";
-          document.body.style.top = "";
-          document.body.style.width = "";
-          window.scrollTo(0, y);
-        }
-
-        return () => {
-          // Clean up on unmount
-          document.body.style.position = "";
-          document.body.style.top = "";
-          document.body.style.width = "";
-        };
-      }, [showModal]);
+      useScrollLock(showModal)
+     
 
       return (
         <div className={`${initWrapperClassname()}`}>
@@ -2868,6 +2843,10 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
                       animate={showModal ? "active" : "inactive"}
                       exit={"inactive"}
                       transition={{ duration: "0.3" }}
+
+                      // Do not remove: forces JS animation; avoids Framer WAAPI end-of-animation flicker
+                      onUpdate={() => {}}
+
                       onAnimationComplete={() => {
                         let animEntered = !animationEntered;
                         setAnimationEntered(animEntered);

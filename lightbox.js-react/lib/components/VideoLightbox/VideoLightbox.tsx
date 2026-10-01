@@ -1,25 +1,26 @@
-import React, { useEffect, useState, useRef, ReactNode } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  ReactNode,
+  useCallback,
+  useImperativeHandle,
+} from "react";
 
 import { AnimatePresence, motion, MotionGlobalConfig } from "framer-motion";
 import * as React from "react";
-import {
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
-import { LightboxImage } from "./LightboxImage.jsx";
+
 import { EscKeyHandlers, IconButton } from "../shared-components.tsx";
 
 import {
   variants,
   checkOutsideClick,
   removeFullScreenChangeEventListeners,
-  themes,
+  singleItemThemes as themes,
   initFullScreenChangeEventListeners,
   fullScreen,
-  getContainerHeight,
+  unlockScroll,
+  getContainerHeight, useScrollLock,
   getContainerWidth,
 } from "../shared-utility.js";
 
@@ -59,13 +60,10 @@ import {
 } from "../SlideshowLightbox/utility";
 // import { saveAs } from 'file-saver-es'
 import KeyHandler from "@banzai-inc/react-key-handler";
-import useResizeObserver from "@react-hook/resize-observer";
-import useEmblaCarousel from "embla-carousel-react";
 import Div100vh from "react-div-100vh";
 import YouTube from "react-youtube";
 import { useInterval } from "usehooks-ts";
 //import exifr from 'exifr'
-import JsFileDownloader from "js-file-downloader";
 import { use100vh } from "react-div-100vh";
 
 const defaultTheme = "lightbox";
@@ -273,7 +271,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     setShowModal(false);
     setIsOpen(false);
     setCarouselReady(false);
-    if (prevFocusedElem) prevFocusedElem?.focus();
+    if (prevFocusedElem) prevFocusedElem?.focus({ preventScroll: true });
   };
 
   const [state, setState] = React.useState();
@@ -575,6 +573,8 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
   const lightboxRef = useRef();
   const videoRef = useRef();
   const [showModal, setShowModal] = useState(false);
+  useScrollLock(showModal)
+
   const [animationEntered, setAnimationEntered] = useState(false);
   const [prevFocusedElem, setPrevFocusedElem] = useState<HTMLElement | null>(
     null,
@@ -582,9 +582,16 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
 
   return (
     <div className={`${initWrapperClassname()}`}>
-      <AnimatePresence initial={false} mode={"wait"}>
+      <AnimatePresence
+        initial={false}
+        mode={"wait"}
+        onExitComplete={() => {
+          //   unlockScroll();
+          prevFocusedElem?.focus({ preventScroll: true });
+        }}
+      >
         {showModal !== false && (
-          <Portal>
+          <Portal key="lightboxjs">
             <Div100vh>
               <div
                 style={{ height: lboxHeight }}
@@ -597,31 +604,32 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
               >
                 <motion.div
                   className={`${styles.modalContainer}`}
-                  style={{ height: lboxHeight }}
+                  //style={{ height: lboxHeight }}
                   initial={"inactive"}
                   variants={variants}
+                  style={{ height: lboxHeight }}
+
+                  // Do not remove: forces JS animation; avoids Framer WAAPI end-of-animation flicker
+                  onUpdate={() => {}}
                   animate={showModal ? "active" : "inactive"}
                   exit={"inactive"}
-                  transition={{ duration: "0.3" }}
-                  onAnimationComplete={() => {
-                    let animEntered = !animationEntered;
-                    setAnimationEntered(animEntered);
+                  transition={{ duration: 0.3 }}
+                  onAnimationComplete={(definition) => {
+                    // ignore the exit animation
+                    if (definition !== "active") return;
+                    let prevFocusedElement: any = document.activeElement;
+                    setPrevFocusedElem(prevFocusedElement);
 
-                    if (animEntered == true) {
-                      let prevFocusedElement: any = document.activeElement;
-                      setPrevFocusedElem(prevFocusedElement);
-
-                      const firstButton: HTMLElement = document.querySelector(
-                        ".lightboxContainer button, .lightboxContainer [tabindex='0']",
-                      );
-                      if (firstButton) {
-                        firstButton.focus();
-                      }
-
-                      document.getElementById("lightboxContainer")?.focus();
-                    } else {
-                      prevFocusedElem?.focus();
+                    const firstButton: HTMLElement = document.querySelector(
+                      ".lightboxContainer button, .lightboxContainer [tabindex='0']",
+                    );
+                    if (firstButton) {
+                      firstButton.focus({ preventScroll: true });
                     }
+
+                    document
+                      .getElementById("lightboxContainer")
+                      ?.focus({ preventScroll: true });
                   }}
                 >
                   <motion.div
