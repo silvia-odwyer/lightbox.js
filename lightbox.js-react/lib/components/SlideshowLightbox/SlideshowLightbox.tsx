@@ -7,12 +7,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { EscKeyHandlers, IconButton } from "../shared-components";
+import { EscKeyHandlers, IconButton, PictureElem } from "../shared-components";
 import { LightboxImage } from "./LightboxImage.jsx";
 import styles from "./SlideshowLightbox.module.css";
 
 import {
   checkOutsideClick,
+  downloadImage,
   fullScreen,
   getContainerHeight,
   getContainerWidth,
@@ -22,6 +23,9 @@ import {
   variants,
 } from "../shared-utility.js";
 
+import KeyHandler from "@banzai-inc/react-key-handler";
+import useResizeObserver from "@react-hook/resize-observer";
+import useEmblaCarousel from "embla-carousel-react";
 import { ReactNode } from "react";
 import {
   ArrowClockwise,
@@ -37,12 +41,15 @@ import {
   ZoomIn,
   ZoomOut,
 } from "react-bootstrap-icons";
-import { Portal } from "react-portal";
+import Div100vh from "react-div-100vh";
+import { createPortal } from "react-dom";
+import YouTube from "react-youtube";
 import {
   ReactZoomPanPinchRef,
   TransformComponent,
   TransformWrapper,
 } from "react-zoom-pan-pinch";
+import { useInterval } from "usehooks-ts";
 import {
   areObjectsEqual,
   closeFullScreen,
@@ -54,15 +61,7 @@ import {
   usePrevious,
   wrapNums,
 } from "./utility";
-// import { saveAs } from 'file-saver-es'
-import KeyHandler from "@banzai-inc/react-key-handler";
-import useResizeObserver from "@react-hook/resize-observer";
-import useEmblaCarousel from "embla-carousel-react";
-import Div100vh from "react-div-100vh";
-import YouTube from "react-youtube";
-import { useInterval } from "usehooks-ts";
 //import exifr from 'exifr'
-import JsFileDownloader from "js-file-downloader";
 import { use100vh } from "react-div-100vh";
 
 let thumbnailVariants: any = {
@@ -186,39 +185,6 @@ export interface SlideshowLightboxProps {
   displayedImages?: any;
   metadataTimeLocale?: string;
   captionStyle?: any;
-}
-
-function PictureElem({
-  elem_metadata,
-  enableMagnifyingGlass,
-  onHandleError,
-  index,
-}) {
-  return (
-    <picture
-      className={`imageModal 
-      ${styles.lightboxImg} 
-      ${
-        enableMagnifyingGlass
-          ? styles.maxWidthFull
-          : styles.maxWidthWithoutMagnifier
-      } `}
-    >
-      {Object.keys(elem_metadata).map((format) => (
-        <source
-          type={format}
-          key={format}
-          srcSet={elem_metadata[format].srcSet}
-        />
-      ))}
-      <img
-        src={elem_metadata["fallback"]}
-        onError={(error) => {
-          onHandleError(error, index);
-        }}
-      />
-    </picture>
-  );
 }
 
 export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
@@ -400,6 +366,9 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
       const [displayLoader, setDisplayLoader] = useState(
         props.showLoader ? props.showLoader : false,
       );
+
+      const [isMounted, setIsMounted] = useState(false);
+      
 
       const [pinch, setPinch] = useState(false);
       const [currentZoomScale, setCurrentZoomScale] = useState(1);
@@ -1192,6 +1161,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
         openModal(index);
       };
 
+
+
       const saveImage = () => {
         let img_url;
         if (props.images?.length > 0) {
@@ -1206,16 +1177,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
           }
         }
 
-        new JsFileDownloader({
-          url: img_url,
-          filename: "image.jpg",
-        })
-          .then(function () {
-            // download ended
-          })
-          .catch(function (error) {
-            // an error occurred
-          });
+        downloadImage(img_url)
       };
 
       const playSlideshow = () => {
@@ -1774,6 +1736,12 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
 
         return false;
       };
+
+        useEffect(() => {
+          setIsMounted(true);
+      
+        }, [])
+      
 
       useEffect(() => {
         if (!emblaApi) return;
@@ -2821,9 +2789,11 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
         <div className={`${initWrapperClassname()}`}>
           {renderPreviewImages()}
 
-          <AnimatePresence initial={false} mode={"wait"}>
+
+          {isMounted && createPortal(
+
+          <AnimatePresence initial={false}>
             {showModal !== false && (
-              <Portal>
                 <Div100vh>
                   <div
                     style={{ height: lboxHeight }}
@@ -3530,9 +3500,14 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
                       : null}
                   </div>
                 </Div100vh>
-              </Portal>
             )}
           </AnimatePresence>
+            ,
+            document.body
+
+          )}
+
+
         </div>
       );
     },
