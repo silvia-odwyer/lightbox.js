@@ -1,197 +1,146 @@
-import React, { useEffect, useState, useRef, ReactNode } from 'react'
-import { SlideshowLightbox } from '../SlideshowLightbox/SlideshowLightbox';
-import {singleItemThemes as themes} from "../shared-utility.js"
+"use client";
 
-const defaultTheme = "lightbox";
-
+import React, { ReactNode, useState } from "react";
+import {
+  ImageItem,
+  ItemLightbox,
+  useResolvedSrc,
+} from "../ItemLightbox/ItemLightbox";
 
 export interface ImageProps {
+  /** For Next.js: pass a next/image element as the preview */
   children?: ReactNode;
-  ref?: any;
+  image?: ImageItem | any;
+  framework?: string;
+
   fullScreen?: boolean;
   backgroundColor?: string;
   theme?: string;
   iconColor?: any;
   modalClose?: string;
-  image?: any;
   roundedImages?: boolean;
   disableImageZoom?: boolean;
+  singleClickZoom?: boolean;
+  zoomCursor?: boolean;
+  maxZoomScale?: number;
+  rotateIcon?: boolean;
   showFullScreenIcon?: boolean;
   showMagnificationIcons?: boolean;
   showControls?: boolean;
   downloadImages?: boolean;
-  rtl?: boolean;
-  width?: number | null;
-  height?: number | null;
-  framework?: string;
-  lightboxIdentifier?: string;
-  images?: any;
+  captionPlacement?: string;
+  captionStyle?: React.CSSProperties;
+
+  width?: number | string | null;
+  height?: number | string | null;
   lightboxImgClass?: string;
   wrapperClassName?: string;
   className?: string;
-}
 
+  onOpen?: (item?: any) => void;
+  onClose?: (item?: any) => void;
+  onError?: (event: any, message: string) => void;
+  onRotate?: (rotation: number) => void;
+
+  /** No longer used; kept for API compatibility */
+  lightboxIdentifier?: string;
+  /** No longer used (single item); kept for API compatibility */
+  rtl?: boolean;
+}
 
 export const Image: React.FC<ImageProps> = (props) => {
-  const [backgroundColor, setBackgroundColor] = useState(props.backgroundColor ? props.backgroundColor : themes[defaultTheme].background);
+  const [open, setOpen] = useState(false);
 
-  const [iconColor, setIconColor] = useState(props.iconColor ? props.iconColor : themes[defaultTheme].iconColor);
+  const image = props.image;
+  const previewSrc = useResolvedSrc(image?.src);
+  const alt: string = image?.alt ?? image?.title ?? "";
+  const canOpen = !!image;
 
-  const [fullScreen, setFullScreen] = useState(props.fullScreen ? props.fullScreen : false);
+  const openLightbox = () => {
+    if (canOpen) setOpen(true);
+  };
 
-  const [modalCloseOption, setModalCloseOption] = useState(props.modalClose ? props.modalClose : "default");
-
-  const [disableZoom, setDisableZoom] = useState(
-    props.disableImageZoom ? props.disableImageZoom : false
-  )
-
-  const [imageRoundedBorder, setImageRoundedBorder] = useState(
-    props.roundedImages ? props.roundedImages : false
-  )
-
-  const [displayFullScreenIcon, setDisplayFullScreenIcon] = useState(
-    props.showFullScreenIcon ? props.showFullScreenIcon : true
-  )
-
-  const [className, setClassName] = useState(
-    props.className ? props.className : ""
-  )
-
-  const [imgWrapperClass, setImgWrapperClass] = useState(
-    props.wrapperClassName ? props.wrapperClassName : ""
-  )
-
-  const [width, setWidth] = useState(
-    props.width ? props.width : null
-  )
-
-  const [height, setHeight] = useState(
-    props.height ? props.height : null
-  )
-
-  const [lightboxImgClassName, setLightboxImgClassName] = useState(
-    props.lightboxImgClass ? props.lightboxImgClass : ""
-  )
-  
-  const [imgClass, setImgClass] = useState(
-    props.className ? props.className : ""
-  )
-
-  const [displayMagnificationIcons, setDisplayMagnificationIcons] = useState<boolean>(
-    props.showMagnificationIcons ? props.showMagnificationIcons : true
-  )
-
-  const [displayControls, setDisplayControls] = useState<boolean>(
-    props.showControls ? props.showControls : true
-  )
-
-  const [showDownloadBtn, setShowDownloadBtn] = useState(
-    props.downloadImages ? props.downloadImages : false
-  )
-
-  const [isRTL, setIsRTL] = useState(props.rtl ? props.rtl : false)
-
-  const [lightboxIdentifier, setLightboxIdentifier] = useState(
-    props.lightboxIdentifier ? props.lightboxIdentifier : ""
-  )
-
-  const [frameworkID, setFrameworkID] = useState(
-    props.framework ? props.framework : ''
-  )
-
-  const [images, setImages] = useState<any>(
-     props.framework == "next" && props.image ? [props.image] : null
-  )
-
-  // const [displayLoader, setDisplayLoader] = useState(
-  //   props.showLoader ? props.showLoader : false
-  // )
-
-  // const [textColor, setTextColor] = useState(
-  //   props.textColor ? props.textColor : themes[defaultTheme].textColor
-  // )
-
-
-  const [state, setState] = React.useState();
-
-  const initProps = () => {
-    if (props.showControls != undefined) {
-      setDisplayControls(props.showControls)
-      setDisableZoom(props.showControls)
-      
-      if (props.showControls == false) {
-          setDisplayMagnificationIcons(false)
+  const triggerProps = canOpen
+    ? {
+        role: "button",
+        tabIndex: 0,
+        "aria-haspopup": "dialog" as const,
+        "aria-label": alt ? `View ${alt}` : "View image",
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openLightbox();
+          }
+        },
       }
-    }
-  }
+    : {};
 
-  useEffect(() => {
-    if (props.theme) {
-      if (themes[props.theme]) {
-        setBackgroundColor(themes[props.theme].background);
-        setIconColor(themes[props.theme].iconColor);
-      }
-    }
-
- 
-    return () => {
-    };
-
-  }, [state]);
-
-  const getImage = () => {
-    if (frameworkID == "next" && props.children != undefined) {
-      return props.children
-    }
-    else if (frameworkID != "next") {
+  const getTrigger = (): ReactNode => {
+    // Next.js: the preview is a next/image element passed as children.
+    // Wrap rather than cloneElement: children coming from a Server Component
+    // can't be reliably cloned in a Client Component, so injected props would be lost.
+    if (props.framework === "next" && props.children) {
       return (
-        <img src={props.image? props.image.src : ""} 
-        alt={props.image.title} 
-        width={width != null ? width : "100%"} 
-        height={height != null ? height : "100%"} 
-        className={`${className}`} />
-      )
+        <span
+          {...triggerProps}
+          onClick={openLightbox}
+          style={{ display: "inline-block", cursor: canOpen ? "pointer" : undefined }}
+        >
+          {props.children}
+        </span>
+      );
     }
-  }
 
-  useEffect(() => {
-    let isMounted = true
-    if (isMounted) initProps()
-
-    return () => {
-      isMounted = false
+    if (image) {
+      return (
+        <img
+          src={previewSrc}
+          alt={alt}
+          width={props.width ?? "100%"}
+          height={props.height ?? "100%"}
+          className={props.className ?? ""}
+          style={{ cursor: "pointer" }}
+          onClick={openLightbox}
+          {...triggerProps}
+        />
+      );
     }
-  }, [])
+
+    return props.children ?? null;
+  };
 
   return (
-    <SlideshowLightbox
-      showSlideshowIcon={false} 
-      showThumbnails={false}
-      backgroundColor={backgroundColor} 
-      iconColor={iconColor} 
-      theme={props.theme} 
-      lightboxIdentifier={lightboxIdentifier}
-      fullScreen={fullScreen} 
-      showMagnificationIcons={displayMagnificationIcons}
-      showFullScreenIcon={displayFullScreenIcon} 
-      downloadImages={showDownloadBtn}
-      roundedImages={imageRoundedBorder} 
-      disableImageZoom={disableZoom}
-      showArrows={false} 
-      showThumbnailIcon={false} 
-      showControls={displayControls}
-      modalClose={modalCloseOption}
-      lightboxImgClass={lightboxImgClassName}
-      imgClassName={imgClass}
-      imageComponent={true}
-      framework={frameworkID}
-      // className={className}
-      imgWrapperClassName={imgWrapperClass}
-      images={images}>
-
-      {getImage()}
-    
-    </SlideshowLightbox>
+    <ItemLightbox
+      item={image}
+      open={open}
+      onOpen={props.onOpen}
+      onClose={(item) => {
+        setOpen(false);
+        props.onClose?.(item);
+      }}
+      onError={props.onError}
+      onRotate={props.onRotate}
+      theme={props.theme}
+      backgroundColor={props.backgroundColor}
+      iconColor={props.iconColor}
+      fullScreen={props.fullScreen}
+      modalClose={props.modalClose}
+      roundedImages={props.roundedImages}
+      disableImageZoom={props.disableImageZoom}
+      singleClickZoom={props.singleClickZoom}
+      zoomCursor={props.zoomCursor}
+      maxZoomScale={props.maxZoomScale}
+      rotateIcon={props.rotateIcon}
+      showFullScreenIcon={props.showFullScreenIcon}
+      showMagnificationIcons={props.showMagnificationIcons}
+      showControls={props.showControls}
+      downloadImages={props.downloadImages}
+      captionPlacement={props.captionPlacement}
+      captionStyle={props.captionStyle}
+      lightboxImgClass={props.lightboxImgClass}
+      imgWrapperClassName={props.wrapperClassName}
+    >
+      {getTrigger()}
+    </ItemLightbox>
   );
-
-}
+};

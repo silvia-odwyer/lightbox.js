@@ -1,8 +1,5 @@
-import exifr from "exifr/dist/full.esm.mjs";
 import * as React from "react";
-import { useState } from "react";
 import styles from "./SlideshowLightbox/SlideshowLightbox.module.css";
-import { AnimatePresence, motion, MotionGlobalConfig } from "framer-motion";
 
 import KeyHandler from "@banzai-inc/react-key-handler";
 import { ReactNode } from "react";
@@ -17,6 +14,8 @@ type IconButtonProps = {
   showOutline?: boolean;
   style?: any;
 };
+
+
 
 export function IconButton({
   onClick,
@@ -82,5 +81,40 @@ export function EscKeyHandlers({ isBrowserFullScreen, onCloseModal }) {
         }}
       />
     </>
+  );
+}
+
+
+
+export function PictureElem({
+  elem_metadata,
+  enableMagnifyingGlass,
+  onHandleError,
+  index,
+}) {
+  return (
+    <picture
+      className={`imageModal 
+      ${styles.lightboxImg} 
+      ${
+        enableMagnifyingGlass
+          ? styles.maxWidthFull
+          : styles.maxWidthWithoutMagnifier
+      } `}
+    >
+      {Object.keys(elem_metadata).map((format) => (
+        <source
+          type={format}
+          key={format}
+          srcSet={elem_metadata[format].srcSet}
+        />
+      ))}
+      <img
+        src={elem_metadata["fallback"]}
+        onError={(error) => {
+          onHandleError(error, index);
+        }}
+      />
+    </picture>
   );
 }

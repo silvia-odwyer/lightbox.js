@@ -1,3 +1,4 @@
+import JsFileDownloader from "js-file-downloader";
 import { useEffect } from "react";
 
 const openFullScreen = (lightbox_elem) => {
@@ -144,11 +145,16 @@ export const getContainerWidth = (lightboxWidth, isBrowserFullScreen) => {
   return "";
 };
 
-export const unlockScroll = () => {
-  if (document.body.style.position !== "fixed") return;
-  const y = scrollYRef.current;
-  document.body.style.position = "";
-  document.body.style.top = "";
-  document.body.style.width = "";
-  window.scrollTo(0, y);
-};
+
+export const downloadImage = (img_url) => {
+   new JsFileDownloader({
+    url: img_url,
+    filename: "image.jpg",
+  })
+    .then(function () {
+      // download ended
+    })
+    .catch(function (error) {
+      // an error occurred
+    });
+}
