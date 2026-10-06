@@ -7,19 +7,19 @@ import {
   useRef,
   useState,
 } from "react";
+import { EscKeyHandlers, IconButton } from "../shared-components";
 import { LightboxImage } from "./LightboxImage.jsx";
 import styles from "./SlideshowLightbox.module.css";
-import { EscKeyHandlers, IconButton } from "../shared-components.tsx";
 
 import {
-  variants,
   checkOutsideClick,
-  removeFullScreenChangeEventListeners,
-  initFullScreenChangeEventListeners,
   fullScreen,
-  getContainerWidth, useScrollLock,
   getContainerHeight,
+  getContainerWidth,
+  removeFullScreenChangeEventListeners,
   themes,
+  useScrollLock,
+  variants,
 } from "../shared-utility.js";
 
 import { ReactNode } from "react";
@@ -2815,8 +2815,7 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
         return () => modal.removeEventListener("keydown", handleTab);
       }, [showModal]);
 
-      useScrollLock(showModal)
-     
+      useScrollLock(showModal);
 
       return (
         <div className={`${initWrapperClassname()}`}>
@@ -2843,10 +2842,8 @@ export const SlideshowLightbox: React.FC<SlideshowLightboxProps> =
                       animate={showModal ? "active" : "inactive"}
                       exit={"inactive"}
                       transition={{ duration: "0.3" }}
-
                       // Do not remove: forces JS animation; avoids Framer WAAPI end-of-animation flicker
                       onUpdate={() => {}}
-
                       onAnimationComplete={() => {
                         let animEntered = !animationEntered;
                         setAnimationEntered(animEntered);

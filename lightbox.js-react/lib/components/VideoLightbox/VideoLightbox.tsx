@@ -1,68 +1,34 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  ReactNode,
-  useCallback,
-  useImperativeHandle,
-} from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 
-import { AnimatePresence, motion, MotionGlobalConfig } from "framer-motion";
-import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { EscKeyHandlers, IconButton } from "../shared-components.tsx";
+import { EscKeyHandlers, IconButton } from "../shared-components";
 
 import {
-  variants,
   checkOutsideClick,
+  fullScreen,
+  getContainerHeight,
+  getContainerWidth,
   removeFullScreenChangeEventListeners,
   singleItemThemes as themes,
-  initFullScreenChangeEventListeners,
-  fullScreen,
-  unlockScroll,
-  getContainerHeight, useScrollLock,
-  getContainerWidth,
+  useScrollLock,
+  variants,
 } from "../shared-utility.js";
 
 import styles from "../SlideshowLightbox/SlideshowLightbox.module.css";
 
-import {
-  ArrowClockwise,
-  Download,
-  Fullscreen,
-  FullscreenExit,
-  GridFill,
-  InfoCircle,
-  PauseCircleFill,
-  PlayCircleFill,
-  Search,
-  XLg,
-  ZoomIn,
-  ZoomOut,
-} from "react-bootstrap-icons";
+import { Fullscreen, FullscreenExit, XLg } from "react-bootstrap-icons";
 import { Portal } from "react-portal";
 
 import {
-  ReactZoomPanPinchRef,
-  TransformComponent,
-  TransformWrapper,
-} from "react-zoom-pan-pinch";
-import {
-  areObjectsEqual,
   closeFullScreen,
-  createCustomThumbnailBorder,
-  getScale,
   getVideoHeight,
   getVideoWidth,
   shouldAutoplay,
-  usePrevious,
-  wrapNums,
 } from "../SlideshowLightbox/utility";
 // import { saveAs } from 'file-saver-es'
-import KeyHandler from "@banzai-inc/react-key-handler";
 import Div100vh from "react-div-100vh";
 import YouTube from "react-youtube";
-import { useInterval } from "usehooks-ts";
 //import exifr from 'exifr'
 import { use100vh } from "react-div-100vh";
 
@@ -76,8 +42,13 @@ export interface VideoLightboxProps {
   theme?: string;
   iconColor?: any;
   modalClose?: string;
+  captionPlacement?: string;
   showFullScreenIcon?: boolean;
   mediaItem?: any;
+  onOpen?: any;
+  onClose?: any;
+
+  open?: boolean;
   showControls?: boolean;
   downloadImages?: boolean;
   width?: number | null;
@@ -86,6 +57,21 @@ export interface VideoLightboxProps {
   lightboxImgClass?: string;
   wrapperClassName?: string;
   className?: string;
+  captionStyle?: any;
+  lightboxHeight?: string;
+  lightboxWidth?: string;
+  showLoader?: boolean;
+  onSelect?: any;
+  controlComponent?: any;
+  closeComponent?: any;
+
+  onError?: any;
+  iconStyle?: any;
+  closeIconBtnStyle?: any;
+  showControlsBar?: boolean;
+  lightboxFooterComponent?: any;
+  imgWrapperClassName?: string;
+
 }
 
 export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
@@ -110,16 +96,8 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
 
   const [isBrowserFullScreen, setIsBrowserFullScreen] = useState(false);
 
-  const [disableZoom, setDisableZoom] = useState(
-    props.disableImageZoom ? props.disableImageZoom : false,
-  );
-
   const [lightboxModalHeight, setLightboxModalHeight] = useState(
     props.lightboxHeight ? props.lightboxHeight : "100vh",
-  );
-
-  const [imageRoundedBorder, setImageRoundedBorder] = useState(
-    props.roundedImages ? props.roundedImages : false,
   );
 
   const [customIconStyle, setCustomIconStyle] = useState(
@@ -140,9 +118,9 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
 
   const [controlsPlacement, setControlsPlacement] = useState("default");
 
-  const [showControlsBar, setShowControlsBar] = useState(
-    props.showControlsBar ? props.showControlsBar : true,
-  );
+  // const [showControlsBar, setShowControlsBar] = useState(
+  //   props.showControlsBar ? props.showControlsBar : true,
+  // );
 
   const [imgWrapperClass, setImgWrapperClass] = useState(
     props.wrapperClassName ? props.wrapperClassName : "",
@@ -165,24 +143,13 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     props.lightboxWidth ? props.lightboxWidth : "100vw",
   );
 
-  const [displayMagnificationIcons, setDisplayMagnificationIcons] =
-    useState<boolean>(
-      props.showMagnificationIcons ? props.showMagnificationIcons : true,
-    );
-
   const [displayControls, setDisplayControls] = useState<boolean>(
     props.showControls ? props.showControls : true,
   );
 
-  const [showDownloadBtn, setShowDownloadBtn] = useState(
-    props.downloadImages ? props.downloadImages : false,
-  );
-
-  const [isRTL, setIsRTL] = useState(props.rtl ? props.rtl : false);
-
-  const [lightboxIdentifier, setLightboxIdentifier] = useState(
-    props.lightboxIdentifier ? props.lightboxIdentifier : "",
-  );
+  // const [lightboxIdentifier, setLightboxIdentifier] = useState(
+  //   props.lightboxIdentifier ? props.lightboxIdentifier : "",
+  // );
 
   const [frameworkID, setFrameworkID] = useState(
     props.framework ? props.framework : "",
@@ -232,7 +199,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     } else if (props.open == false) {
       closeModal();
     }
-  }, [props.open, props.startingSlideIndex, images]);
+  }, [props.open, images]);
 
   const openModal = () => {
     setShowModal(true);
@@ -255,7 +222,6 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
   };
 
   useEffect(() => {
-    console.log("is open");
     if (isOpen == true) {
       dispatchOpenEvent();
     } else {
@@ -277,9 +243,9 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
   const [state, setState] = React.useState();
 
   const getIconClasses = (): string | undefined => {
-    if (arrowStyle == "dark") {
+    if (props.theme == "dark") {
       return styles.darkHeaderIcon;
-    } else if (arrowStyle == "light") {
+    } else if (props.theme == "light") {
       return styles.lightHeaderIcon;
     }
   };
@@ -290,18 +256,15 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     // setIsBrowserFullScreen(false)
   };
 
-  const setItemLoaded = (index) => {
+  const setItemLoaded = (index: Number) => {
     setDisplayLoader(false);
   };
 
   const initProps = () => {
     if (props.showControls != undefined) {
       setDisplayControls(props.showControls);
-      setDisableZoom(props.showControls);
 
-      if (props.showControls == false) {
-        setDisplayMagnificationIcons(false);
-      }
+   
     }
   };
 
@@ -324,7 +287,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     return style_object;
   };
 
-  const handleError = (event, index) => {
+  const handleError = (event: any, index: Number) => {
     if (props.onError) {
       props.onError(
         event,
@@ -369,8 +332,6 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
   const videoSlideElement = () => {
     let elem = props.mediaItem;
     let videoElem;
-
-    console.log("video slide elem ", elem);
 
     let index = 0;
 
@@ -453,7 +414,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     return videoElem;
   };
 
-  const isImageCaption = (placement) => {
+  const isImageCaption = (placement: String) => {
     if (placement != imgCaptionPlacement) {
       return false;
     }
@@ -526,22 +487,6 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
     );
   };
 
-  const getImage = () => {
-    if (frameworkID == "next" && props.children != undefined) {
-      return props.children;
-    } else if (frameworkID != "next") {
-      return (
-        <img
-          src={props.image ? props.image.src : ""}
-          alt={props.image.title}
-          width={width != null ? width : "100%"}
-          height={height != null ? height : "100%"}
-          className={`${className}`}
-        />
-      );
-    }
-  };
-
   useEffect(() => {
     let isMounted = true;
     if (isMounted) initProps();
@@ -573,7 +518,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
   const lightboxRef = useRef();
   const videoRef = useRef();
   const [showModal, setShowModal] = useState(false);
-  useScrollLock(showModal)
+  useScrollLock(showModal);
 
   const [animationEntered, setAnimationEntered] = useState(false);
   const [prevFocusedElem, setPrevFocusedElem] = useState<HTMLElement | null>(
@@ -608,7 +553,6 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
                   initial={"inactive"}
                   variants={variants}
                   style={{ height: lboxHeight }}
-
                   // Do not remove: forces JS animation; avoids Framer WAAPI end-of-animation flicker
                   onUpdate={() => {}}
                   animate={showModal ? "active" : "inactive"}
@@ -674,7 +618,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
                                     label="Exit full screen"
                                     onClick={() => {
                                       isBrowserFullScreen
-                                        ? exitFullScreen(fullScreenHandler)
+                                        ? exitFullScreen()
                                         : fullScreen(fullScreenHandler);
                                     }}
                                   >
@@ -694,7 +638,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
                                     label="Make lightbox full screen"
                                     onClick={() => {
                                       isBrowserFullScreen
-                                        ? exitFullScreen(fullScreenHandler)
+                                        ? exitFullScreen()
                                         : fullScreen(fullScreenHandler);
                                     }}
                                   >
@@ -772,7 +716,7 @@ export const VideoLightbox: React.FC<VideoLightboxProps> = (props) => {
                         <div
                           className={`${getInnerContainerStyles()} ${styles.embla} 
                         ${
-                          isImageCaption("below") && showControlsBar == true
+                          isImageCaption("below") && props.showControlsBar == true
                             ? styles.slideImageAndCaption
                             : ""
                         } 
